@@ -3,4 +3,7 @@ Thumbs.db
 node_modules/
 .vscode/
 .idea/
+target/
 *.log
+tomcat.8080/
+src/main/resources/db.properties

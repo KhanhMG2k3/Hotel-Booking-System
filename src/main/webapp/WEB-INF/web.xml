@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+
+    <display-name>Sogo Homestay Booking System</display-name>
+
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+    <!-- Encoding Filter -->
+    <filter>
+        <filter-name>EncodingFilter</filter-name>
+        <filter-class>com.homestay.filter.EncodingFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>EncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- Home Controller -->
+    <servlet>
+        <servlet-name>HomeController</servlet-name>
+        <servlet-class>com.homestay.controller.HomeController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>HomeController</servlet-name>
+        <url-pattern>/home</url-pattern>
+        <url-pattern>/index</url-pattern>
+    </servlet-mapping>
+
+    <!-- Room Controller -->
+    <servlet>
+        <servlet-name>RoomController</servlet-name>
+        <servlet-class>com.homestay.controller.RoomController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RoomController</servlet-name>
+        <url-pattern>/rooms</url-pattern>
+        <url-pattern>/room-detail</url-pattern>
+    </servlet-mapping>
+
+    <!-- Booking Controller -->
+    <servlet>
+        <servlet-name>BookingController</servlet-name>
+        <servlet-class>com.homestay.controller.BookingController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>BookingController</servlet-name>
+        <url-pattern>/reservation</url-pattern>
+        <url-pattern>/booking</url-pattern>
+    </servlet-mapping>
+
+</web-app>
