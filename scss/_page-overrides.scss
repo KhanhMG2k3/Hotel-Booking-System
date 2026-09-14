@@ -1,0 +1,54 @@
+// Page-specific presentation styles kept outside JSP markup.
+
+.hero-home,
+.hero-reservation,
+.hero-rooms {
+    background-image: url('../images/hero_4.jpg');
+}
+
+.hero-room-detail {
+    background-image: url('../images/hero_4.jpg');
+}
+
+.room-card-image {
+    height    : 240px;
+    object-fit: cover;
+    transition: transform .4s ease;
+}
+
+.room-code-badge {
+    top          : 15px;
+    left         : 15px;
+    border-radius: 4px;
+    font-size    : .85rem;
+}
+
+.room-gallery-badge {
+    right     : 15px;
+    bottom    : 15px;
+    background: rgba(0, 0, 0, .7);
+    font-size : .8rem;
+}
+
+.room-detail-image {
+    height    : 480px;
+    object-fit: cover;
+}
+
+.thumbnail-wrap {
+    height: 110px;
+}
+
+.thumbnail-wrap img {
+    object-fit: cover;
+    transition: transform .3s ease;
+}
+
+.room-description,
+.room-amenities {
+    line-height: 1.8;
+}
+
+.room-amenities {
+    line-height: 1.9;
+}
