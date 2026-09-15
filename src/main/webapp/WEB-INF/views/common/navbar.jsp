@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+  <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
     <header class="site-header js-site-header">
       <div class="container-fluid">
@@ -8,6 +8,10 @@
             <a href="${pageContext.request.contextPath}/home">Sogo Homestay</a>
           </div>
           <div class="col-6 col-lg-8">
+            <div class="auth-actions">
+              <a class="auth-link" href="${pageContext.request.contextPath}/login">Login</a>
+              <a class="auth-link auth-link-primary" href="${pageContext.request.contextPath}/register">Register</a>
+            </div>
 
             <div class="site-menu-toggle js-site-menu-toggle" data-aos="fade">
               <span></span>
@@ -36,6 +40,12 @@
                         </li>
                         <li>
                           <a href="${pageContext.request.contextPath}/assets/contact.html">Liên Hệ</a>
+                        </li>
+                        <li>
+                          <a href="${pageContext.request.contextPath}/login">Login</a>
+                        </li>
+                        <li>
+                          <a href="${pageContext.request.contextPath}/register">Register</a>
                         </li>
                       </ul>
                     </div>
