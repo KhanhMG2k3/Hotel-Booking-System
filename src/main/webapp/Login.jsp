@@ -35,14 +35,14 @@
                     <p class="intro">Đăng nhập để tiếp tục hành trình nghỉ dưỡng và quản lý những đặt phòng của bạn.</p>
 
                     <div class="social-stack">
-                        <!<!-- Start Code gg login -->
+                        <!<!-- Start Code gg login  -->
                         <div id="g_id_onload"
-                             data-client_id="<%= DBContext.getProperty("google.client.id", "") %>"        
+                             data-client_id="<%= DBContext.getAppProperty("google.client.id", "") %>"        
                              data-callback="handleGoogleCredentialResponse">
                         </div>
                         <div class="social-button google" id="googleSignInBtn"></div>
 
-                        <script src="https://accounts.google.com/gsi/client" async defer></script>
+                        <script src="https://accounts.google.com/gsi/client"async defer ></script>
                         <script>
                             window.onload = function () {
                                 google.accounts.id.renderButton(

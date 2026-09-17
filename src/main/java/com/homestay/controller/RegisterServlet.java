@@ -6,6 +6,7 @@
 package com.homestay.controller;
 
 import com.homestay.dao.UserDAO;
+import com.homestay.model.User;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.util.Optional;
 import org.mindrot.jbcrypt.BCrypt;
 
 /**
@@ -82,14 +84,18 @@ public class RegisterServlet extends HttpServlet {
         String phone = request.getParameter("phone");
         String password = request.getParameter("password");
         String confirmPassword = request.getParameter("confirmPassword");
+        
+        email = email == null ? "" : email.trim();
+        fullName = fullName == null ? "" : fullName.trim();
+        phone = phone == null ? "" : phone.trim();
 
         if (fullName == null || fullName.trim().isEmpty()) {
             request.setAttribute("error", "Vui lòng nhập họ tên");
             request.getRequestDispatcher("/Register.jsp").forward(request, response);
             return;
         }
-        if (email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập email");
+        if (email == null || email.trim().isEmpty() || !email.trim().matches("^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$")) {
+            request.setAttribute("error", "email không hợp lệ");
             request.getRequestDispatcher("/Register.jsp").forward(request, response);
             return;
         }
@@ -122,19 +128,23 @@ public class RegisterServlet extends HttpServlet {
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         int newUserId = userDao.createLocalUser(email, fullName, phone, hashedPassword);
 
-        if (newUserId == -1) {
-            request.setAttribute("error", "Đăng ký thất bại, vui lòng thử lại");
-            request.getRequestDispatcher("/Register.jsp").forward(request, response);
+        Optional<User> createdUser = userDao.findById(newUserId);
+        if(createdUser.isEmpty()){
+            request.setAttribute("error", "Register fail, please try again.");
             return;
         }
+        
+        User user = createdUser.get();
+        
 
         // Tự động đăng nhập luôn sau khi đăng ký (đúng UX Agoda/Booking)
         HttpSession session = request.getSession();
-        session.setAttribute("userId", newUserId);
-        session.setAttribute("userEmail", email);
-        session.setAttribute("userName", fullName);
-        session.setAttribute("userPhone", phone);
-        session.setAttribute("roleId", 2); // mặc định customer
+        session.setAttribute("userId", user.getId());
+        session.setAttribute("userEmail", user.getEmail());        session.setAttribute("userEmail", user.getEmail());
+        session.setAttribute("username", user.getUsername());
+        session.setAttribute("userName", user.getFullName());
+        session.setAttribute("userPhone", user.getPhone());
+        session.setAttribute("roleId", user.getRoleId()); // mặc định customer
 
         response.sendRedirect(request.getContextPath() + "/home");
     }

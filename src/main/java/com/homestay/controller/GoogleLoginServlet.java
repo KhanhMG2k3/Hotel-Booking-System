@@ -19,12 +19,12 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 
-@WebServlet(name = "GoogleLoginServlet", urlPatterns = { "/google-login" })
+@WebServlet(name = "GoogleLoginServlet", urlPatterns = {"/google-login"})
 public class GoogleLoginServlet extends HttpServlet {
 
     // Dán đúng Client ID vừa tạo ở Google Cloud Console (PHẢI trùng với Client ID trong Login.jsp)
-    private static final String CLIENT_ID =  com.homestay.context.DBContext.getProperty("google.client.id", "");
-
+    private static final String CLIENT_ID
+            = com.homestay.context.DBContext.getAppProperty("google.client.id", "");
     private final UserDAO userDAO = new UserDAO();
 
     @Override

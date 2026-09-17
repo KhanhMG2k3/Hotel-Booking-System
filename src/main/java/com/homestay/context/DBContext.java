@@ -16,18 +16,15 @@ public class DBContext {
 
     private static final Logger LOGGER = Logger.getLogger(DBContext.class.getName());
     private static final Properties properties = new Properties();
+    private static final Properties appProperties = new Properties();
 
     static {
-        try (InputStream input = DBContext.class.getClassLoader().getResourceAsStream("db.properties")) {
+        try (InputStream input = DBContext.class.getClassLoader().getResourceAsStream("app.properties")) {
             if (input != null) {
-                properties.load(input);
-                Class.forName(properties.getProperty("db.driver", "com.mysql.cj.jdbc.Driver"));
-            } else {
-                LOGGER.warning("db.properties not found, using default settings.");
-                Class.forName("com.mysql.cj.jdbc.Driver");
+                appProperties.load(input);
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to load database driver or properties", e);
+            LOGGER.log(Level.WARNING, "Failed to load app.properties", e);
         }
     }
 
@@ -70,6 +67,10 @@ public class DBContext {
      */
     public static String getProperty(String key, String defaultValue) {
         return properties.getProperty(key, defaultValue);
+    }
+
+    public static String getAppProperty(String key, String defaultValue) {
+        return appProperties.getProperty(key, defaultValue);
     }
 
     /**
