@@ -23,5 +23,6 @@
 
     <!-- Theme Style -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/_custom.css">
   </head>
   <body>
