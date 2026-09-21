@@ -34,6 +34,89 @@
     <!-- DANH SÁCH CÁC HẠNG PHÒNG & ĐẶT PHÒNG -->
     <section class="section pb-5" id="room-list">
       <div class="container">
+
+        <!-- FEATURE #4: BASIC SEARCH -->
+        <div class="row justify-content-center mb-5">
+          <div class="col-md-10">
+            <div class="bg-light p-4 rounded border shadow-sm">
+
+              <div class="text-center mb-4">
+                <span class="text-primary font-weight-bold text-uppercase letter-spacing-1 d-block mb-2">
+                  Tìm kiếm phòng
+                </span>
+                <h2 class="heading h3 mb-2">Tìm phòng phù hợp với nhu cầu</h2>
+                <p class="text-muted mb-0">
+                  Tìm theo địa điểm, ngày nhận phòng, ngày trả phòng và số lượng khách.
+                </p>
+              </div>
+
+              <c:if test="${not empty searchError}">
+                <div class="alert alert-danger" role="alert">
+                  ${searchError}
+                </div>
+              </c:if>
+
+              <form action="${pageContext.request.contextPath}/rooms" method="get">
+                <div class="row">
+
+                  <div class="col-md-6 col-lg-3 mb-3">
+                    <label for="location" class="font-weight-bold">Địa điểm</label>
+                    <input type="text"
+                           id="location"
+                           name="location"
+                           class="form-control"
+                           placeholder="Ví dụ: Đà Lạt"
+                           value="${searchLocation}">
+                  </div>
+
+                  <div class="col-md-6 col-lg-3 mb-3">
+                    <label for="checkIn" class="font-weight-bold">Ngày nhận phòng</label>
+                    <input type="date"
+                           id="checkIn"
+                           name="checkIn"
+                           class="form-control"
+                           value="${searchCheckIn}">
+                  </div>
+
+                  <div class="col-md-6 col-lg-3 mb-3">
+                    <label for="checkOut" class="font-weight-bold">Ngày trả phòng</label>
+                    <input type="date"
+                           id="checkOut"
+                           name="checkOut"
+                           class="form-control"
+                           value="${searchCheckOut}">
+                  </div>
+
+                  <div class="col-md-6 col-lg-3 mb-3">
+                    <label for="guests" class="font-weight-bold">Số khách</label>
+                    <input type="number"
+                           id="guests"
+                           name="guests"
+                           class="form-control"
+                           min="1"
+                           placeholder="Ví dụ: 2"
+                           value="${searchGuests}">
+                  </div>
+
+                </div>
+
+                <div class="text-center mt-2">
+                  <button type="submit" class="btn btn-primary px-4">
+                    <i class="fa fa-search mr-2"></i> Tìm kiếm
+                  </button>
+
+                  <a href="${pageContext.request.contextPath}/rooms"
+                     class="btn btn-outline-secondary ml-2">
+                    Xóa bộ lọc
+                  </a>
+                </div>
+              </form>
+
+            </div>
+          </div>
+        </div>
+        <!-- END FEATURE #4 -->
+
         <div class="row justify-content-center text-center mb-5">
           <div class="col-md-8">
             <span class="text-primary font-weight-bold text-uppercase letter-spacing-1 d-block mb-2">Hệ thống phòng nghỉ</span>
@@ -68,6 +151,14 @@
                           <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}" class="text-dark hover-primary">${room.roomName}</a>
                         </h2>
                         <span class="badge badge-light border text-muted mb-3">${room.roomType.typeName}</span>
+
+                        <!-- FEATURE #4: LOCATION -->
+                        <c:if test="${not empty room.location}">
+                          <p class="text-primary small mb-2">
+                            <i class="fa fa-map-marker mr-1"></i> ${room.location}
+                          </p>
+                        </c:if>
+
                         <p class="text-muted small text-left mb-3">${room.description}</p>
                       </div>
 
@@ -106,9 +197,14 @@
                 </div>
               </c:forEach>
             </c:when>
+
             <c:otherwise>
               <div class="col-12 text-center py-5">
-                <p class="text-muted">Chưa có dữ liệu phòng trong cơ sở dữ liệu. Vui lòng kiểm tra lại kết nối MySQL.</p>
+                <i class="fa fa-search fa-3x text-muted mb-3"></i>
+                <h4>Không tìm thấy phòng phù hợp</h4>
+                <p class="text-muted">
+                  Hãy thử thay đổi địa điểm, ngày nhận/trả phòng hoặc số lượng khách.
+                </p>
               </div>
             </c:otherwise>
           </c:choose>

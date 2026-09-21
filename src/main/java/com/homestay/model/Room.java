@@ -17,6 +17,7 @@ public class Room implements Serializable {
     private RoomType roomType;
     private String roomNumber;
     private String roomName;
+    private String location;
     private BigDecimal pricePerNight;
     private int capacity;
     private Double size;
@@ -84,6 +85,14 @@ public class Room implements Serializable {
 
     public void setRoomName(String roomName) {
         this.roomName = roomName;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public BigDecimal getPricePerNight() {
@@ -169,7 +178,6 @@ public class Room implements Serializable {
     public Timestamp getCreatedAt() {
         return createdAt;
     }
-
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
     }

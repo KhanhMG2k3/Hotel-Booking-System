@@ -4,6 +4,7 @@ import com.homestay.model.Room;
 import com.homestay.model.RoomType;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,19 +19,17 @@ import java.util.logging.Level;
  */
 public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
 
-    private static final String BASE_SELECT = 
-            "SELECT r.room_id as id, r.room_type_id as type_id, r.room_number, r.status, " +
-            "       rt.room_name, rt.description, rt.max_guests as capacity, rt.base_price as price_per_night, " +
-            "       rt.size_m2, rt.bed_type, " +
-            "       COALESCE(ri.image_url, 'images/img_1.jpg') as image_url " +
+    private static final String BASE_SELECT =
+            "SELECT r.id, r.type_id, r.room_number, r.room_name, r.location, " +
+            "       r.price_per_night, r.capacity, r.image_url, r.description, " +
+            "       r.status, r.is_featured, r.created_at, " +
+            "       rt.type_name, rt.description AS type_description " +
             "FROM rooms r " +
-            "JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
-            "LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri " +
-            "ON rt.room_type_id = ri.room_type_id ";
+            "JOIN room_types rt ON r.type_id = rt.id ";
 
     @Override
     public Optional<Room> findById(Integer id) {
-        String sql = BASE_SELECT + "WHERE r.room_id = ?";
+        String sql = BASE_SELECT + "WHERE r.id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -43,10 +42,16 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
 
             if (rs.next()) {
                 Room room = mapResultSetToRoom(rs);
-                // Load all images for this room type
-                room.setImages(getRoomImages(conn, room.getTypeId()));
-                // Set standard homestay amenities
+
+                room.setImages(new ArrayList<>());
+                if (room.getImageUrl() != null && !room.getImageUrl().trim().isEmpty()) {
+                    room.getImages().add(room.getImageUrl());
+                } else {
+                    room.getImages().add("images/img_1.jpg");
+                }
+
                 room.setAmenities(getDefaultAmenities(room.getTypeId()));
+
                 return Optional.of(room);
             }
         } catch (SQLException e) {
@@ -54,13 +59,15 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         } finally {
             closeResources(conn, ps, rs);
         }
+
         return Optional.empty();
     }
 
     @Override
     public List<Room> findAll() {
         List<Room> rooms = new ArrayList<>();
-        String sql = BASE_SELECT + "ORDER BY r.room_id ASC";
+        String sql = BASE_SELECT + "ORDER BY r.id ASC";
+
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -71,50 +78,92 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             rs = ps.executeQuery();
 
             while (rs.next()) {
-                Room room = mapResultSetToRoom(rs);
-                rooms.add(room);
+                rooms.add(mapResultSetToRoom(rs));
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error getting all rooms", e);
         } finally {
             closeResources(conn, ps, rs);
         }
+
         return rooms;
     }
 
     /**
-     * Retrieves all gallery images for a room type.
+     * Feature #4 - Basic Search.
+     *
+     * Search by location, dates and number of guests.
      */
-    public List<String> getRoomImages(Connection conn, int roomTypeId) {
-        List<String> images = new ArrayList<>();
-        String sql = "SELECT image_url FROM roomimages WHERE room_type_id = ? ORDER BY display_order ASC";
+    public List<Room> searchRooms(
+            String location,
+            Date checkInDate,
+            Date checkOutDate,
+            Integer guests) {
+
+        List<Room> rooms = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
+        sql.append("WHERE r.status = 'AVAILABLE' ");
+
+        List<Object> params = new ArrayList<>();
+
+        if (guests != null) {
+            sql.append("AND r.capacity >= ? ");
+            params.add(guests);
+        }
+
+        if (location != null && !location.trim().isEmpty()) {
+            sql.append("AND LOWER(COALESCE(r.location, '')) LIKE LOWER(?) ");
+            params.add("%" + location.trim() + "%");
+        }
+
+        if (checkInDate != null && checkOutDate != null) {
+            sql.append(
+                    "AND NOT EXISTS (" +
+                    "    SELECT 1 " +
+                    "    FROM bookings b " +
+                    "    WHERE b.room_id = r.id " +
+                    "      AND b.status IN ('PENDING', 'CONFIRMED') " +
+                    "      AND b.check_in_date < ? " +
+                    "      AND b.check_out_date > ? " +
+                    ") "
+            );
+
+            params.add(checkOutDate);
+            params.add(checkInDate);
+        }
+
+        sql.append("ORDER BY r.price_per_night ASC, r.id ASC");
+
+        Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
-            ps = conn.prepareStatement(sql);
-            ps.setInt(1, roomTypeId);
+            conn = getConnection();
+            ps = conn.prepareStatement(sql.toString());
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
             rs = ps.executeQuery();
 
             while (rs.next()) {
-                images.add(rs.getString("image_url"));
+                rooms.add(mapResultSetToRoom(rs));
             }
         } catch (SQLException e) {
-            logger.log(Level.WARNING, "Error loading room images for type: " + roomTypeId, e);
+            logger.log(Level.SEVERE, "Error searching rooms", e);
         } finally {
-            if (rs != null) try { rs.close(); } catch (SQLException ignored) {}
-            if (ps != null) try { ps.close(); } catch (SQLException ignored) {}
+            closeResources(conn, ps, rs);
         }
 
-        if (images.isEmpty()) {
-            images.add("images/img_1.jpg");
-        }
-        return images;
+        return rooms;
     }
 
     @Override
     public boolean insert(Room room) {
-        String sql = "INSERT INTO rooms (room_type_id, room_number, status) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO rooms (type_id, room_number, status) VALUES (?, ?, ?)";
         Connection conn = null;
         PreparedStatement ps = null;
 
@@ -136,7 +185,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
 
     @Override
     public boolean update(Room room) {
-        String sql = "UPDATE rooms SET room_type_id = ?, room_number = ?, status = ? WHERE room_id = ?";
+        String sql = "UPDATE rooms SET type_id = ?, room_number = ?, status = ? WHERE id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
 
@@ -159,7 +208,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
 
     @Override
     public boolean delete(Integer id) {
-        String sql = "DELETE FROM rooms WHERE room_id = ?";
+        String sql = "DELETE FROM rooms WHERE id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
 
@@ -179,23 +228,24 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
 
     private Room mapResultSetToRoom(ResultSet rs) throws SQLException {
         Room room = new Room();
+
         room.setId(rs.getInt("id"));
         room.setTypeId(rs.getInt("type_id"));
         room.setRoomNumber(rs.getString("room_number"));
         room.setRoomName(rs.getString("room_name"));
+        room.setLocation(rs.getString("location"));
         room.setPricePerNight(rs.getBigDecimal("price_per_night"));
         room.setCapacity(rs.getInt("capacity"));
-        room.setSize(rs.getDouble("size_m2"));
-        room.setBedType(rs.getString("bed_type"));
         room.setImageUrl(rs.getString("image_url"));
         room.setDescription(rs.getString("description"));
         room.setStatus(rs.getString("status"));
-        room.setFeatured(true);
+        room.setFeatured(rs.getBoolean("is_featured"));
+        room.setCreatedAt(rs.getTimestamp("created_at"));
 
         RoomType roomType = new RoomType();
         roomType.setId(rs.getInt("type_id"));
-        roomType.setTypeName(rs.getString("room_name"));
-        roomType.setDescription(rs.getString("description"));
+        roomType.setTypeName(rs.getString("type_name"));
+        roomType.setDescription(rs.getString("type_description"));
         room.setRoomType(roomType);
 
         return room;
@@ -203,15 +253,16 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
 
     private List<String> getDefaultAmenities(int typeId) {
         List<String> amenities = new ArrayList<>(Arrays.asList(
-            "Wifi tốc độ cao miễn phí",
-            "Điều hòa không khí 2 chiều",
-            "Smart TV 55 inch Full HD",
-            "Tủ lạnh mini & Nước suối miễn phí",
-            "Máy sấy tóc & Bình đun siêu tốc",
-            "Phòng tắm riêng có nóng lạnh",
-            "Khăn tắm & Bộ vệ sinh cá nhân cao cấp",
-            "Dịch vụ dọn phòng hàng ngày"
+                "Wifi tốc độ cao miễn phí",
+                "Điều hòa không khí 2 chiều",
+                "Smart TV 55 inch Full HD",
+                "Tủ lạnh mini & Nước suối miễn phí",
+                "Máy sấy tóc & Bình đun siêu tốc",
+                "Phòng tắm riêng có nóng lạnh",
+                "Khăn tắm & Bộ vệ sinh cá nhân cao cấp",
+                "Dịch vụ dọn phòng hàng ngày"
         ));
+
         if (typeId == 2 || typeId == 6) {
             amenities.add("Bếp nấu gia đình & Bàn ăn riêng");
             amenities.add("Ban công thoáng mát view đồi/vườn");
@@ -219,6 +270,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             amenities.add("Bồn tắm nằm thư giãn");
             amenities.add("Ban công lớn view toàn cảnh biển");
         }
+
         return amenities;
     }
 }
