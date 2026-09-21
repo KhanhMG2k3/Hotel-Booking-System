@@ -272,6 +272,10 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         role.setDescription(rs.getString("role_desc"));
         user.setRole(role);
 
+        user.setGoogleId(rs.getString("google_id"));
+        user.setAuthProvider(rs.getString("auth_provider"));
+        user.setAvatarUrl(rs.getString("avatar_url"));
+
         return user;
     }
 
@@ -333,21 +337,5 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         // buộc
         String base = email.split("@")[0];
         return base + "_" + (System.currentTimeMillis() % 100000);
-    }
-
-    private User mapRow(ResultSet rs) throws SQLException {
-        User u = new User();
-        u.setId(rs.getInt("id"));
-        u.setRoleId(rs.getInt("role_id"));
-        u.setUsername(rs.getString("username"));
-        u.setPassword(rs.getString("password"));
-        u.setFullName(rs.getString("full_name"));
-        u.setEmail(rs.getString("email"));
-        u.setPhone(rs.getString("phone"));
-        u.setStatus(rs.getString("status"));
-        u.setGoogleId(rs.getString("google_id"));
-        u.setAuthProvider(rs.getString("auth_provider"));
-        u.setAvatarUrl(rs.getString("avatar_url"));
-        return u;
     }
 }

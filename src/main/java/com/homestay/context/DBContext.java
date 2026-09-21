@@ -19,6 +19,16 @@ public class DBContext {
     private static final Properties appProperties = new Properties();
 
     static {
+        try (InputStream input = DBContext.class.getClassLoader().getResourceAsStream("db.properties")) {
+            if (input != null) {
+                properties.load(input);
+            } else {
+                LOGGER.log(Level.WARNING, "db.properties not found in classpath");
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to load db.properties", e);
+        }
+
         try (InputStream input = DBContext.class.getClassLoader().getResourceAsStream("app.properties")) {
             if (input != null) {
                 appProperties.load(input);

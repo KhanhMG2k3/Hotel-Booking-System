@@ -21,7 +21,7 @@ import org.mindrot.jbcrypt.BCrypt;
  *
  * @author admin
  */
-@WebServlet(name = "LoginServlet", urlPatterns = { "/login" })
+@WebServlet(name = "LoginServlet", urlPatterns = {"/login"})
 public class LoginServlet extends HttpServlet {
 
     private final UserDAO userDao = new UserDAO();
@@ -30,10 +30,10 @@ public class LoginServlet extends HttpServlet {
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request  servlet request
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -57,10 +57,10 @@ public class LoginServlet extends HttpServlet {
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request  servlet request
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -71,10 +71,10 @@ public class LoginServlet extends HttpServlet {
     /**
      * Handles the HTTP <code>POST</code> method.
      *
-     * @param request  servlet request
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -100,12 +100,32 @@ public class LoginServlet extends HttpServlet {
         }
 
         HttpSession session = request.getSession();
+        String displayName = (user.getFullName() != null && !user.getFullName().trim().isEmpty())
+                ? user.getFullName().trim()
+                : user.getUsername();
         session.setAttribute("userId", user.getId());
         session.setAttribute("userEmail", user.getEmail());
         session.setAttribute("username", user.getUsername());
-        session.setAttribute("userName", user.getFullName());
+        session.setAttribute("userName", displayName);
         session.setAttribute("roleId", user.getRoleId());
-        response.sendRedirect(request.getContextPath() + "/Success.jsp");
+        session.setAttribute("avatar", user.getAvatarUrl());
+        session.setAttribute("user", user);
+
+        
+        // phan quyen admin & customer
+        String roleName = "";
+
+        if (user.getRole() != null && user.getRole().getRoleName() != null) {
+            roleName = user.getRole().getRoleName();
+        }
+
+        // admin -> dashboard
+        // customer -> home
+        String redirectPath = "ROLE_ADMIN".equals(roleName)
+                ? "/admin/dashboard"
+                : "/home";
+
+        response.sendRedirect(request.getContextPath() + redirectPath);
     }
 
     /**

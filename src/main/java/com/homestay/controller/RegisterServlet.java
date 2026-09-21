@@ -2,7 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-
 package com.homestay.controller;
 
 import com.homestay.dao.UserDAO;
@@ -22,18 +21,19 @@ import org.mindrot.jbcrypt.BCrypt;
  *
  * @author admin
  */
-@WebServlet(name = "RegisterServlet", urlPatterns = { "/register" })
+@WebServlet(name = "RegisterServlet", urlPatterns = {"/register"})
 public class RegisterServlet extends HttpServlet {
+
     private final UserDAO userDao = new UserDAO();
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
-     * 
-     * @param request  servlet request
+     *
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -56,11 +56,11 @@ public class RegisterServlet extends HttpServlet {
     // + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
-     * 
-     * @param request  servlet request
+     *
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -70,11 +70,11 @@ public class RegisterServlet extends HttpServlet {
 
     /**
      * Handles the HTTP <code>POST</code> method.
-     * 
-     * @param request  servlet request
+     *
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -84,7 +84,7 @@ public class RegisterServlet extends HttpServlet {
         String phone = request.getParameter("phone");
         String password = request.getParameter("password");
         String confirmPassword = request.getParameter("confirmPassword");
-        
+
         email = email == null ? "" : email.trim();
         fullName = fullName == null ? "" : fullName.trim();
         phone = phone == null ? "" : phone.trim();
@@ -128,30 +128,36 @@ public class RegisterServlet extends HttpServlet {
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         int newUserId = userDao.createLocalUser(email, fullName, phone, hashedPassword);
 
-        Optional<User> createdUser = userDao.findById(newUserId);
-        if(createdUser.isEmpty()){
-            request.setAttribute("error", "Register fail, please try again.");
+        if (newUserId == -1) {
+            request.setAttribute("error", "Không thể tạo tài khoản, vui lòng thử lại.");
+            request.getRequestDispatcher("/Register.jsp").forward(request, response);
             return;
         }
-        
-        User user = createdUser.get();
-        
 
-        // Tự động đăng nhập luôn sau khi đăng ký (đúng UX Agoda/Booking)
+        Optional<User> createdUser = userDao.findById(newUserId);
+        if (createdUser.isEmpty()) {
+            request.setAttribute("error", "Không thể tải thông tin tài khoản vừa tạo.");
+            request.getRequestDispatcher("/Register.jsp").forward(request, response);
+            return;
+        }
+
+        User user = createdUser.get();
+
         HttpSession session = request.getSession();
         session.setAttribute("userId", user.getId());
-        session.setAttribute("userEmail", user.getEmail());        session.setAttribute("userEmail", user.getEmail());
+        session.setAttribute("userEmail", user.getEmail());
         session.setAttribute("username", user.getUsername());
         session.setAttribute("userName", user.getFullName());
-        session.setAttribute("userPhone", user.getPhone());
-        session.setAttribute("roleId", user.getRoleId()); // mặc định customer
+        session.setAttribute("roleId", user.getRoleId());
+        session.setAttribute("avatar", user.getAvatarUrl());
+        session.setAttribute("user", user);
 
         response.sendRedirect(request.getContextPath() + "/home");
     }
 
     /**
      * Returns a short description of the servlet.
-     * 
+     *
      * @return a String containing servlet description
      */
     @Override

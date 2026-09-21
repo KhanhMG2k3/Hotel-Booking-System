@@ -42,8 +42,9 @@ public class GoogleLoginServlet extends HttpServlet {
             GoogleIdToken idToken = verifier.verify(idTokenString);
 
             if (idToken == null) {
-                request.setAttribute("error", "Xác thực Google thất bại, vui lòng thử lại.");
-                request.getRequestDispatcher("/Login.jsp").forward(request, response);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("text/plain;charset=UTF-8");
+                response.getWriter().write("Xác thực Google thất bại, token không hợp lệ.");
                 return;
             }
 
@@ -69,17 +70,20 @@ public class GoogleLoginServlet extends HttpServlet {
             }
 
             if (user == null) {
-                request.setAttribute("error", "Không thể tạo hoặc tìm tài khoản, vui lòng thử lại.");
-                request.getRequestDispatcher("/Login.jsp").forward(request, response);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.setContentType("text/plain;charset=UTF-8");
+                response.getWriter().write("Không thể tạo hoặc tìm tài khoản trên hệ thống.");
                 return;
             }
 
             HttpSession session = request.getSession();
             session.setAttribute("userId", user.getId());
             session.setAttribute("userEmail", user.getEmail());
+            session.setAttribute("username", user.getUsername());
             session.setAttribute("userName", user.getFullName());
             session.setAttribute("roleId", user.getRoleId());
             session.setAttribute("avatar", user.getAvatarUrl());
+            session.setAttribute("user", user);
 
             response.setContentType("text/plain");
             response.getWriter().write("OK");
