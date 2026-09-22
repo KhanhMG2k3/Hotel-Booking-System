@@ -380,3 +380,101 @@
     min-width: unset;
   }
 }
+
+/* ========================================================
+   Search Filter Card & Room Badges
+   ======================================================== */
+.sogo-filter-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.sogo-filter-card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+}
+
+.sogo-filter-card .form-control {
+  border-radius: 8px;
+  border-color: #dee2e6;
+  font-size: 14px;
+  height: calc(1.5em + 1rem + 2px);
+}
+
+.sogo-filter-card .form-control:focus {
+  border-color: #ffba5a;
+  box-shadow: 0 0 0 0.2rem rgba(255, 186, 90, 0.25);
+}
+
+.sogo-filter-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.quick-price-btn {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 14px;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-block;
+  margin-right: 4px;
+  margin-top: 4px;
+}
+
+.quick-price-btn:hover,
+.quick-price-btn.active {
+  background: #ffba5a;
+  border-color: #ffba5a;
+  color: #212529;
+  font-weight: 600;
+}
+
+.sogo-rating-badge {
+  background: #fff8e6;
+  color: #b7791f;
+  border: 1px solid #fbd38d;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 13px;
+}
+
+.filter-active-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #eef2f7;
+  color: #334e68;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+
+.filter-active-pill a {
+  color: #9fb3c8;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.filter-active-pill a:hover {
+  color: #dc3545;
+}
+
+.empty-search-box {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px dashed #cbd5e1;
+  padding: 48px 24px;
+}

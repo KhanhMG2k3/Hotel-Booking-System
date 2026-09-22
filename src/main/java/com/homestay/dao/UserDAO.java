@@ -16,15 +16,23 @@ import java.util.logging.Level;
 
 /**
  * UserDAO - Data Access Object for User accounts.
+ * Compatible with homestaybooking database (users, userroles, roles).
  */
 public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
 
+    private static final String BASE_SELECT =
+            "SELECT u.user_id as id, u.full_name, u.email, u.password_hash as password, u.phone, "
+            + "u.avatar_url, u.status, u.google_id, u.auth_provider, u.created_at, "
+            + "COALESCE(r.role_id, 1) as role_id, "
+            + "COALESCE(r.role_name, 'CUSTOMER') as role_name, "
+            + "COALESCE(r.description, 'Khách hàng') as role_desc "
+            + "FROM users u "
+            + "LEFT JOIN userroles ur ON u.user_id = ur.user_id "
+            + "LEFT JOIN roles r ON ur.role_id = r.role_id ";
+
     @Override
     public Optional<User> findById(Integer id) {
-        String sql = "SELECT u.*, r.role_name, r.description as role_desc "
-                + "FROM users u "
-                + "JOIN roles r ON u.role_id = r.id "
-                + "WHERE u.id = ?";
+        String sql = BASE_SELECT + "WHERE u.user_id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -47,37 +55,11 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
     }
 
     public Optional<User> findByUsername(String username) {
-        String sql = "SELECT u.*, r.role_name, r.description as role_desc "
-                + "FROM users u "
-                + "LEFT JOIN roles r ON u.role_id = r.id "
-                + "WHERE u.username = ?";
-        Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-
-        try {
-            conn = getConnection();
-            ps = conn.prepareStatement(sql);
-            ps.setString(1, username);
-            rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return Optional.of(mapResultSetToUser(rs));
-            }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error finding user by username: " + username, e);
-        } finally {
-            closeResources(conn, ps, rs);
-        }
-        return Optional.empty();
+        return findByEmail(username);
     }
 
-    // c) Thêm 2 method mới (đặt sau findByUsername):
     public Optional<User> findByEmail(String email) {
-        String sql = "SELECT u.*, r.role_name, r.description as role_desc "
-                + "FROM users u "
-                + "JOIN roles r ON u.role_id = r.id "
-                + "WHERE u.email = ?";
+        String sql = BASE_SELECT + "WHERE u.email = ?";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -100,10 +82,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
     }
 
     public Optional<User> findByGoogleId(String googleId) {
-        String sql = "SELECT u.*, r.role_name, r.description as role_desc "
-                + "FROM users u "
-                + "JOIN roles r ON u.role_id = r.id "
-                + "WHERE u.google_id = ?";
+        String sql = BASE_SELECT + "WHERE u.google_id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -125,11 +104,8 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         return Optional.empty();
     }
 
-    /**
-     * Liên kết Google vào tài khoản local đã có sẵn (cùng email).
-     */
     public boolean linkGoogleAccount(int userId, String googleId, String avatarUrl) {
-        String sql = "UPDATE users SET google_id = ?, avatar_url = ? WHERE id = ?";
+        String sql = "UPDATE users SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), auth_provider = 'google' WHERE user_id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
 
@@ -151,10 +127,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
     @Override
     public List<User> findAll() {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT u.*, r.role_name, r.description as role_desc "
-                + "FROM users u "
-                + "JOIN roles r ON u.role_id = r.id "
-                + "ORDER BY u.id ASC";
+        String sql = BASE_SELECT + "ORDER BY u.user_id ASC";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -175,53 +148,73 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         return users;
     }
 
-    // b) Sửa insert() — thêm 3 cột mới vào câu SQL để hỗ trợ cả đăng ký local lẫn
-    // Google:
     @Override
     public boolean insert(User user) {
-        String sql = "INSERT INTO users (role_id, username, password, full_name, email, phone, status, google_id, auth_provider, avatar_url) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sqlUser = "INSERT INTO users (full_name, email, password_hash, phone, status, google_id, auth_provider, avatar_url, email_verified) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)";
+        String sqlRole = "INSERT INTO userroles (user_id, role_id) VALUES (?, ?)";
         Connection conn = null;
         PreparedStatement ps = null;
+        PreparedStatement psRole = null;
+        ResultSet rs = null;
 
         try {
             conn = getConnection();
-            ps = conn.prepareStatement(sql);
-            ps.setInt(1, user.getRoleId() > 0 ? user.getRoleId() : 2);
-            ps.setString(2, user.getUsername());
-            ps.setString(3, user.getPassword()); // NULL nếu là tài khoản Google
-            ps.setString(4, user.getFullName());
-            ps.setString(5, user.getEmail());
-            ps.setString(6, user.getPhone());
-            ps.setString(7, user.getStatus() != null ? user.getStatus() : "ACTIVE");
-            ps.setString(8, user.getGoogleId());
-            ps.setString(9, user.getAuthProvider() != null ? user.getAuthProvider() : "local");
-            ps.setString(10, user.getAvatarUrl());
+            conn.setAutoCommit(false);
 
-            return ps.executeUpdate() > 0;
+            ps = conn.prepareStatement(sqlUser, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, user.getFullName());
+            ps.setString(2, user.getEmail());
+            ps.setString(3, user.getPassword());
+            ps.setString(4, user.getPhone());
+            ps.setString(5, user.getStatus() != null ? user.getStatus() : "ACTIVE");
+            ps.setString(6, user.getGoogleId());
+            ps.setString(7, user.getAuthProvider() != null ? user.getAuthProvider() : "local");
+            ps.setString(8, user.getAvatarUrl());
+
+            int affected = ps.executeUpdate();
+            if (affected > 0) {
+                rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    int newUserId = rs.getInt(1);
+                    user.setId(newUserId);
+
+                    int roleId = user.getRoleId() > 0 ? user.getRoleId() : 1;
+                    psRole = conn.prepareStatement(sqlRole);
+                    psRole.setInt(1, newUserId);
+                    psRole.setInt(2, roleId);
+                    psRole.executeUpdate();
+                }
+            }
+
+            conn.commit();
+            return true;
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error inserting user: " + user.getUsername(), e);
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) {}
+            }
+            logger.log(Level.SEVERE, "Error inserting user: " + user.getEmail(), e);
             return false;
         } finally {
-            closeResources(conn, ps, null);
+            closeResources(null, psRole, null);
+            closeResources(conn, ps, rs);
         }
     }
 
     @Override
     public boolean update(User user) {
-        String sql = "UPDATE users SET role_id = ?, full_name = ?, email = ?, phone = ?, status = ? WHERE id = ?";
+        String sql = "UPDATE users SET full_name = ?, phone = ?, status = ?, avatar_url = ? WHERE user_id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
 
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
-            ps.setInt(1, user.getRoleId());
-            ps.setString(2, user.getFullName());
-            ps.setString(3, user.getEmail());
-            ps.setString(4, user.getPhone());
-            ps.setString(5, user.getStatus());
-            ps.setInt(6, user.getId());
+            ps.setString(1, user.getFullName());
+            ps.setString(2, user.getPhone());
+            ps.setString(3, user.getStatus());
+            ps.setString(4, user.getAvatarUrl());
+            ps.setInt(5, user.getId());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -234,108 +227,104 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
 
     @Override
     public boolean delete(Integer id) {
-        String sql = "DELETE FROM users WHERE id = ?";
+        String sqlRole = "DELETE FROM userroles WHERE user_id = ?";
+        String sql = "DELETE FROM users WHERE user_id = ?";
         Connection conn = null;
+        PreparedStatement psRole = null;
         PreparedStatement ps = null;
 
         try {
             conn = getConnection();
+            conn.setAutoCommit(false);
+
+            psRole = conn.prepareStatement(sqlRole);
+            psRole.setInt(1, id);
+            psRole.executeUpdate();
+
             ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
+            boolean ok = ps.executeUpdate() > 0;
 
-            return ps.executeUpdate() > 0;
+            conn.commit();
+            return ok;
         } catch (SQLException e) {
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) {}
+            }
             logger.log(Level.SEVERE, "Error deleting user id: " + id, e);
             return false;
         } finally {
+            closeResources(null, psRole, null);
             closeResources(conn, ps, null);
         }
     }
 
-    // Sửa mapResultSetToUser() — thêm 3 dòng đọc cột mới (thêm ngay trước return
-    // user;):
+    public int createLocalUser(String email, String fullName, String phone, String hashedPassword) {
+        User u = new User();
+        u.setEmail(email);
+        u.setUsername(email);
+        u.setFullName(fullName);
+        u.setPhone(phone);
+        u.setPassword(hashedPassword);
+        u.setRoleId(1); // 1 = CUSTOMER
+        u.setStatus("ACTIVE");
+        u.setAuthProvider("local");
+
+        if (insert(u)) {
+            return u.getId();
+        }
+        return -1;
+    }
+
+    public int createGoogleUser(String email, String fullName, String googleId, String avatarUrl) {
+        User u = new User();
+        u.setEmail(email);
+        u.setUsername(email);
+        u.setFullName(fullName);
+        u.setPassword(null);
+        u.setGoogleId(googleId);
+        u.setAvatarUrl(avatarUrl);
+        u.setRoleId(1); // 1 = CUSTOMER
+        u.setStatus("ACTIVE");
+        u.setAuthProvider("google");
+
+        if (insert(u)) {
+            return u.getId();
+        }
+        return -1;
+    }
+
+    public String generateUsernameFromEmail(String email) {
+        String base = email.split("@")[0];
+        return base + "_" + (System.currentTimeMillis() % 100000);
+    }
+
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setId(rs.getInt("id"));
-        user.setRoleId(rs.getInt("role_id"));
-        user.setUsername(rs.getString("username"));
+        int roleId = rs.getInt("role_id");
+        user.setRoleId(roleId);
+        user.setUsername(rs.getString("email"));
         user.setPassword(rs.getString("password"));
         user.setFullName(rs.getString("full_name"));
         user.setEmail(rs.getString("email"));
         user.setPhone(rs.getString("phone"));
         user.setStatus(rs.getString("status"));
+        user.setGoogleId(rs.getString("google_id"));
+        user.setAuthProvider(rs.getString("auth_provider"));
+        user.setAvatarUrl(rs.getString("avatar_url"));
         user.setCreatedAt(rs.getTimestamp("created_at"));
 
         Role role = new Role();
-        role.setId(rs.getInt("role_id"));
+        role.setId(roleId);
         role.setRoleName(rs.getString("role_name"));
         role.setDescription(rs.getString("role_desc"));
         user.setRole(role);
 
-        user.setGoogleId(rs.getString("google_id"));
-        user.setAuthProvider(rs.getString("auth_provider"));
-        user.setAvatarUrl(rs.getString("avatar_url"));
-
         return user;
     }
 
-    /**
-     * Tạo tài khoản đăng ký thường (email + mật khẩu). Trả về id user mới, -1
-     * nếu lỗi.
-     */
-    public int createLocalUser(String email, String fullName, String phone, String hashedPassword) {
-        String username = generateUsernameFromEmail(email);
-        String sql = "INSERT INTO users (role_id, username, password, full_name, email, phone, status) "
-                + "VALUES (2, ?, ?, ?, ?, ?, 'ACTIVE')"; // role_id = 2 -> ROLE_CUSTOMER
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, username);
-            ps.setString(2, hashedPassword);
-            ps.setString(3, fullName);
-            ps.setString(4, email);
-            ps.setString(5, phone);
-            ps.executeUpdate();
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }
-
-    /**
-     * Tạo tài khoản mới từ đăng nhập Google lần đầu.
-     */
-    public int createGoogleUser(String email, String fullName, String googleId, String avatarUrl) {
-        String username = generateUsernameFromEmail(email);
-        String sql = "INSERT INTO users (role_id, username, password, full_name, email, status, google_id, auth_provider, avatar_url) "
-                + "VALUES (2, ?, NULL, ?, ?, 'ACTIVE', ?, 'google', ?)";
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, username);
-            ps.setString(2, fullName);
-            ps.setString(3, email);
-            ps.setString(4, googleId);
-            ps.setString(5, avatarUrl);
-            ps.executeUpdate();
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }
-
-    private String generateUsernameFromEmail(String email) {
-        // username là NOT NULL UNIQUE trong schema thật -> tự sinh để không lỗi ràng
-        // buộc
-        String base = email.split("@")[0];
-        return base + "_" + (System.currentTimeMillis() % 100000);
+    private User mapRow(ResultSet rs) throws SQLException {
+        return mapResultSetToUser(rs);
     }
 }

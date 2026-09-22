@@ -40,9 +40,90 @@ public class RoomController extends HttpServlet {
 
     private void handleRoomList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<Room> rooms = roomDAO.findAll();
+        String keyword = request.getParameter("keyword");
+        String typeIdStr = request.getParameter("typeId");
+        String capacityStr = request.getParameter("capacity");
+        String minPriceStr = request.getParameter("minPrice");
+        String maxPriceStr = request.getParameter("maxPrice");
+        String sortBy = request.getParameter("sortBy");
+
+        Integer typeId = null;
+        if (typeIdStr != null && !typeIdStr.trim().isEmpty()) {
+            try { typeId = Integer.parseInt(typeIdStr.trim()); } catch (NumberFormatException ignored) {}
+        }
+
+        Integer capacity = null;
+        if (capacityStr != null && !capacityStr.trim().isEmpty()) {
+            try { capacity = Integer.parseInt(capacityStr.trim()); } catch (NumberFormatException ignored) {}
+        }
+
+        java.math.BigDecimal minPrice = null;
+        if (minPriceStr != null && !minPriceStr.trim().isEmpty()) {
+            try { minPrice = new java.math.BigDecimal(minPriceStr.trim()); } catch (Exception ignored) {}
+        }
+
+        java.math.BigDecimal maxPrice = null;
+        if (maxPriceStr != null && !maxPriceStr.trim().isEmpty()) {
+            try { maxPrice = new java.math.BigDecimal(maxPriceStr.trim()); } catch (Exception ignored) {}
+        }
+
+        String ratingParam = request.getParameter("rating");
+        if (ratingParam == null || ratingParam.trim().isEmpty()) {
+            ratingParam = request.getParameter("minRating");
+        }
+
+        Double minRating = null;
+        Double maxRating = null;
+        if (ratingParam != null && !ratingParam.trim().isEmpty()) {
+            ratingParam = ratingParam.trim();
+            if (ratingParam.contains("-")) {
+                String[] parts = ratingParam.split("-");
+                try {
+                    minRating = Double.parseDouble(parts[0].trim());
+                    maxRating = Double.parseDouble(parts[1].trim());
+                } catch (NumberFormatException ignored) {}
+            } else {
+                try {
+                    double val = Double.parseDouble(ratingParam);
+                    if (Math.abs(val - 3.5) < 0.01) {
+                        minRating = 3.5;
+                        maxRating = 3.99;
+                    } else if (Math.abs(val - 4.0) < 0.01) {
+                        minRating = 4.0;
+                        maxRating = 4.49;
+                    } else if (Math.abs(val - 4.5) < 0.01) {
+                        minRating = 4.5;
+                        maxRating = 4.79;
+                    } else if (Math.abs(val - 4.8) < 0.01 || Math.abs(val - 5.0) < 0.01) {
+                        minRating = 4.8;
+                        maxRating = 5.0;
+                    } else if (Math.abs(val - 3.0) < 0.01) {
+                        minRating = 3.0;
+                        maxRating = 3.49;
+                    } else {
+                        minRating = val;
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+
+        List<Room> rooms = roomDAO.searchRooms(keyword, minPrice, maxPrice, capacity, typeId, minRating, maxRating, sortBy);
+        List<com.homestay.model.RoomType> roomTypes = roomDAO.getAllRoomTypes();
+
         request.setAttribute("rooms", rooms);
+        request.setAttribute("roomTypes", roomTypes);
+        request.setAttribute("keyword", keyword != null ? keyword.trim() : "");
+        request.setAttribute("typeId", typeId);
+        request.setAttribute("capacity", capacity);
+        request.setAttribute("minPrice", minPrice);
+        request.setAttribute("maxPrice", maxPrice);
+        request.setAttribute("rating", ratingParam != null ? ratingParam : "");
+        request.setAttribute("minRating", minRating);
+        request.setAttribute("maxRating", maxRating);
+        request.setAttribute("sortBy", sortBy != null ? sortBy : "");
+        request.setAttribute("totalRoomsFound", rooms.size());
         request.setAttribute("activePage", "rooms");
+
         request.getRequestDispatcher("/WEB-INF/views/rooms.jsp").forward(request, response);
     }
 

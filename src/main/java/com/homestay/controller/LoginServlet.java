@@ -91,9 +91,21 @@ public class LoginServlet extends HttpServlet {
         }
         User user = matchingUser.orElse(null);
 
-        if (user == null || user.getPassword() == null
-                || !"ACTIVE".equalsIgnoreCase(user.getStatus())
-                || password == null || !BCrypt.checkpw(password, user.getPassword())) {
+        boolean validPassword = false;
+        if (user != null && user.getPassword() != null && password != null) {
+            String dbPass = user.getPassword();
+            if (dbPass.startsWith("$2a$") || dbPass.startsWith("$2b$") || dbPass.startsWith("$2y$")) {
+                try {
+                    validPassword = BCrypt.checkpw(password, dbPass);
+                } catch (Exception ignored) {
+                    validPassword = false;
+                }
+            } else {
+                validPassword = password.equals(dbPass);
+            }
+        }
+
+        if (user == null || !validPassword || !"ACTIVE".equalsIgnoreCase(user.getStatus())) {
             request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng");
             request.getRequestDispatcher("/Login.jsp").forward(request, response);
             return;
@@ -111,19 +123,14 @@ public class LoginServlet extends HttpServlet {
         session.setAttribute("avatar", user.getAvatarUrl());
         session.setAttribute("user", user);
 
-        
         // phan quyen admin & customer
         String roleName = "";
-
         if (user.getRole() != null && user.getRole().getRoleName() != null) {
             roleName = user.getRole().getRoleName();
         }
 
-        // admin -> dashboard
-        // customer -> home
-        String redirectPath = "ROLE_ADMIN".equals(roleName)
-                ? "/admin/dashboard"
-                : "/home";
+        boolean isAdmin = "ROLE_ADMIN".equalsIgnoreCase(roleName) || "ADMIN".equalsIgnoreCase(roleName) || user.getRoleId() == 5;
+        String redirectPath = isAdmin ? "/admin/dashboard" : "/home";
 
         response.sendRedirect(request.getContextPath() + redirectPath);
     }

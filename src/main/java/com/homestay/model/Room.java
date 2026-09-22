@@ -27,6 +27,8 @@ public class Room implements Serializable {
     private String description;
     private String status;
     private boolean isFeatured;
+    private double rating = 5.0;
+    private int reviewCount = 10;
     private Timestamp createdAt;
 
     public Room() {
@@ -172,6 +174,22 @@ public class Room implements Serializable {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public double getRating() {
+        return rating;
+    }
+
+    public void setRating(double rating) {
+        this.rating = rating;
+    }
+
+    public int getReviewCount() {
+        return reviewCount;
+    }
+
+    public void setReviewCount(int reviewCount) {
+        this.reviewCount = reviewCount;
     }
 
     @Override

@@ -21,7 +21,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
     private static final String BASE_SELECT = 
             "SELECT r.room_id as id, r.room_type_id as type_id, r.room_number, r.status, " +
             "       rt.room_name, rt.description, rt.max_guests as capacity, rt.base_price as price_per_night, " +
-            "       rt.size_m2, rt.bed_type, " +
+            "       rt.size_m2, rt.bed_type, COALESCE(rt.rating, 4.5) as rating, COALESCE(rt.review_count, 10) as review_count, " +
             "       COALESCE(ri.image_url, 'images/img_1.jpg') as image_url " +
             "FROM rooms r " +
             "JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
@@ -191,6 +191,8 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         room.setDescription(rs.getString("description"));
         room.setStatus(rs.getString("status"));
         room.setFeatured(true);
+        room.setRating(rs.getDouble("rating"));
+        room.setReviewCount(rs.getInt("review_count"));
 
         RoomType roomType = new RoomType();
         roomType.setId(rs.getInt("type_id"));
@@ -199,6 +201,132 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         room.setRoomType(roomType);
 
         return room;
+    }
+
+    /**
+     * Search rooms with dynamic filters: keyword, price range, capacity, room type, star rating range (min-max), and sort.
+     */
+    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                                  Integer capacity, Integer typeId, Double minRating, Double maxRating, String sortBy) {
+        List<Room> rooms = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
+        sql.append("WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (LOWER(rt.room_name) LIKE ? OR LOWER(rt.description) LIKE ? OR LOWER(r.room_number) LIKE ?) ");
+            String kw = "%" + keyword.trim().toLowerCase() + "%";
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
+        }
+
+        if (typeId != null && typeId > 0) {
+            sql.append("AND r.room_type_id = ? ");
+            params.add(typeId);
+        }
+
+        if (capacity != null && capacity > 0) {
+            sql.append("AND rt.max_guests >= ? ");
+            params.add(capacity);
+        }
+
+        if (minPrice != null && minPrice.compareTo(java.math.BigDecimal.ZERO) > 0) {
+            sql.append("AND rt.base_price >= ? ");
+            params.add(minPrice);
+        }
+
+        if (maxPrice != null && maxPrice.compareTo(java.math.BigDecimal.ZERO) > 0) {
+            sql.append("AND rt.base_price <= ? ");
+            params.add(maxPrice);
+        }
+
+        if (minRating != null && minRating > 0) {
+            sql.append("AND COALESCE(rt.rating, 4.5) >= ? ");
+            params.add(minRating);
+        }
+
+        if (maxRating != null && maxRating > 0) {
+            sql.append("AND COALESCE(rt.rating, 4.5) <= ? ");
+            params.add(maxRating);
+        }
+
+        if ("price_asc".equalsIgnoreCase(sortBy)) {
+            sql.append("ORDER BY rt.base_price ASC ");
+        } else if ("price_desc".equalsIgnoreCase(sortBy)) {
+            sql.append("ORDER BY rt.base_price DESC ");
+        } else if ("rating_desc".equalsIgnoreCase(sortBy)) {
+            sql.append("ORDER BY rt.rating DESC ");
+        } else if ("capacity_desc".equalsIgnoreCase(sortBy)) {
+            sql.append("ORDER BY rt.max_guests DESC ");
+        } else {
+            sql.append("ORDER BY r.room_id ASC ");
+        }
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                Object p = params.get(i);
+                if (p instanceof Integer) {
+                    ps.setInt(i + 1, (Integer) p);
+                } else if (p instanceof Double) {
+                    ps.setDouble(i + 1, (Double) p);
+                } else if (p instanceof java.math.BigDecimal) {
+                    ps.setBigDecimal(i + 1, (java.math.BigDecimal) p);
+                } else {
+                    ps.setString(i + 1, p.toString());
+                }
+            }
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Room room = mapResultSetToRoom(rs);
+                rooms.add(room);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error searching rooms", e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+        return rooms;
+    }
+
+    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                                  Integer capacity, Integer typeId, Double minRating, String sortBy) {
+        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, minRating, null, sortBy);
+    }
+
+    /**
+     * Retrieves all available room types for filter dropdown.
+     */
+    public List<RoomType> getAllRoomTypes() {
+        List<RoomType> types = new ArrayList<>();
+        String sql = "SELECT room_type_id as id, room_name as type_name, description FROM roomtypes ORDER BY room_type_id ASC";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                RoomType type = new RoomType();
+                type.setId(rs.getInt("id"));
+                type.setTypeName(rs.getString("type_name"));
+                type.setDescription(rs.getString("description"));
+                types.add(type);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting room types", e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+        return types;
     }
 
     private List<String> getDefaultAmenities(int typeId) {
