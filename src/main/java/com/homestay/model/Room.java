@@ -29,6 +29,10 @@ public class Room implements Serializable {
     private boolean isFeatured;
     private double rating = 5.0;
     private int reviewCount = 10;
+    private Integer provinceId;
+    private String provinceName;
+    private String propertyName;
+    private String address;
     private Timestamp createdAt;
 
     public Room() {
@@ -190,6 +194,38 @@ public class Room implements Serializable {
 
     public void setReviewCount(int reviewCount) {
         this.reviewCount = reviewCount;
+    }
+
+    public Integer getProvinceId() {
+        return provinceId;
+    }
+
+    public void setProvinceId(Integer provinceId) {
+        this.provinceId = provinceId;
+    }
+
+    public String getProvinceName() {
+        return provinceName;
+    }
+
+    public void setProvinceName(String provinceName) {
+        this.provinceName = provinceName;
+    }
+
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    public void setPropertyName(String propertyName) {
+        this.propertyName = propertyName;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     @Override

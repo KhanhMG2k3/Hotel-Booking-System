@@ -107,13 +107,22 @@ public class RoomController extends HttpServlet {
             }
         }
 
-        List<Room> rooms = roomDAO.searchRooms(keyword, minPrice, maxPrice, capacity, typeId, minRating, maxRating, sortBy);
+        String provinceIdStr = request.getParameter("provinceId");
+        Integer provinceId = null;
+        if (provinceIdStr != null && !provinceIdStr.trim().isEmpty()) {
+            try { provinceId = Integer.parseInt(provinceIdStr.trim()); } catch (NumberFormatException ignored) {}
+        }
+
+        List<Room> rooms = roomDAO.searchRooms(keyword, minPrice, maxPrice, capacity, typeId, provinceId, minRating, maxRating, sortBy);
         List<com.homestay.model.RoomType> roomTypes = roomDAO.getAllRoomTypes();
+        List<com.homestay.model.Province> provinces = roomDAO.getAllProvinces();
 
         request.setAttribute("rooms", rooms);
         request.setAttribute("roomTypes", roomTypes);
+        request.setAttribute("provinces", provinces);
         request.setAttribute("keyword", keyword != null ? keyword.trim() : "");
         request.setAttribute("typeId", typeId);
+        request.setAttribute("provinceId", provinceId);
         request.setAttribute("capacity", capacity);
         request.setAttribute("minPrice", minPrice);
         request.setAttribute("maxPrice", maxPrice);

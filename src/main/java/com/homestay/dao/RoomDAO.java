@@ -1,5 +1,6 @@
 package com.homestay.dao;
 
+import com.homestay.model.Province;
 import com.homestay.model.Room;
 import com.homestay.model.RoomType;
 
@@ -22,9 +23,15 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             "SELECT r.room_id as id, r.room_type_id as type_id, r.room_number, r.status, " +
             "       rt.room_name, rt.description, rt.max_guests as capacity, rt.base_price as price_per_night, " +
             "       rt.size_m2, rt.bed_type, COALESCE(rt.rating, 4.5) as rating, COALESCE(rt.review_count, 10) as review_count, " +
-            "       COALESCE(ri.image_url, 'images/img_1.jpg') as image_url " +
+            "       COALESCE(ri.image_url, 'images/img_1.jpg') as image_url, " +
+            "       COALESCE(prop.property_name, 'Sogo Homestay') as property_name, " +
+            "       COALESCE(prop.address, '') as address, " +
+            "       prov.province_id, COALESCE(prov.province_name, 'Đà Nẵng') as province_name " +
             "FROM rooms r " +
             "JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+            "LEFT JOIN properties prop ON rt.property_id = prop.property_id " +
+            "LEFT JOIN destinations dest ON prop.destination_id = dest.destination_id " +
+            "LEFT JOIN provinces prov ON dest.province_id = prov.province_id " +
             "LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri " +
             "ON rt.room_type_id = ri.room_type_id ";
 
@@ -193,6 +200,11 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         room.setFeatured(true);
         room.setRating(rs.getDouble("rating"));
         room.setReviewCount(rs.getInt("review_count"));
+        int provId = rs.getInt("province_id");
+        room.setProvinceId(provId != 0 ? provId : null);
+        room.setProvinceName(rs.getString("province_name"));
+        room.setPropertyName(rs.getString("property_name"));
+        room.setAddress(rs.getString("address"));
 
         RoomType roomType = new RoomType();
         roomType.setId(rs.getInt("type_id"));
@@ -204,18 +216,21 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
     }
 
     /**
-     * Search rooms with dynamic filters: keyword, price range, capacity, room type, star rating range (min-max), and sort.
+     * Search rooms with dynamic filters: keyword, price range, capacity, room type, province/city, star rating range (min-max), and sort.
      */
     public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
-                                  Integer capacity, Integer typeId, Double minRating, Double maxRating, String sortBy) {
+                                  Integer capacity, Integer typeId, Integer provinceId, Double minRating, Double maxRating, String sortBy) {
         List<Room> rooms = new ArrayList<>();
         StringBuilder sql = new StringBuilder(BASE_SELECT);
         sql.append("WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            sql.append("AND (LOWER(rt.room_name) LIKE ? OR LOWER(rt.description) LIKE ? OR LOWER(r.room_number) LIKE ?) ");
+            sql.append("AND (LOWER(rt.room_name) LIKE ? OR LOWER(rt.description) LIKE ? OR LOWER(r.room_number) LIKE ? OR LOWER(prov.province_name) LIKE ? OR LOWER(prop.address) LIKE ? OR LOWER(prop.property_name) LIKE ?) ");
             String kw = "%" + keyword.trim().toLowerCase() + "%";
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
             params.add(kw);
             params.add(kw);
             params.add(kw);
@@ -224,6 +239,11 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         if (typeId != null && typeId > 0) {
             sql.append("AND r.room_type_id = ? ");
             params.add(typeId);
+        }
+
+        if (provinceId != null && provinceId > 0) {
+            sql.append("AND dest.province_id = ? ");
+            params.add(provinceId);
         }
 
         if (capacity != null && capacity > 0) {
@@ -296,8 +316,42 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
     }
 
     public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                                  Integer capacity, Integer typeId, Double minRating, Double maxRating, String sortBy) {
+        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, null, minRating, maxRating, sortBy);
+    }
+
+    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
                                   Integer capacity, Integer typeId, Double minRating, String sortBy) {
-        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, minRating, null, sortBy);
+        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, null, minRating, null, sortBy);
+    }
+
+    /**
+     * Retrieves all available provinces for filter dropdown.
+     */
+    public List<Province> getAllProvinces() {
+        List<Province> provinces = new ArrayList<>();
+        String sql = "SELECT province_id, country_id, province_name FROM provinces ORDER BY province_name ASC";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Province p = new Province();
+                p.setId(rs.getInt("province_id"));
+                p.setCountryId(rs.getInt("country_id"));
+                p.setProvinceName(rs.getString("province_name"));
+                provinces.add(p);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting provinces", e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+        return provinces;
     }
 
     /**

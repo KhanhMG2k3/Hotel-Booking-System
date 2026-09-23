@@ -52,11 +52,22 @@
                 <!-- 1. Từ khóa -->
                 <div class="col-lg-3 col-md-6 mb-3">
                   <label class="sogo-filter-label"><i class="fa fa-search text-primary mr-1"></i> Tìm kiếm phòng</label>
-                  <input type="text" name="keyword" class="form-control" placeholder="Tên phòng, mô tả..." value="${keyword}">
+                  <input type="text" name="keyword" class="form-control" placeholder="Tên phòng, địa điểm..." value="${keyword}">
                 </div>
 
-                <!-- 2. Loại phòng -->
+                <!-- 2. Tỉnh / Thành phố -->
                 <div class="col-lg-3 col-md-6 mb-3">
+                  <label class="sogo-filter-label"><i class="fa fa-map-marker text-danger mr-1"></i> Tỉnh / Thành phố</label>
+                  <select name="provinceId" class="form-control">
+                    <option value="">Tất cả tỉnh thành</option>
+                    <c:forEach var="p" items="${provinces}">
+                      <option value="${p.id}" ${p.id == provinceId ? 'selected' : ''}>📍 ${p.provinceName}</option>
+                    </c:forEach>
+                  </select>
+                </div>
+
+                <!-- 3. Loại phòng -->
+                <div class="col-lg-2 col-md-6 mb-3">
                   <label class="sogo-filter-label"><i class="fa fa-th-large text-primary mr-1"></i> Loại phòng</label>
                   <select name="typeId" class="form-control">
                     <option value="">Tất cả loại phòng</option>
@@ -66,7 +77,7 @@
                   </select>
                 </div>
 
-                <!-- 3. Sức chứa / Số khách -->
+                <!-- 4. Sức chứa / Số khách -->
                 <div class="col-lg-2 col-md-6 mb-3">
                   <label class="sogo-filter-label"><i class="fa fa-users text-primary mr-1"></i> Sức chứa</label>
                   <select name="capacity" class="form-control">
@@ -78,7 +89,7 @@
                   </select>
                 </div>
 
-                <!-- 4. Đánh giá sao -->
+                <!-- 5. Đánh giá sao -->
                 <div class="col-lg-2 col-md-6 mb-3">
                   <label class="sogo-filter-label"><i class="fa fa-star text-warning mr-1"></i> Đánh giá sao</label>
                   <select name="rating" class="form-control">
@@ -89,29 +100,17 @@
                     <option value="3.5" ${rating == '3.5' ? 'selected' : ''}>⭐ 3.5 sao (3.5 - 3.9)</option>
                   </select>
                 </div>
-
-                <!-- 5. Sắp xếp -->
-                <div class="col-lg-2 col-md-6 mb-3">
-                  <label class="sogo-filter-label"><i class="fa fa-sort text-primary mr-1"></i> Sắp xếp</label>
-                  <select name="sortBy" class="form-control">
-                    <option value="">Mặc định</option>
-                    <option value="price_asc" ${sortBy == 'price_asc' ? 'selected' : ''}>Giá: Thấp đến Cao</option>
-                    <option value="price_desc" ${sortBy == 'price_desc' ? 'selected' : ''}>Giá: Cao đến Thấp</option>
-                    <option value="rating_desc" ${sortBy == 'rating_desc' ? 'selected' : ''}>Đánh giá cao nhất ⭐</option>
-                    <option value="capacity_desc" ${sortBy == 'capacity_desc' ? 'selected' : ''}>Sức chứa lớn nhất</option>
-                  </select>
-                </div>
               </div>
 
-              <!-- Hàng thứ hai: Khoảng giá & Nút tìm kiếm -->
+              <!-- Hàng thứ hai: Khoảng giá, Sắp xếp & Nút tìm kiếm -->
               <div class="row align-items-center pt-2 border-top">
-                <div class="col-lg-8 col-md-12 mb-3 mb-lg-0">
+                <div class="col-lg-5 col-md-12 mb-3 mb-lg-0">
                   <div class="d-flex align-items-center flex-wrap">
                     <span class="sogo-filter-label mr-3 mb-1"><i class="fa fa-money text-success mr-1"></i> Mức giá (VNĐ):</span>
                     <div class="d-inline-flex align-items-center mb-1 mr-2" style="max-width: 320px;">
-                      <input type="number" id="minPriceInput" name="minPrice" class="form-control form-control-sm mr-2" placeholder="Từ (VNĐ)" value="${minPrice}" min="0" step="50000" style="width: 140px;">
+                      <input type="number" id="minPriceInput" name="minPrice" class="form-control form-control-sm mr-2" placeholder="Từ (VNĐ)" value="${minPrice}" min="0" step="50000" style="width: 130px;">
                       <span class="text-muted mr-2">-</span>
-                      <input type="number" id="maxPriceInput" name="maxPrice" class="form-control form-control-sm" placeholder="Đến (VNĐ)" value="${maxPrice}" min="0" step="50000" style="width: 140px;">
+                      <input type="number" id="maxPriceInput" name="maxPrice" class="form-control form-control-sm" placeholder="Đến (VNĐ)" value="${maxPrice}" min="0" step="50000" style="width: 130px;">
                     </div>
                     <div class="quick-presets d-inline-block">
                       <button type="button" class="quick-price-btn" onclick="setPriceRange('', 700000)">&lt; 700k</button>
@@ -122,7 +121,21 @@
                   </div>
                 </div>
 
-                <div class="col-lg-4 col-md-12 text-lg-right">
+                <!-- Sắp xếp -->
+                <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
+                  <div class="d-flex align-items-center">
+                    <label class="sogo-filter-label mr-2 mb-0 text-nowrap"><i class="fa fa-sort text-primary mr-1"></i> Sắp xếp:</label>
+                    <select name="sortBy" class="form-control form-control-sm">
+                      <option value="">Mặc định</option>
+                      <option value="price_asc" ${sortBy == 'price_asc' ? 'selected' : ''}>Giá: Thấp đến Cao</option>
+                      <option value="price_desc" ${sortBy == 'price_desc' ? 'selected' : ''}>Giá: Cao đến Thấp</option>
+                      <option value="rating_desc" ${sortBy == 'rating_desc' ? 'selected' : ''}>Đánh giá cao nhất ⭐</option>
+                      <option value="capacity_desc" ${sortBy == 'capacity_desc' ? 'selected' : ''}>Sức chứa lớn nhất</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 text-lg-right">
                   <div class="d-flex justify-content-lg-end">
                     <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm mr-2">
                       <i class="fa fa-filter mr-1"></i> Áp Dụng Lọc
@@ -148,6 +161,15 @@
                 <span class="filter-active-pill">
                   Từ khóa: <strong>${keyword}</strong>
                 </span>
+              </c:if>
+              <c:if test="${not empty provinceId}">
+                <c:forEach var="p" items="${provinces}">
+                  <c:if test="${p.id == provinceId}">
+                    <span class="filter-active-pill">
+                      <i class="fa fa-map-marker text-danger mr-1"></i> <strong>${p.provinceName}</strong>
+                    </span>
+                  </c:if>
+                </c:forEach>
               </c:if>
               <c:if test="${not empty rating}">
                 <span class="filter-active-pill">
@@ -184,7 +206,7 @@
                   </strong>
                 </span>
               </c:if>
-              <c:if test="${not empty keyword or not empty typeId or not empty capacity or not empty rating or not empty minRating or not empty minPrice or not empty maxPrice or not empty sortBy}">
+              <c:if test="${not empty keyword or not empty typeId or not empty provinceId or not empty capacity or not empty rating or not empty minRating or not empty minPrice or not empty maxPrice or not empty sortBy}">
                 <a href="${pageContext.request.contextPath}/rooms" class="badge badge-light border text-danger p-2 ml-1" title="Xóa tất cả bộ lọc">
                   <i class="fa fa-times mr-1"></i> Bỏ lọc
                 </a>
@@ -222,10 +244,19 @@
                               <small class="text-muted font-weight-normal">(${room.reviewCount})</small>
                             </span>
                           </div>
-                          <h2 class="h5 font-weight-bold mb-2">
+                          <h2 class="h5 font-weight-bold mb-1">
                             <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}"
                               class="text-dark hover-primary">${room.roomName}</a>
                           </h2>
+                          <c:if test="${not empty room.provinceName}">
+                            <div class="text-muted small text-left mb-2">
+                              <i class="fa fa-map-marker text-danger mr-1"></i>
+                              <span class="font-weight-bold text-dark">${room.provinceName}</span>
+                              <c:if test="${not empty room.propertyName}">
+                                <span class="text-muted">&bull; ${room.propertyName}</span>
+                              </c:if>
+                            </div>
+                          </c:if>
                           <p class="text-muted small text-left mb-3">${room.description}</p>
                         </div>
 
