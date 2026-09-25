@@ -232,6 +232,39 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         }
     }
 
+    /**
+     * Cập nhật thông tin profile cơ bản (không đụng role, email, status,
+     * password).
+     */
+    public boolean updateProfile(int userId, String fullName, String phone, String avatarUrl) {
+        String sql = "UPDATE users SET full_name = ?, phone = ?, avatar_url = ? WHERE id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, fullName);
+            ps.setString(2, phone);
+            ps.setString(3, avatarUrl);
+            ps.setInt(4, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating profile for user id: " + userId, e);
+            return false;
+        }
+    }
+
+    /**
+     * Đổi mật khẩu (password đã hash sẵn).
+     */
+    public boolean updatePassword(int userId, String hashedPassword) {
+        String sql = "UPDATE users SET password = ? WHERE id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, hashedPassword);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating password for user id: " + userId, e);
+            return false;
+        }
+    }
+
     @Override
     public boolean delete(Integer id) {
         String sql = "DELETE FROM users WHERE id = ?";
@@ -287,8 +320,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         String username = generateUsernameFromEmail(email);
         String sql = "INSERT INTO users (role_id, username, password, full_name, email, phone, status) "
                 + "VALUES (2, ?, ?, ?, ?, ?, 'ACTIVE')"; // role_id = 2 -> ROLE_CUSTOMER
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, username);
             ps.setString(2, hashedPassword);
             ps.setString(3, fullName);
@@ -313,8 +345,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         String username = generateUsernameFromEmail(email);
         String sql = "INSERT INTO users (role_id, username, password, full_name, email, status, google_id, auth_provider, avatar_url) "
                 + "VALUES (2, ?, NULL, ?, ?, 'ACTIVE', ?, 'google', ?)";
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, username);
             ps.setString(2, fullName);
             ps.setString(3, email);

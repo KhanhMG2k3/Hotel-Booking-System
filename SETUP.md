@@ -22,10 +22,35 @@ Các dòng còn lại trong `db.properties.example` giữ nguyên, không cần 
 
 File này **có sẵn** trong code vừa pull về (đã commit lên Git bình thường), chứa Google Client ID dùng chung cho cả nhóm — không cần tạo, không cần sửa, không cần xin ai.
 
-## 4. Clean and Build lại project
+## 4. Khởi tạo database
+
+Tạo database rỗng một lần trong MySQL:
+```sql
+CREATE DATABASE homestaybooking
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+```
+
+Đặt `FLYWAY_URL`, `FLYWAY_USER`, `FLYWAY_PASSWORD` trong terminal cục bộ, dùng cùng server/tài khoản ở `db.properties`. Không ghi mật khẩu vào command line hoặc commit nó.
+
+Với database mới, chạy migration versioned:
+```powershell
+mvn flyway:migrate
+```
+Migration `V1` chỉ tạo cấu trúc, không tạo dữ liệu mẫu. Nếu cần dữ liệu demo, chạy `database/02_seed.sql` đúng một lần sau migration.
+
+Với database đã có dữ liệu, không chạy `schema.sql` vì file đó có lệnh `DROP TABLE`. Trước tiên đối chiếu cấu trúc hiện tại với migration `V1`; chỉ khi khớp đầy đủ mới đánh dấu database đã ở version 1:
+```powershell
+mvn "-Dflyway.baselineVersion=1" flyway:baseline
+```
+Không bật `baselineOnMigrate`: database không rỗng nhưng chưa được baseline sẽ bị Flyway dừng để tránh bỏ qua migration ngoài ý muốn.
+
+`database/schema.sql` vẫn được giữ làm script reset thủ công cho môi trường bỏ đi. Không chạy file này trên database cần giữ dữ liệu.
+
+## 5. Clean and Build lại project
 - NetBeans: chuột phải vào project → **Clean and Build**
 
-## 5. Chạy thử và test
+## 6. Chạy thử và test
 - Chạy `ServerRunner.java` (chuột phải → Run File)
 - Test đăng nhập bằng cả 2 cách: email/mật khẩu thường, và nút Google Sign-In
 - Báo lại nhóm ngay nếu gặp lỗi khi test

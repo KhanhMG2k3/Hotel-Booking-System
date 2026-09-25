@@ -6,7 +6,6 @@ package com.homestay.controller;
 
 import com.homestay.dao.HostProfileDAO;
 import com.homestay.model.HostProfile;
-import com.homestay.model.User;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -14,15 +13,16 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
+import java.util.Optional;
 
 /**
  *
  * @author admin
  */
-@WebServlet(name = "AdminController", urlPatterns = {"/admin/dashboard"})
-public class AdminController extends HttpServlet {
+@WebServlet(name = "AdminHostApprovalServlet", urlPatterns = {"/admin/host/approve"})
+public class AdminHostApprovalServlet extends HttpServlet {
 
+    private static final int ROLE_HOST_ID = 3;
     private final HostProfileDAO hostProfileDAO = new HostProfileDAO();
 
     /**
@@ -42,10 +42,10 @@ public class AdminController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet AdminController</title>");
+            out.println("<title>Servlet AdminHostApprovalServlet</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet AdminController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet AdminHostApprovalServlet at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -63,18 +63,7 @@ public class AdminController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        List<HostProfile> pendingHostProfiles
-                = hostProfileDAO.findPendingProfiles();
-
-        request.setAttribute(
-                "pendingHostProfiles",
-                pendingHostProfiles
-        );
-
-        request.getRequestDispatcher(
-                "/WEB-INF/views/admin/dashboard.jsp"
-        ).forward(request, response);
+        processRequest(request, response);
     }
 
     /**
@@ -88,7 +77,67 @@ public class AdminController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        String profileIdParameter
+                = request.getParameter("profileId");
+
+        if (profileIdParameter == null
+                || profileIdParameter.isBlank()) {
+
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/admin/dashboard"
+            );
+            return;
+        }
+
+        int profileId;
+
+        try {
+            profileId
+                    = Integer.parseInt(profileIdParameter);
+        } catch (NumberFormatException exception) {
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/admin/dashboard"
+            );
+            return;
+        }
+
+        Optional<HostProfile> profileOptional
+                = hostProfileDAO.findById(profileId);
+
+        if (profileOptional.isEmpty()) {
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/admin/dashboard"
+            );
+            return;
+        }
+
+        HostProfile profile
+                = profileOptional.get();
+
+        if (!"PENDING".equals(
+                profile.getVerificationStatus())) {
+
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/admin/dashboard"
+            );  
+            return;
+        }
+
+        boolean approved
+                = hostProfileDAO.approveAndAssignHostRole(
+                        profile.getId(),
+                        profile.getUserId(),
+                        ROLE_HOST_ID
+                );
+
+        response.sendRedirect(
+                request.getContextPath()
+                + "/admin/dashboard"
+        );
     }
 
     /**

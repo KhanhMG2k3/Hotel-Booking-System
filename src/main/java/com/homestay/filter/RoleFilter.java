@@ -23,20 +23,20 @@ public class RoleFilter implements Filter {
             FilterChain chain)
             throws IOException, ServletException {
 
-        HttpServletRequest httpRequest =
-                (HttpServletRequest) request;
+        HttpServletRequest httpRequest
+                = (HttpServletRequest) request;
 
-        HttpServletResponse httpResponse =
-                (HttpServletResponse) response;
+        HttpServletResponse httpResponse
+                = (HttpServletResponse) response;
 
-        HttpSession session =
-                httpRequest.getSession(false);
+        HttpSession session
+                = httpRequest.getSession(false);
 
         User user = null;
 
         if (session != null) {
-            Object userAttribute =
-                    session.getAttribute("user");
+            Object userAttribute
+                    = session.getAttribute("user");
 
             if (userAttribute instanceof User) {
                 user = (User) userAttribute;
@@ -50,9 +50,15 @@ public class RoleFilter implements Filter {
                 );
 
         if (!isAdmin) {
-            httpResponse.sendRedirect(
-                    httpRequest.getContextPath() + "/login"
-            );
+            if (user == null) {
+                httpResponse.sendRedirect(
+                        httpRequest.getContextPath() + "/login"
+                );
+            } else {
+                httpResponse.sendRedirect(
+                        httpRequest.getContextPath() + "/home?error=no_permission"
+                );
+            }
             return;
         }
 
