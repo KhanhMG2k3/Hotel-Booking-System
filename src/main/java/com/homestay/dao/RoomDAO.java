@@ -13,212 +13,400 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 
-/**
- * RoomDAO - Data Access Object for Room entity in homestaybooking database.
- */
 public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
 
-    private static final String BASE_SELECT = 
-            "SELECT r.room_id as id, r.room_type_id as type_id, r.room_number, r.status, " +
-            "       rt.room_name, rt.description, rt.max_guests as capacity, rt.base_price as price_per_night, " +
-            "       rt.size_m2, rt.bed_type, " +
-            "       COALESCE(ri.image_url, 'images/img_1.jpg') as image_url " +
+    /**
+     * SQL dùng chung cho Listing Page và Detail Page.
+     *
+     * Database hiện tại:
+     * rooms
+     * room_types
+     */
+    private static final String BASE_SELECT =
+            "SELECT " +
+            "r.id, " +
+            "r.type_id, " +
+            "r.room_number, " +
+            "r.room_name, " +
+            "r.price_per_night, " +
+            "r.capacity, " +
+            "r.image_url, " +
+            "r.description, " +
+            "r.status, " +
+            "r.is_featured, " +
+            "r.created_at, " +
+            "rt.type_name, " +
+            "rt.description AS type_description " +
             "FROM rooms r " +
-            "JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
-            "LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri " +
-            "ON rt.room_type_id = ri.room_type_id ";
+            "JOIN room_types rt ON r.type_id = rt.id ";
 
+    
     @Override
     public Optional<Room> findById(Integer id) {
-        String sql = BASE_SELECT + "WHERE r.room_id = ?";
+
+        String sql = BASE_SELECT + "WHERE r.id = ?";
+
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             conn = getConnection();
+
             ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
+
             rs = ps.executeQuery();
 
             if (rs.next()) {
+
                 Room room = mapResultSetToRoom(rs);
-                // Load all images for this room type
-                room.setImages(getRoomImages(conn, room.getTypeId()));
-                // Set standard homestay amenities
-                room.setAmenities(getDefaultAmenities(room.getTypeId()));
+
+                // Database hiện tại chỉ có một image_url
+                // nên dùng image đó làm ảnh chính.
+                room.setImages(
+                        new ArrayList<>(
+                                List.of(room.getImageUrl())
+                        )
+                );
+
+                // Tiện nghi mặc định.
+                room.setAmenities(
+                        getDefaultAmenities(room.getTypeId())
+                );
+
                 return Optional.of(room);
             }
+
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error finding room by id: " + id, e);
+
+            logger.log(
+                    Level.SEVERE,
+                    "Error finding room by id: " + id,
+                    e
+            );
+
         } finally {
+
             closeResources(conn, ps, rs);
         }
+
         return Optional.empty();
     }
 
+    
     @Override
     public List<Room> findAll() {
+
         List<Room> rooms = new ArrayList<>();
-        String sql = BASE_SELECT + "ORDER BY r.room_id ASC";
+
+        String sql = BASE_SELECT + "ORDER BY r.id ASC";
+
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
+
             conn = getConnection();
+
             ps = conn.prepareStatement(sql);
+
             rs = ps.executeQuery();
 
             while (rs.next()) {
+
                 Room room = mapResultSetToRoom(rs);
+
                 rooms.add(room);
             }
+
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error getting all rooms", e);
+
+            logger.log(
+                    Level.SEVERE,
+                    "Error getting all rooms",
+                    e
+            );
+
         } finally {
+
             closeResources(conn, ps, rs);
         }
+
         return rooms;
     }
 
     /**
-     * Retrieves all gallery images for a room type.
+     * Thêm phòng.
      */
-    public List<String> getRoomImages(Connection conn, int roomTypeId) {
-        List<String> images = new ArrayList<>();
-        String sql = "SELECT image_url FROM roomimages WHERE room_type_id = ? ORDER BY display_order ASC";
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-
-        try {
-            ps = conn.prepareStatement(sql);
-            ps.setInt(1, roomTypeId);
-            rs = ps.executeQuery();
-
-            while (rs.next()) {
-                images.add(rs.getString("image_url"));
-            }
-        } catch (SQLException e) {
-            logger.log(Level.WARNING, "Error loading room images for type: " + roomTypeId, e);
-        } finally {
-            if (rs != null) try { rs.close(); } catch (SQLException ignored) {}
-            if (ps != null) try { ps.close(); } catch (SQLException ignored) {}
-        }
-
-        if (images.isEmpty()) {
-            images.add("images/img_1.jpg");
-        }
-        return images;
-    }
-
     @Override
     public boolean insert(Room room) {
-        String sql = "INSERT INTO rooms (room_type_id, room_number, status) VALUES (?, ?, ?)";
+
+        String sql =
+                "INSERT INTO rooms " +
+                "(type_id, room_number, room_name, price_per_night, " +
+                "capacity, image_url, description, status, is_featured) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
         Connection conn = null;
         PreparedStatement ps = null;
 
         try {
+
             conn = getConnection();
+
             ps = conn.prepareStatement(sql);
+
             ps.setInt(1, room.getTypeId());
             ps.setString(2, room.getRoomNumber());
-            ps.setString(3, room.getStatus() != null ? room.getStatus() : "AVAILABLE");
+            ps.setString(3, room.getRoomName());
+            ps.setBigDecimal(4, room.getPricePerNight());
+            ps.setInt(5, room.getCapacity());
+            ps.setString(6, room.getImageUrl());
+            ps.setString(7, room.getDescription());
+
+            ps.setString(
+                    8,
+                    room.getStatus() != null
+                            ? room.getStatus()
+                            : "AVAILABLE"
+            );
+
+            ps.setBoolean(9, room.isFeatured());
 
             return ps.executeUpdate() > 0;
+
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error inserting room: " + room.getRoomName(), e);
+
+            logger.log(
+                    Level.SEVERE,
+                    "Error inserting room: " + room.getRoomName(),
+                    e
+            );
+
             return false;
+
         } finally {
+
             closeResources(conn, ps, null);
         }
     }
 
+    /**
+     * Cập nhật phòng.
+     */
     @Override
     public boolean update(Room room) {
-        String sql = "UPDATE rooms SET room_type_id = ?, room_number = ?, status = ? WHERE room_id = ?";
+
+        String sql =
+                "UPDATE rooms SET " +
+                "type_id = ?, " +
+                "room_number = ?, " +
+                "room_name = ?, " +
+                "price_per_night = ?, " +
+                "capacity = ?, " +
+                "image_url = ?, " +
+                "description = ?, " +
+                "status = ?, " +
+                "is_featured = ? " +
+                "WHERE id = ?";
+
         Connection conn = null;
         PreparedStatement ps = null;
 
         try {
+
             conn = getConnection();
+
             ps = conn.prepareStatement(sql);
+
             ps.setInt(1, room.getTypeId());
             ps.setString(2, room.getRoomNumber());
-            ps.setString(3, room.getStatus());
-            ps.setInt(4, room.getId());
+            ps.setString(3, room.getRoomName());
+            ps.setBigDecimal(4, room.getPricePerNight());
+            ps.setInt(5, room.getCapacity());
+            ps.setString(6, room.getImageUrl());
+            ps.setString(7, room.getDescription());
+            ps.setString(8, room.getStatus());
+            ps.setBoolean(9, room.isFeatured());
+            ps.setInt(10, room.getId());
 
             return ps.executeUpdate() > 0;
+
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error updating room id: " + room.getId(), e);
+
+            logger.log(
+                    Level.SEVERE,
+                    "Error updating room id: " + room.getId(),
+                    e
+            );
+
             return false;
+
         } finally {
+
             closeResources(conn, ps, null);
         }
     }
 
+    /**
+     * Xóa phòng.
+     */
     @Override
     public boolean delete(Integer id) {
-        String sql = "DELETE FROM rooms WHERE room_id = ?";
+
+        String sql = "DELETE FROM rooms WHERE id = ?";
+
         Connection conn = null;
         PreparedStatement ps = null;
 
         try {
+
             conn = getConnection();
+
             ps = conn.prepareStatement(sql);
+
             ps.setInt(1, id);
 
             return ps.executeUpdate() > 0;
+
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error deleting room id: " + id, e);
+
+            logger.log(
+                    Level.SEVERE,
+                    "Error deleting room id: " + id,
+                    e
+            );
+
             return false;
+
         } finally {
+
             closeResources(conn, ps, null);
         }
     }
 
-    private Room mapResultSetToRoom(ResultSet rs) throws SQLException {
+    /**
+     * Chuyển ResultSet thành Room object.
+     */
+    private Room mapResultSetToRoom(ResultSet rs)
+            throws SQLException {
+
         Room room = new Room();
-        room.setId(rs.getInt("id"));
-        room.setTypeId(rs.getInt("type_id"));
-        room.setRoomNumber(rs.getString("room_number"));
-        room.setRoomName(rs.getString("room_name"));
-        room.setPricePerNight(rs.getBigDecimal("price_per_night"));
-        room.setCapacity(rs.getInt("capacity"));
-        room.setSize(rs.getDouble("size_m2"));
-        room.setBedType(rs.getString("bed_type"));
-        room.setImageUrl(rs.getString("image_url"));
-        room.setDescription(rs.getString("description"));
-        room.setStatus(rs.getString("status"));
-        room.setFeatured(true);
+
+        room.setId(
+                rs.getInt("id")
+        );
+
+        room.setTypeId(
+                rs.getInt("type_id")
+        );
+
+        room.setRoomNumber(
+                rs.getString("room_number")
+        );
+
+        room.setRoomName(
+                rs.getString("room_name")
+        );
+
+        room.setPricePerNight(
+                rs.getBigDecimal("price_per_night")
+        );
+
+        room.setCapacity(
+                rs.getInt("capacity")
+        );
+
+        room.setImageUrl(
+                rs.getString("image_url")
+        );
+
+        room.setDescription(
+                rs.getString("description")
+        );
+
+        room.setStatus(
+                rs.getString("status")
+        );
+
+        room.setFeatured(
+                rs.getBoolean("is_featured")
+        );
+
+        room.setCreatedAt(
+                rs.getTimestamp("created_at")
+        );
+
+        /*
+         * Database hiện tại chưa có:
+         * size_m2
+         * bed_type
+         *
+         * nên không set hai field này.
+         */
 
         RoomType roomType = new RoomType();
-        roomType.setId(rs.getInt("type_id"));
-        roomType.setTypeName(rs.getString("room_name"));
-        roomType.setDescription(rs.getString("description"));
+
+        roomType.setId(
+                rs.getInt("type_id")
+        );
+
+        roomType.setTypeName(
+                rs.getString("type_name")
+        );
+
+        roomType.setDescription(
+                rs.getString("type_description")
+        );
+
         room.setRoomType(roomType);
 
         return room;
     }
 
+    /**
+     * Tiện nghi mặc định.
+     */
     private List<String> getDefaultAmenities(int typeId) {
-        List<String> amenities = new ArrayList<>(Arrays.asList(
-            "Wifi tốc độ cao miễn phí",
-            "Điều hòa không khí 2 chiều",
-            "Smart TV 55 inch Full HD",
-            "Tủ lạnh mini & Nước suối miễn phí",
-            "Máy sấy tóc & Bình đun siêu tốc",
-            "Phòng tắm riêng có nóng lạnh",
-            "Khăn tắm & Bộ vệ sinh cá nhân cao cấp",
-            "Dịch vụ dọn phòng hàng ngày"
-        ));
-        if (typeId == 2 || typeId == 6) {
-            amenities.add("Bếp nấu gia đình & Bàn ăn riêng");
-            amenities.add("Ban công thoáng mát view đồi/vườn");
+
+        List<String> amenities =
+                new ArrayList<>(
+                        Arrays.asList(
+                                "Wifi tốc độ cao miễn phí",
+                                "Điều hòa không khí",
+                                "Smart TV",
+                                "Tủ lạnh mini",
+                                "Nước suối miễn phí",
+                                "Máy sấy tóc",
+                                "Phòng tắm riêng",
+                                "Khăn tắm & đồ vệ sinh cá nhân",
+                                "Dịch vụ dọn phòng hàng ngày"
+                        )
+                );
+
+        if (typeId == 2) {
+
+            amenities.add(
+                    "Không gian phù hợp cho gia đình"
+            );
+
+            amenities.add(
+                    "Ban công thoáng mát"
+            );
+
         } else if (typeId == 3 || typeId == 4) {
-            amenities.add("Bồn tắm nằm thư giãn");
-            amenities.add("Ban công lớn view toàn cảnh biển");
+
+            amenities.add(
+                    "Không gian cao cấp"
+            );
+
+            amenities.add(
+                    "View đẹp"
+            );
         }
+
         return amenities;
     }
 }
