@@ -6,6 +6,7 @@ package com.homestay.controller;
 
 import com.homestay.dao.UserDAO;
 import com.homestay.model.User;
+import com.homestay.security.CsrfToken;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Optional;
@@ -21,7 +22,7 @@ import org.mindrot.jbcrypt.BCrypt;
  *
  * @author admin
  */
-@WebServlet(name = "LoginServlet", urlPatterns = {"/login"})
+@WebServlet(name = "LoginServlet", urlPatterns = { "/login" })
 public class LoginServlet extends HttpServlet {
 
     private final UserDAO userDao = new UserDAO();
@@ -30,10 +31,10 @@ public class LoginServlet extends HttpServlet {
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -57,24 +58,25 @@ public class LoginServlet extends HttpServlet {
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        prepareGoogleLoginCsrfToken(request);
         request.getRequestDispatcher("/Login.jsp").forward(request, response);
     }
 
     /**
      * Handles the HTTP <code>POST</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -106,12 +108,18 @@ public class LoginServlet extends HttpServlet {
         }
 
         if (user == null || !validPassword || !"ACTIVE".equalsIgnoreCase(user.getStatus())) {
+            prepareGoogleLoginCsrfToken(request);
             request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng");
             request.getRequestDispatcher("/Login.jsp").forward(request, response);
             return;
         }
 
-        HttpSession session = request.getSession();
+        HttpSession oldSession = request.getSession(false);
+        if (oldSession != null) {
+            oldSession.invalidate();
+        }
+        HttpSession session = request.getSession(true);
+
         String displayName = (user.getFullName() != null && !user.getFullName().trim().isEmpty())
                 ? user.getFullName().trim()
                 : user.getUsername();
@@ -123,16 +131,30 @@ public class LoginServlet extends HttpServlet {
         session.setAttribute("avatar", user.getAvatarUrl());
         session.setAttribute("user", user);
 
-        // phan quyen admin & customer
+        // phan quyen admin & host & customer
         String roleName = "";
         if (user.getRole() != null && user.getRole().getRoleName() != null) {
             roleName = user.getRole().getRoleName();
         }
 
         boolean isAdmin = "ROLE_ADMIN".equalsIgnoreCase(roleName) || "ADMIN".equalsIgnoreCase(roleName) || user.getRoleId() == 5;
-        String redirectPath = isAdmin ? "/admin/dashboard" : "/home";
+        boolean isHost = "ROLE_HOST".equalsIgnoreCase(roleName) || "HOST".equalsIgnoreCase(roleName) || "HOTEL_OWNER".equalsIgnoreCase(roleName) || user.getRoleId() == 2;
+        String redirectPath;
+        if (isAdmin) {
+            redirectPath = "/admin/dashboard";
+        } else if (isHost) {
+            redirectPath = "/host/dashboard";
+        } else {
+            redirectPath = "/home";
+        }
 
         response.sendRedirect(request.getContextPath() + redirectPath);
+    }
+
+    private void prepareGoogleLoginCsrfToken(HttpServletRequest request) {
+        String csrfToken = CsrfToken.generate();
+        request.getSession(true).setAttribute(CsrfToken.SESSION_ATTRIBUTE, csrfToken);
+        request.setAttribute(CsrfToken.SESSION_ATTRIBUTE, csrfToken);
     }
 
     /**

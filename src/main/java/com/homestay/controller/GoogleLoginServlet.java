@@ -6,7 +6,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.homestay.dao.UserDAO;
 import com.homestay.model.User;
-import com.homestay.context.DBContext;
+import com.homestay.security.CsrfToken;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -19,17 +19,28 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 
-@WebServlet(name = "GoogleLoginServlet", urlPatterns = {"/google-login"})
+@WebServlet(name = "GoogleLoginServlet", urlPatterns = { "/google-login" })
 public class GoogleLoginServlet extends HttpServlet {
 
-    // Dán đúng Client ID vừa tạo ở Google Cloud Console (PHẢI trùng với Client ID trong Login.jsp)
-    private static final String CLIENT_ID
-            = com.homestay.context.DBContext.getAppProperty("google.client.id", "");
+    // Dán đúng Client ID vừa tạo ở Google Cloud Console (PHẢI trùng với Client ID
+    // trong Login.jsp)
+    private static final String CLIENT_ID = com.homestay.context.DBContext.getAppProperty("google.client.id", "");
     private final UserDAO userDAO = new UserDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        HttpSession csrfSession = request.getSession(false);
+        String expectedCsrfToken = csrfSession == null
+                ? null
+                : (String) csrfSession.getAttribute(CsrfToken.SESSION_ATTRIBUTE);
+        if (!CsrfToken.matches(expectedCsrfToken, request.getParameter("csrfToken"))) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("text/plain;charset=UTF-8");
+            response.getWriter().write("Yêu cầu đăng nhập không hợp lệ. Vui lòng tải lại trang.");
+            return;
+        }
 
         String idTokenString = request.getParameter("credential");
 
@@ -48,6 +59,7 @@ public class GoogleLoginServlet extends HttpServlet {
                 return;
             }
 
+            // sau khi verify token id
             GoogleIdToken.Payload payload = idToken.getPayload();
             String googleId = payload.getSubject();
             String email = payload.getEmail();
@@ -76,7 +88,19 @@ public class GoogleLoginServlet extends HttpServlet {
                 return;
             }
 
-            HttpSession session = request.getSession();
+            // Chặn user không ACTIVE (BANNED / INACTIVE)
+            if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.setContentType("text/plain;charset=UTF-8");
+                response.getWriter().write("Tài khoản đã bị khóa hoặc chưa được kích hoạt.");
+                return;
+            }
+
+            HttpSession oldSession = request.getSession(false);
+            if (oldSession != null) {
+                oldSession.invalidate();
+            }
+            HttpSession session = request.getSession(true);
             session.setAttribute("userId", user.getId());
             session.setAttribute("userEmail", user.getEmail());
             session.setAttribute("username", user.getUsername());
@@ -85,8 +109,22 @@ public class GoogleLoginServlet extends HttpServlet {
             session.setAttribute("avatar", user.getAvatarUrl());
             session.setAttribute("user", user);
 
-            response.setContentType("text/plain");
-            response.getWriter().write("OK");
+            String roleName = "";
+            if (user.getRole() != null && user.getRole().getRoleName() != null) {
+                roleName = user.getRole().getRoleName();
+            }
+
+            String redirectPath;
+            if ("ROLE_ADMIN".equals(roleName)) {
+                redirectPath = "/admin/dashboard";
+            } else if ("ROLE_HOST".equals(roleName)) {
+                redirectPath = "/host/dashboard";
+            } else {
+                redirectPath = "/home";
+            }
+
+            response.setContentType("text/plain;charset=UTF-8");
+            response.getWriter().write(redirectPath);
 
         } catch (Exception e) {
             e.printStackTrace();

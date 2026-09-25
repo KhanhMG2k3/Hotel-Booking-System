@@ -38,6 +38,9 @@
                                             <c:when test="${sessionScope.roleId == 1}">
                                                 <span class="user-role-badge"><i class="fa fa-shield mr-1"></i> Quản trị viên</span>
                                             </c:when>
+                                            <c:when test="${sessionScope.roleId == 3}">
+                                                <span class="user-role-badge"><i class="fa fa-home mr-1"></i> Host</span>
+                                            </c:when>
                                             <c:otherwise>
                                                 <span class="user-role-badge"><i class="fa fa-user mr-1"></i> Khách hàng</span>
                                             </c:otherwise>
@@ -50,6 +53,16 @@
                                     <a href="${pageContext.request.contextPath}/my-bookings" class="user-dropdown-item" role="menuitem">
                                         <i class="fa fa-calendar-check-o"></i> Lịch sử đặt phòng
                                     </a>
+                                    <c:if test="${sessionScope.roleId != 1 && sessionScope.roleId != 3}">
+                                        <a href="${pageContext.request.contextPath}/become-host" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-home"></i> Trở thành Host
+                                        </a>
+                                    </c:if>
+                                    <c:if test="${sessionScope.roleId == 3}">
+                                        <a href="${pageContext.request.contextPath}/host/dashboard" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-dashboard"></i> Host Dashboard
+                                        </a>
+                                    </c:if>
                                     <div class="user-dropdown-divider"></div>
                                     <button type="button" class="user-dropdown-item user-dropdown-logout" data-toggle="modal" data-target="#logoutModal" role="menuitem">
                                         <i class="fa fa-sign-out"></i> Đăng xuất
@@ -104,6 +117,20 @@
                                                         <i class="fa fa-calendar-check-o mr-2"></i> Lịch sử đặt phòng
                                                     </a>
                                                 </li>
+                                                <c:if test="${sessionScope.roleId != 1 && sessionScope.roleId != 3}">
+                                                    <li>
+                                                        <a href="${pageContext.request.contextPath}/become-host">
+                                                            <i class="fa fa-home mr-2"></i> Trở thành Host
+                                                        </a>
+                                                    </li>
+                                                </c:if>
+                                                <c:if test="${sessionScope.roleId == 3}">
+                                                    <li>
+                                                        <a href="${pageContext.request.contextPath}/host/dashboard">
+                                                            <i class="fa fa-dashboard mr-2"></i> Host Dashboard
+                                                        </a>
+                                                    </li>
+                                                </c:if>
                                                 <li>
                                                     <a href="javascript:void(0)" class="text-danger font-weight-bold" data-toggle="modal" data-target="#logoutModal" onclick="closeSiteNavbar()">
                                                         <i class="fa fa-sign-out mr-2"></i> Đăng xuất
@@ -113,8 +140,8 @@
                                             <c:otherwise>
                                                 <li><a href="${pageContext.request.contextPath}/login"><i class="fa fa-sign-in mr-2"></i> Đăng nhập</a></li>
                                                 <li><a href="${pageContext.request.contextPath}/register"><i class="fa fa-user-plus mr-2"></i> Đăng ký</a></li>
-                                            </c:otherwise>
-                                        </c:choose>
+                                                </c:otherwise>
+                                            </c:choose>
                                     </ul>
                                 </div>
                             </div>
@@ -212,7 +239,9 @@
         if (toast) {
             setTimeout(function () {
                 if (typeof $ !== 'undefined') {
-                    $(toast).fadeOut(400, function () { $(this).remove(); });
+                    $(toast).fadeOut(400, function () {
+                        $(this).remove();
+                    });
                 } else {
                     toast.style.display = 'none';
                 }

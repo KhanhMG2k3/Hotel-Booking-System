@@ -225,6 +225,39 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         }
     }
 
+    /**
+     * Cập nhật thông tin profile cơ bản (không đụng role, email, status,
+     * password).
+     */
+    public boolean updateProfile(int userId, String fullName, String phone, String avatarUrl) {
+        String sql = "UPDATE users SET full_name = ?, phone = ?, avatar_url = ? WHERE user_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, fullName);
+            ps.setString(2, phone);
+            ps.setString(3, avatarUrl);
+            ps.setInt(4, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating profile for user id: " + userId, e);
+            return false;
+        }
+    }
+
+    /**
+     * Đổi mật khẩu (password đã hash sẵn).
+     */
+    public boolean updatePassword(int userId, String hashedPassword) {
+        String sql = "UPDATE users SET password_hash = ? WHERE user_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, hashedPassword);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating password for user id: " + userId, e);
+            return false;
+        }
+    }
+
     @Override
     public boolean delete(Integer id) {
         String sqlRole = "DELETE FROM userroles WHERE user_id = ?";
