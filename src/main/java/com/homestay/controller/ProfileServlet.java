@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.util.Optional;
 
 @WebServlet(name = "ProfileServlet", urlPatterns = { "/profile" })
+@jakarta.servlet.annotation.MultipartConfig(
+        fileSizeThreshold = 1024 * 1024 * 2, // 2MB
+        maxFileSize = 1024 * 1024 * 10,      // 10MB
+        maxRequestSize = 1024 * 1024 * 25    // 25MB
+)
 public class ProfileServlet extends HttpServlet {
 
     private final UserDAO userDAO;
@@ -45,6 +50,8 @@ public class ProfileServlet extends HttpServlet {
             return;
         }
 
+        String tab = request.getParameter("tab");
+        request.setAttribute("activeTab", (tab != null && !tab.trim().isEmpty()) ? tab.trim() : "profile");
         request.setAttribute("profileUser", userOpt.get());
         request.getRequestDispatcher("/WEB-INF/views/profile.jsp").forward(request, response);
     }
@@ -75,18 +82,31 @@ public class ProfileServlet extends HttpServlet {
         User current = userOpt.get();
 
         if ("changePassword".equals(action)) {
+            request.setAttribute("activeTab", "password");
             handleChangePassword(request, response, session, current);
             return;
         }
 
+        request.setAttribute("activeTab", "profile");
+
         // ---- update profile ----
         String fullName = request.getParameter("fullName");
         String phone = request.getParameter("phone");
-        String avatarUrl = request.getParameter("avatarUrl");
+        String gender = request.getParameter("gender");
+        String address = request.getParameter("address");
+        String dateOfBirthStr = request.getParameter("dateOfBirth");
 
         fullName = fullName == null ? "" : fullName.trim();
         phone = phone == null ? "" : phone.trim();
-        avatarUrl = avatarUrl == null ? "" : avatarUrl.trim();
+        gender = (gender != null && !gender.trim().isEmpty()) ? gender.trim() : null;
+        address = (address != null && !address.trim().isEmpty()) ? address.trim() : null;
+
+        java.sql.Date dateOfBirth = null;
+        if (dateOfBirthStr != null && !dateOfBirthStr.trim().isEmpty()) {
+            try {
+                dateOfBirth = java.sql.Date.valueOf(dateOfBirthStr.trim());
+            } catch (IllegalArgumentException ignored) {}
+        }
 
         if (fullName.isEmpty()) {
             request.setAttribute("error", "Họ tên không được để trống.");
@@ -102,9 +122,39 @@ public class ProfileServlet extends HttpServlet {
             return;
         }
 
-        String avatarToSave = avatarUrl.isEmpty() ? current.getAvatarUrl() : avatarUrl;
+        // Xử lý upload avatar từ thiết bị
+        String avatarToSave = current.getAvatarUrl();
+        try {
+            jakarta.servlet.http.Part filePart = request.getPart("avatarFile");
+            if (filePart != null && filePart.getSize() > 0 && filePart.getSubmittedFileName() != null) {
+                String submittedName = filePart.getSubmittedFileName().trim();
+                if (!submittedName.isEmpty()) {
+                    String ext = "";
+                    int dot = submittedName.lastIndexOf('.');
+                    if (dot >= 0) {
+                        ext = submittedName.substring(dot).toLowerCase();
+                    }
+                    if (ext.equals(".jpg") || ext.equals(".jpeg") || ext.equals(".png") || ext.equals(".webp") || ext.equals(".gif")) {
+                        String uploadDir = request.getServletContext().getRealPath("/assets/uploads/avatars");
+                        java.io.File dir = new java.io.File(uploadDir);
+                        if (!dir.exists()) {
+                            dir.mkdirs();
+                        }
+                        String fileName = "avatar_" + userId + "_" + System.currentTimeMillis() + ext;
+                        java.io.File target = new java.io.File(dir, fileName);
+                        filePart.write(target.getAbsolutePath());
+                        avatarToSave = "uploads/avatars/" + fileName;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
 
-        boolean ok = userDAO.updateProfile(userId, fullName, phone, avatarToSave);
+        boolean ok;
+        if (dateOfBirth != null || gender != null || address != null) {
+            ok = userDAO.updateProfile(userId, fullName, phone, avatarToSave, dateOfBirth, gender, address);
+        } else {
+            ok = userDAO.updateProfile(userId, fullName, phone, avatarToSave);
+        }
         if (!ok) {
             request.setAttribute("error", "Không thể cập nhật hồ sơ. Vui lòng thử lại.");
             request.setAttribute("profileUser", current);
@@ -120,6 +170,7 @@ public class ProfileServlet extends HttpServlet {
             session.setAttribute("userName", u.getFullName());
             session.setAttribute("avatar", u.getAvatarUrl());
             session.setAttribute("userEmail", u.getEmail());
+            session.setAttribute("roleId", u.getRoleId());
             request.setAttribute("profileUser", u);
         } else {
             request.setAttribute("profileUser", current);

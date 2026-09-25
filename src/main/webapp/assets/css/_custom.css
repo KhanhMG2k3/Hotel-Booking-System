@@ -477,4 +477,500 @@
   border-radius: 16px;
   border: 1px dashed #cbd5e1;
   padding: 48px 24px;
+}
+
+/* ========================================================
+   Sogo Homestay - User Profile Dashboard Styles (FITFLOW-inspired layout)
+   ======================================================== */
+.profile-section-wrapper {
+  background: #fbf9f5;
+  min-height: 80vh;
+  padding: 50px 0 80px;
+}
+
+.profile-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #f1ece4;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.04);
+  padding: 36px 30px;
+}
+
+/* Avatar với camera overlay khi di chuột vào */
+.avatar-hover-container {
+  position: relative !important;
+  width: 110px !important;
+  height: 110px !important;
+  margin: 0 auto 16px !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  border: 3px solid #ffba5a !important;
+  background: #ffffff !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+}
+
+.avatar-hover-container img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  border-radius: 50% !important;
+  display: block !important;
+  margin: 0 !important;
+}
+
+.avatar-hover-fallback {
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(135deg, #ffba5a 0%, #e67e22 100%) !important;
+  color: #ffffff !important;
+  font-size: 2.6rem !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+}
+
+.avatar-hover-overlay {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #ffffff !important;
+  opacity: 0 !important;
+  transition: opacity 0.25s ease-in-out !important;
+}
+
+.avatar-hover-container:hover .avatar-hover-overlay {
+  opacity: 1 !important;
+}
+
+.avatar-hover-overlay i {
+  font-size: 24px !important;
+  margin-bottom: 2px !important;
+  color: #ffffff !important;
+}
+
+.avatar-hover-overlay span {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #ffffff !important;
+}
+
+/* Các nút điều hướng Sidebar */
+.profile-action-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-decoration: none !important;
+  transition: all 0.2s ease;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+}
+
+.profile-action-btn:hover {
+  background: #f9fafb;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.profile-action-btn.active {
+  background: #fff9e6;
+  border-color: #fbd38d;
+  color: #b7791f;
+  box-shadow: 0 2px 6px rgba(255, 186, 90, 0.15);
+}
+
+.profile-action-btn.btn-home-link {
+  background: #eef2ff;
+  border-color: #e0e7ff;
+  color: #4f46e5;
+}
+
+.profile-action-btn.btn-home-link:hover {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.profile-action-btn.btn-logout {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+.profile-action-btn.btn-logout:hover {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+/* Nhãn & Ô nhập liệu Form (theo ảnh mẫu) */
+.profile-input-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.profile-text-input {
+  width: 100%;
+  border-radius: 10px !important;
+  border: 1px solid #e5e7eb !important;
+  padding: 12px 16px !important;
+  height: 48px !important;
+  font-size: 14px !important;
+  color: #1f2937 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease !important;
+}
+
+.profile-text-input:focus {
+  border-color: #eaa32b !important;
+  box-shadow: 0 0 0 3px rgba(234, 163, 43, 0.2) !important;
+  outline: none !important;
+}
+
+.profile-submit-btn {
+  background: #eaa32b;
+  border: 1px solid #eaa32b;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: 10px;
+  padding: 13px 24px;
+  width: 100%;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 10px rgba(234, 163, 43, 0.25);
+  cursor: pointer;
+}
+
+.profile-submit-btn:hover {
+  background: #d8911e;
+  border-color: #d8911e;
+  color: #ffffff;
+  box-shadow: 0 5px 15px rgba(234, 163, 43, 0.35);
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper .password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  z-index: 5;
+  padding: 4px 8px;
+  font-size: 15px;
+  transition: color 0.2s;
+}
+
+.password-input-wrapper .password-toggle-btn:hover {
+  color: #374151;
+}
+
+.security-tip-card {
+  background: #f8fafc;
+  border-left: 4px solid #ffba5a;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.profile-google-card {
+  background: linear-gradient(to right, #fcfdff, #f8f9fa);
+  border: 1px solid #e1e8ed;
+  border-radius: 14px;
+  padding: 28px;
+}
+
+/* ========================================================
+   FITFLOW Style Aliases for Profile Dashboard
+   ======================================================== */
+.fitflow-wrapper {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+.fitflow-wrapper *:not(.fa):not(i):not([class*="fa-"]):not([class*="fa-"]::before) {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.fitflow-wrapper .fa,
+.fitflow-wrapper i,
+.fitflow-wrapper [class*="fa-"],
+.fitflow-wrapper .fa::before,
+.fitflow-wrapper [class*="fa-"]::before,
+.fitflow-back-btn .fa,
+.fitflow-back-btn i {
+  font-family: 'FontAwesome' !important;
+}
+
+.fitflow-wrapper {
+  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.55)), url('../images/hero_4.jpg') no-repeat center center fixed !important;
+  background-size: cover !important;
+  min-height: 100vh !important;
+  padding: 55px 0 85px !important;
+}
+
+.fitflow-card {
+  background: #ffffff !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22) !important;
+  padding: 34px 28px !important;
+}
+
+.fitflow-avatar-box {
+  position: relative !important;
+  width: 104px !important;
+  height: 104px !important;
+  margin: 0 auto 16px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+  border: 3px solid #ffba5a !important;
+  background: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+.fitflow-avatar-box img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  border-radius: 50% !important;
+  display: block !important;
+  margin: 0 !important;
+}
+
+.fitflow-avatar-fallback {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #ffba5a 0%, #e67e22 100%) !important;
+  color: #ffffff !important;
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+}
+
+.fitflow-avatar-overlay {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  background: rgba(0, 0, 0, 0.52) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #ffffff !important;
+  opacity: 0 !important;
+  transition: opacity 0.25s ease-in-out !important;
+}
+
+.fitflow-avatar-box:hover .fitflow-avatar-overlay {
+  opacity: 1 !important;
+}
+
+.fitflow-avatar-overlay i {
+  font-size: 24px !important;
+  color: #ffffff !important;
+  margin-bottom: 2px !important;
+}
+
+.fitflow-avatar-overlay span {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #ffffff !important;
+}
+
+.fitflow-user-name {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #1F2937 !important;
+  margin-bottom: 4px !important;
+}
+
+.fitflow-role-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 5px 14px !important;
+  border-radius: 20px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  margin-bottom: 18px !important;
+  letter-spacing: 0.2px !important;
+}
+
+.fitflow-role-badge i {
+  font-size: 12px !important;
+  margin-right: 6px !important;
+}
+
+.fitflow-role-customer {
+  background: #FFF7ED !important;
+  border: 1px solid #FED7AA !important;
+  color: #B45309 !important;
+}
+
+.fitflow-role-admin {
+  background: #FEF2F2 !important;
+  border: 1px solid #FECACA !important;
+  color: #DC2626 !important;
+}
+
+.fitflow-role-host {
+  background: #EFF6FF !important;
+  border: 1px solid #BFDBFE !important;
+  color: #2563EB !important;
+}
+
+.fitflow-nav-btn {
+  display: block !important;
+  width: 100% !important;
+  text-align: center !important;
+  padding: 12px 16px !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  margin-bottom: 10px !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+  border: 1px solid #E5E7EB !important;
+  background: #ffffff !important;
+  color: #374151 !important;
+  cursor: pointer !important;
+}
+
+.fitflow-nav-btn:hover {
+  background: #F9FAFB !important;
+  color: #111827 !important;
+  border-color: #D1D5DB !important;
+}
+
+.fitflow-nav-btn.active {
+  background: #FFF9E6 !important;
+  border-color: #FBD38D !important;
+  color: #B45309 !important;
+  box-shadow: 0 2px 6px rgba(255, 186, 90, 0.15) !important;
+}
+
+.fitflow-nav-btn.btn-home {
+  background: #EEF2FF !important;
+  border-color: #E0E7FF !important;
+  color: #4F46E5 !important;
+}
+
+.fitflow-nav-btn.btn-home:hover {
+  background: #E0E7FF !important;
+  color: #4338CA !important;
+}
+
+.fitflow-nav-btn.btn-danger-logout {
+  background: #DC2626 !important;
+  border-color: #DC2626 !important;
+  color: #ffffff !important;
+}
+
+.fitflow-nav-btn.btn-danger-logout:hover {
+  background: #B91C1C !important;
+  color: #ffffff !important;
+}
+
+.fitflow-title {
+  font-size: 1.55rem !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+  margin-bottom: 4px !important;
+}
+
+.fitflow-subtitle {
+  font-size: 13.5px !important;
+  color: #6B7280 !important;
+  margin-bottom: 24px !important;
+}
+
+.fitflow-label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #4B5563 !important;
+  margin-bottom: 6px !important;
+  display: block !important;
+}
+
+.fitflow-input {
+  width: 100% !important;
+  border-radius: 10px !important;
+  border: 1px solid #E5E7EB !important;
+  padding: 11px 16px !important;
+  height: 48px !important;
+  font-size: 14px !important;
+  color: #1F2937 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+
+.fitflow-input:focus {
+  border-color: #EAA32B !important;
+  box-shadow: 0 0 0 3px rgba(234, 163, 43, 0.2) !important;
+  outline: none !important;
+}
+
+.fitflow-btn-submit {
+  background: #EAA32B !important;
+  border: 1px solid #EAA32B !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  border-radius: 10px !important;
+  padding: 13px 24px !important;
+  width: 100% !important;
+  transition: all 0.25s ease !important;
+  box-shadow: 0 3px 10px rgba(234, 163, 43, 0.25) !important;
+  cursor: pointer !important;
+  margin-top: 10px !important;
+}
+
+.fitflow-btn-submit:hover {
+  background: #D8911E !important;
+  border-color: #D8911E !important;
+  color: #ffffff !important;
+  box-shadow: 0 5px 15px rgba(234, 163, 43, 0.35) !important;
 }

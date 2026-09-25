@@ -23,6 +23,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
     private static final String BASE_SELECT =
             "SELECT u.user_id as id, u.full_name, u.email, u.password_hash as password, u.phone, "
             + "u.avatar_url, u.status, u.google_id, u.auth_provider, u.created_at, "
+            + "u.date_of_birth, u.gender, u.address, "
             + "COALESCE(r.role_id, 1) as role_id, "
             + "COALESCE(r.role_name, 'CUSTOMER') as role_name, "
             + "COALESCE(r.description, 'Khách hàng') as role_desc "
@@ -226,21 +227,28 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
     }
 
     /**
-     * Cập nhật thông tin profile cơ bản (không đụng role, email, status,
-     * password).
+     * Cập nhật thông tin profile (họ tên, sđt, avatar, ngày sinh, giới tính, địa chỉ).
      */
-    public boolean updateProfile(int userId, String fullName, String phone, String avatarUrl) {
-        String sql = "UPDATE users SET full_name = ?, phone = ?, avatar_url = ? WHERE user_id = ?";
+    public boolean updateProfile(int userId, String fullName, String phone, String avatarUrl,
+                                 java.sql.Date dateOfBirth, String gender, String address) {
+        String sql = "UPDATE users SET full_name = ?, phone = ?, avatar_url = ?, date_of_birth = ?, gender = ?, address = ? WHERE user_id = ?";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, fullName);
             ps.setString(2, phone);
             ps.setString(3, avatarUrl);
-            ps.setInt(4, userId);
+            ps.setDate(4, dateOfBirth);
+            ps.setString(5, gender);
+            ps.setString(6, address);
+            ps.setInt(7, userId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error updating profile for user id: " + userId, e);
             return false;
         }
+    }
+
+    public boolean updateProfile(int userId, String fullName, String phone, String avatarUrl) {
+        return updateProfile(userId, fullName, phone, avatarUrl, null, null, null);
     }
 
     /**
@@ -347,6 +355,9 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         user.setAuthProvider(rs.getString("auth_provider"));
         user.setAvatarUrl(rs.getString("avatar_url"));
         user.setCreatedAt(rs.getTimestamp("created_at"));
+        user.setDateOfBirth(rs.getDate("date_of_birth"));
+        user.setGender(rs.getString("gender"));
+        user.setAddress(rs.getString("address"));
 
         Role role = new Role();
         role.setId(roleId);

@@ -24,6 +24,9 @@ public class User implements Serializable {
     private String googleId;
     private String authProvider = "local"; // mặc định local nếu không set
     private String avatarUrl;
+    private java.sql.Date dateOfBirth;
+    private String gender;
+    private String address;
 
     public User() {
     }
@@ -148,6 +151,30 @@ public class User implements Serializable {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public java.sql.Date getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(java.sql.Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     @Override

@@ -12,11 +12,36 @@
                 <div class="auth-actions">
                     <c:choose>
                         <c:when test="${not empty sessionScope.userId}">
+                            <c:set var="navAvatarSrc" value="" />
+                            <c:if test="${not empty sessionScope.avatar}">
+                                <c:choose>
+                                    <c:when test="${fn:startsWith(sessionScope.avatar, 'http://') or fn:startsWith(sessionScope.avatar, 'https://')}">
+                                        <c:set var="navAvatarSrc" value="${sessionScope.avatar}" />
+                                    </c:when>
+                                    <c:when test="${fn:startsWith(sessionScope.avatar, '/assets/')}">
+                                        <c:set var="navAvatarSrc" value="${pageContext.request.contextPath}${sessionScope.avatar}" />
+                                    </c:when>
+                                    <c:when test="${fn:startsWith(sessionScope.avatar, 'assets/')}">
+                                        <c:set var="navAvatarSrc" value="${pageContext.request.contextPath}/${sessionScope.avatar}" />
+                                    </c:when>
+                                    <c:when test="${fn:startsWith(sessionScope.avatar, '/')}">
+                                        <c:set var="navAvatarSrc" value="${pageContext.request.contextPath}/assets${sessionScope.avatar}" />
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:set var="navAvatarSrc" value="${pageContext.request.contextPath}/assets/${sessionScope.avatar}" />
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:if>
+
                             <div class="user-menu" id="userMenuContainer">
                                 <button class="user-menu-toggle" id="userMenuToggle" type="button" aria-haspopup="true" aria-expanded="false" title="Tài khoản của tôi">
                                     <c:choose>
-                                        <c:when test="${not empty sessionScope.avatar}">
-                                            <img src="${sessionScope.avatar}" alt="Avatar" class="user-avatar-img">
+                                        <c:when test="${not empty navAvatarSrc}">
+                                            <img src="${navAvatarSrc}" alt="Avatar" class="user-avatar-img"
+                                                 onerror="this.style.display='none'; document.getElementById('navbarAvatarFallback').style.display='inline-flex';">
+                                            <span id="navbarAvatarFallback" class="user-avatar-fallback" style="display:none;">
+                                                ${fn:toUpperCase(fn:substring(sessionScope.userName, 0, 1))}
+                                            </span>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="user-avatar-fallback">
@@ -34,12 +59,17 @@
                                         <c:if test="${not empty sessionScope.userEmail}">
                                             <span class="user-dropdown-email"><c:out value="${sessionScope.userEmail}" /></span>
                                         </c:if>
+                                        <c:set var="uRoleName" value="${not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : ''}" />
+                                        <c:set var="uRoleId" value="${sessionScope.roleId}" />
+                                        <c:set var="isUserAdmin" value="${uRoleId == 5 || uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN'}" />
+                                        <c:set var="isUserHost" value="${uRoleId == 2 || uRoleId == 3 || uRoleName == 'HOST' || uRoleName == 'ROLE_HOST' || uRoleName == 'HOTEL_OWNER'}" />
+
                                         <c:choose>
-                                            <c:when test="${sessionScope.roleId == 1}">
+                                            <c:when test="${isUserAdmin}">
                                                 <span class="user-role-badge"><i class="fa fa-shield mr-1"></i> Quản trị viên</span>
                                             </c:when>
-                                            <c:when test="${sessionScope.roleId == 3}">
-                                                <span class="user-role-badge"><i class="fa fa-home mr-1"></i> Host</span>
+                                            <c:when test="${isUserHost}">
+                                                <span class="user-role-badge"><i class="fa fa-home mr-1"></i> Chủ Homestay</span>
                                             </c:when>
                                             <c:otherwise>
                                                 <span class="user-role-badge"><i class="fa fa-user mr-1"></i> Khách hàng</span>
@@ -53,14 +83,19 @@
                                     <a href="${pageContext.request.contextPath}/my-bookings" class="user-dropdown-item" role="menuitem">
                                         <i class="fa fa-calendar-check-o"></i> Lịch sử đặt phòng
                                     </a>
-                                    <c:if test="${sessionScope.roleId != 1 && sessionScope.roleId != 3}">
+                                    <c:if test="${!isUserAdmin && !isUserHost}">
                                         <a href="${pageContext.request.contextPath}/become-host" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-home"></i> Trở thành Host
                                         </a>
                                     </c:if>
-                                    <c:if test="${sessionScope.roleId == 3}">
+                                    <c:if test="${isUserHost}">
                                         <a href="${pageContext.request.contextPath}/host/dashboard" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-dashboard"></i> Host Dashboard
+                                        </a>
+                                    </c:if>
+                                    <c:if test="${isUserAdmin}">
+                                        <a href="${pageContext.request.contextPath}/admin/dashboard" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-cogs"></i> Trang Quản Trị
                                         </a>
                                     </c:if>
                                     <div class="user-dropdown-divider"></div>
@@ -117,17 +152,24 @@
                                                         <i class="fa fa-calendar-check-o mr-2"></i> Lịch sử đặt phòng
                                                     </a>
                                                 </li>
-                                                <c:if test="${sessionScope.roleId != 1 && sessionScope.roleId != 3}">
+                                                <c:if test="${!isUserAdmin && !isUserHost}">
                                                     <li>
                                                         <a href="${pageContext.request.contextPath}/become-host">
                                                             <i class="fa fa-home mr-2"></i> Trở thành Host
                                                         </a>
                                                     </li>
                                                 </c:if>
-                                                <c:if test="${sessionScope.roleId == 3}">
+                                                <c:if test="${isUserHost}">
                                                     <li>
                                                         <a href="${pageContext.request.contextPath}/host/dashboard">
                                                             <i class="fa fa-dashboard mr-2"></i> Host Dashboard
+                                                        </a>
+                                                    </li>
+                                                </c:if>
+                                                <c:if test="${isUserAdmin}">
+                                                    <li>
+                                                        <a href="${pageContext.request.contextPath}/admin/dashboard">
+                                                            <i class="fa fa-cogs mr-2"></i> Trang Quản Trị
                                                         </a>
                                                     </li>
                                                 </c:if>
