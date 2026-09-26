@@ -32,11 +32,33 @@
     }
 
     .fitflow-wrapper {
+        position: relative !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-        background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.55)), url('${pageContext.request.contextPath}/assets/images/hero_4.jpg') no-repeat center center fixed !important;
-        background-size: cover !important;
+        background: #0f172a !important;
         min-height: 100vh !important;
         padding: 55px 0 85px !important;
+        overflow-x: hidden !important;
+    }
+
+    /* Lớp hình nền làm mờ nghệ thuật cố định toàn màn hình */
+    .fitflow-bg-layer {
+        position: fixed !important;
+        top: -30px !important;
+        left: -30px !important;
+        right: -30px !important;
+        bottom: -30px !important;
+        background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.55)), url('${pageContext.request.contextPath}/assets/images/hero_4.jpg') no-repeat center center !important;
+        background-size: cover !important;
+        filter: blur(14px) !important;
+        -webkit-filter: blur(14px) !important;
+        transform: scale(1.08) !important;
+        z-index: 0 !important;
+        pointer-events: none !important;
+    }
+
+    .fitflow-wrapper > .container {
+        position: relative !important;
+        z-index: 1 !important;
     }
 
     /* Thiết lập font-family chuẩn sans-serif cho các phần tử chữ nhưng tuyệt đối không ghi đè FontAwesome */
@@ -409,6 +431,7 @@
 
 <!-- MAIN CONTENT SECTION: Giao diện chuẩn xác 100% theo ảnh mẫu -->
 <section class="fitflow-wrapper">
+    <div class="fitflow-bg-layer" aria-hidden="true"></div>
     <div class="container">
         <div class="row justify-content-center">
 
