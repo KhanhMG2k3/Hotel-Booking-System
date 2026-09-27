@@ -61,8 +61,8 @@
                                         </c:if>
                                         <c:set var="uRoleName" value="${not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : ''}" />
                                         <c:set var="uRoleId" value="${sessionScope.roleId}" />
-                                        <c:set var="isUserAdmin" value="${uRoleId == 5 || uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN'}" />
-                                        <c:set var="isUserHost" value="${uRoleId == 2 || uRoleId == 3 || uRoleName == 'HOST' || uRoleName == 'ROLE_HOST' || uRoleName == 'HOTEL_OWNER'}" />
+                                        <c:set var="isUserAdmin" value="${uRoleId == 1 || uRoleId == 5 || uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN'}" />
+                                        <c:set var="isUserHost" value="${uRoleId == 3 || uRoleName == 'HOST' || uRoleName == 'ROLE_HOST' || uRoleName == 'HOTEL_OWNER'}" />
 
                                         <c:choose>
                                             <c:when test="${isUserAdmin}">

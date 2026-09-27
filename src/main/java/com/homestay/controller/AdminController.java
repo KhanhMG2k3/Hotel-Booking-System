@@ -1,104 +1,74 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package com.homestay.controller;
 
+import com.homestay.dao.BookingDAO;
 import com.homestay.dao.HostProfileDAO;
+import com.homestay.dao.PropertyDAO;
+import com.homestay.dao.UserDAO;
+import com.homestay.model.Booking;
 import com.homestay.model.HostProfile;
+import com.homestay.model.Property;
 import com.homestay.model.User;
-import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.List;
 
-/**
- *
- * @author admin
- */
 @WebServlet(name = "AdminController", urlPatterns = {"/admin/dashboard"})
 public class AdminController extends HttpServlet {
 
     private final HostProfileDAO hostProfileDAO = new HostProfileDAO();
+    private final UserDAO userDAO = new UserDAO();
+    private final PropertyDAO propertyDAO = new PropertyDAO();
+    private final BookingDAO bookingDAO = new BookingDAO();
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet AdminController</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet AdminController at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        List<HostProfile> pendingHostProfiles
-                = hostProfileDAO.findPendingProfiles();
+        HttpSession session = request.getSession(false);
+        Integer roleId = (session != null) ? (Integer) session.getAttribute("roleId") : null;
+        User user = (session != null) ? (User) session.getAttribute("user") : null;
+        String roleName = (user != null && user.getRole() != null) ? user.getRole().getRoleName() : "";
 
-        request.setAttribute(
-                "pendingHostProfiles",
-                pendingHostProfiles
-        );
+        boolean isAdmin = (roleId != null && (roleId == 1 || roleId == 5))
+                || "ROLE_ADMIN".equalsIgnoreCase(roleName)
+                || "ADMIN".equalsIgnoreCase(roleName);
 
-        request.getRequestDispatcher(
-                "/WEB-INF/views/admin/dashboard.jsp"
-        ).forward(request, response);
+        if (!isAdmin) {
+            response.sendRedirect(request.getContextPath() + "/login?error=unauthorized");
+            return;
+        }
+
+        List<HostProfile> pendingHostProfiles = hostProfileDAO.findPendingProfiles();
+        List<User> allUsers = userDAO.findAll();
+        List<Property> allProperties = propertyDAO.findAll();
+        List<Booking> allBookings = bookingDAO.findAll();
+
+        request.setAttribute("pendingHostProfiles", pendingHostProfiles);
+        request.setAttribute("allUsers", allUsers);
+        request.setAttribute("allProperties", allProperties);
+        request.setAttribute("allBookings", allBookings);
+
+        request.setAttribute("totalPendingHosts", pendingHostProfiles.size());
+        request.setAttribute("totalUsers", allUsers.size());
+        request.setAttribute("totalProperties", allProperties.size());
+        request.setAttribute("totalBookings", allBookings.size());
+
+        request.getRequestDispatcher("/WEB-INF/views/admin/dashboard.jsp").forward(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        doGet(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
+        return "Admin Dashboard Controller";
+    }
 }

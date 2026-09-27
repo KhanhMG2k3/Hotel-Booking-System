@@ -125,6 +125,31 @@ public class PropertyDAO {
         return properties;
     }
 
+    public List<Property> findAll() {
+        String sql = """
+                SELECT id, host_id, name, description, property_type,
+                       address, city, country, status,
+                       created_at, updated_at
+                FROM properties
+                ORDER BY created_at DESC
+                """;
+
+        List<Property> properties = new ArrayList<>();
+
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                properties.add(mapResultSetToProperty(resultSet));
+            }
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+
+        return properties;
+    }
+
     public int create(Property property) {
         String sql = """
                 INSERT INTO properties
