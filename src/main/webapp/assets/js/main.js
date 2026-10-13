@@ -1,18 +1,45 @@
+/**
+ * Shared landing-page behavior for the site header, sliders, and smooth scrolling.
+ * The flow wires the menu, carousel widgets, and scroll-state helpers after the page loads.
+ */
 (function($) {
 
 	'use strict';
 
-  $('.site-menu-toggle').click(function(){
-    var $this = $(this);
-    if ( $('body').hasClass('menu-open') ) {
-      $this.removeClass('open');
-      $('.js-site-navbar').fadeOut(400);
-      $('body').removeClass('menu-open');
-    } else {
-      $this.addClass('open');
-      $('.js-site-navbar').fadeIn(400);
-      $('body').addClass('menu-open');
+  var $siteHeader = $('.js-site-header');
+  var $menuToggle = $('.js-site-menu-toggle');
+/**
+ * Toggles the site navigation menu and updates the aria state for accessibility.
+ * @param {boolean} isOpen - Whether the menu should be expanded.
+ * @returns {void}
+ */
+  var setSiteMenuOpen = function(isOpen) {
+    $siteHeader.toggleClass('menu-open', isOpen);
+    $menuToggle.toggleClass('open', isOpen)
+      .attr('aria-expanded', isOpen)
+      .attr('aria-label', isOpen ? 'Close website navigation' : 'Open website navigation');
+    $siteHeader.find('.js-site-navbar').attr('aria-hidden', !isOpen);
+  };
+
+  $menuToggle.on('click', function(event) {
+    event.stopPropagation();
+    setSiteMenuOpen(!$siteHeader.hasClass('menu-open'));
+  });
+
+  $(document).on('click', function(event) {
+    if (!$siteHeader.is(event.target) && $siteHeader.has(event.target).length === 0) {
+      setSiteMenuOpen(false);
     }
+  });
+
+  $(document).on('keydown', function(event) {
+    if (event.key === 'Escape') {
+      setSiteMenuOpen(false);
+    }
+  });
+
+  $siteHeader.find('.js-site-navbar a').on('click', function() {
+    setSiteMenuOpen(false);
   });
 
 	
@@ -129,6 +156,10 @@
   	}
 	});
 
+/**
+ * Initializes the parallax motion for page sections.
+ * @returns {void}
+ */
   var siteStellar = function() {
     $(window).stellar({
       responsive: false,
@@ -141,6 +172,10 @@
   }
   siteStellar();
 
+/**
+ * Binds anchor links to a smooth scroll animation.
+ * @returns {void}
+ */
   var smoothScroll = function() {
     var $root = $('html, body');
 
@@ -153,6 +188,10 @@
   }
   smoothScroll();
 
+/**
+ * Configures the date and time pickers used by the booking form.
+ * @returns {void}
+ */
   var dateAndTime = function() {
     $('#m_date').datepicker({
       'format': 'm/d/yyyy',
@@ -167,6 +206,10 @@
   dateAndTime();
 
 
+/**
+ * Adds the header shrink effect when the page scrolls past the hero area.
+ * @returns {void}
+ */
   var windowScroll = function() {
 
     $(window).scroll(function(){
@@ -183,6 +226,10 @@
   windowScroll();
 
 
+/**
+ * Enables the back-to-top control and updates its scroll visibility.
+ * @returns {void}
+ */
   var goToTop = function() {
 
     $('.js-gotop').on('click', function(event){
@@ -207,7 +254,27 @@
 
     });
   
-  };
+  /**
+   * Toggles visibility of password input fields when clicking eye button.
+   */
+  $(document).on('click', '.btn-toggle-password', function(event) {
+    event.preventDefault();
+    var $btn = $(this);
+    var targetId = $btn.data('target');
+    var $input = targetId ? $('#' + targetId) : $btn.closest('.password-input-wrap').find('input');
+    var $icon = $btn.find('i, span');
 
+    if ($input.length) {
+      if ($input.attr('type') === 'password') {
+        $input.attr('type', 'text');
+        $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        $btn.attr('aria-label', 'Ẩn mật khẩu');
+      } else {
+        $input.attr('type', 'password');
+        $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        $btn.attr('aria-label', 'Hiện mật khẩu');
+      }
+    }
+  });
 
 })(jQuery);

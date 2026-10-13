@@ -2,13 +2,16 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
+<%-- Room listing flow: browse available rooms, open details, and continue to reservation. --%>
+<%-- Shared page header and navigation. --%>
 <jsp:include page="common/header.jsp">
   <jsp:param name="pageTitle" value="Sogo Homestay - Danh Sách Phòng & Đặt Phòng" />
 </jsp:include>
 
 <jsp:include page="common/navbar.jsp" />
 
-    <!-- HERO SECTION -->
+<%-- Page content: listing introduction, room data, and booking policies. --%>
+    <%-- Listing hero and breadcrumbs. --%>
     <section class="site-hero inner-page overlay" style="background-image: url(${pageContext.request.contextPath}/assets/images/hero_4.jpg)" data-stellar-background-ratio="0.5">
       <div class="container">
         <div class="row site-hero-inner justify-content-center align-items-center">
@@ -29,9 +32,9 @@
         </div>
       </a>
     </section>
-    <!-- END HERO SECTION -->
+    <%-- End listing hero. --%>
 
-    <!-- DANH SÁCH CÁC HẠNG PHÒNG & ĐẶT PHÒNG -->
+    <%-- Room cards with conditional empty-state content. --%>
     <section class="section pb-5" id="room-list">
       <div class="container">
         <div class="row justify-content-center text-center mb-5">
@@ -51,7 +54,7 @@
                 <div class="col-md-6 col-lg-4 mb-5" data-aos="fade-up">
                   <div class="room border rounded overflow-hidden shadow-sm h-100 d-flex flex-column bg-white">
                     
-                    <!-- HÌNH ẢNH CÓ LINK SANG CHI TIẾT PHÒNG -->
+                    <%-- Room image links to the room detail view. --%>
                     <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}" class="d-block position-relative overflow-hidden">
                       <img src="${pageContext.request.contextPath}/assets/${not empty room.imageUrl ? room.imageUrl : 'images/img_1.jpg'}" alt="${room.roomName}" class="img-fluid w-100" style="height: 240px; object-fit: cover; transition: transform 0.4s ease;">
                       <span class="badge badge-primary position-absolute px-3 py-2 font-weight-bold" style="top: 15px; left: 15px; font-size: 0.85rem; border-radius: 4px;">
@@ -78,7 +81,7 @@
                           <span><i class="fa fa-bed text-primary mr-1"></i> Giường lớn</span>
                         </div>
                         
-                        <!-- GIÁ TIỀN VNĐ -->
+                        <%-- Nightly room price. --%>
                         <div class="d-flex justify-content-between align-items-center mb-3">
                           <span class="text-muted small">Giá thuê:</span>
                           <span class="h5 mb-0 text-primary font-weight-bold">
@@ -86,7 +89,7 @@
                           </span>
                         </div>
 
-                        <!-- CÁC NÚT HÀNH ĐỘNG -->
+                        <%-- View details or continue to reservation. --%>
                         <div class="row no-gutters">
                           <div class="col-6 pr-1">
                             <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}" class="btn btn-outline-primary btn-block btn-sm py-2 font-weight-bold">
@@ -116,7 +119,7 @@
       </div>
     </section>
 
-    <!-- QUY ĐỊNH & CHÍNH SÁCH ĐẶT PHÒNG TẠI HOMESTAY -->
+    <%-- Booking policies and support information. --%>
     <section class="section bg-light py-5">
       <div class="container">
         <div class="row justify-content-center text-center mb-5">
@@ -161,4 +164,5 @@
       </div>
     </section>
 
+<%-- Shared page footer and scripts. --%>
 <jsp:include page="common/footer.jsp" />

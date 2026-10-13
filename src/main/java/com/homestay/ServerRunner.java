@@ -15,6 +15,7 @@ public class ServerRunner {
 
     private static final int PORT = 8080;
 
+    /** Starts embedded Tomcat and waits for the server to stop. */
     public static void main(String[] args) throws Exception {
         Tomcat tomcat = new Tomcat();
         tomcat.setPort(PORT);

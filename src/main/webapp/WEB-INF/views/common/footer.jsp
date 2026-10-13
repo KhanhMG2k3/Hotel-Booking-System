@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<%-- Shared page footer: site links, contact details, newsletter form, and client scripts. --%>
+<%-- Footer links, contact details, and newsletter form. --%>
     <footer class="section footer-section">
       <div class="container">
         <div class="row mb-4">
@@ -47,6 +49,7 @@
       </div>
     </footer>
 
+    <%-- Load shared client-side libraries and site interactions. --%>
     <script src="${pageContext.request.contextPath}/assets/js/jquery-3.3.1.min.js"></script>
     <script src="${pageContext.request.contextPath}/assets/js/jquery-migrate-3.0.1.min.js"></script>
     <script src="${pageContext.request.contextPath}/assets/js/popper.min.js"></script>
@@ -57,6 +60,6 @@
     <script src="${pageContext.request.contextPath}/assets/js/aos.js"></script>
     <script src="${pageContext.request.contextPath}/assets/js/bootstrap-datepicker.js"></script> 
     <script src="${pageContext.request.contextPath}/assets/js/jquery.timepicker.min.js"></script> 
-    <script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/main.js?v=20261011-eye-fix"></script>
   </body>
 </html>

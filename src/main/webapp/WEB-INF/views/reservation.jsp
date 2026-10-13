@@ -2,12 +2,15 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
+<%-- Reservation flow: collect guest details, room selection, stay dates, and guest preferences. --%>
+<%-- Shared page header and navigation. --%>
 <jsp:include page="common/header.jsp">
   <jsp:param name="pageTitle" value="Sogo Homestay - Đặt Phòng Trực Tuyến" />
 </jsp:include>
 
 <jsp:include page="common/navbar.jsp" />
 
+<%-- Page content: reservation introduction, booking form, and direct support information. --%>
     <section class="site-hero inner-page overlay" style="background-image: url(${pageContext.request.contextPath}/assets/images/hero_4.jpg)" data-stellar-background-ratio="0.5">
       <div class="container">
         <div class="row site-hero-inner justify-content-center align-items-center">
@@ -30,8 +33,9 @@
         </div>
       </a>
     </section>
-    <!-- END section -->
+    <%-- End reservation hero. --%>
 
+    <%-- Reservation form and guest-facing status messages. --%>
     <section class="section contact-section" id="next">
       <div class="container">
         <div class="row">
@@ -138,6 +142,7 @@
             </form>
 
           </div>
+          <%-- Contact and payment guidance. --%>
           <div class="col-md-5" data-aos="fade-up" data-aos-delay="200">
             <div class="bg-white p-4 rounded border shadow-sm mb-4">
               <h4 class="h5 font-weight-bold text-primary mb-3"><i class="fa fa-phone-square mr-2"></i> Liên Hệ Hỗ Trợ Trực Tiếp</h4>
@@ -156,4 +161,5 @@
       </div>
     </section>
 
+<%-- Shared page footer and scripts. --%>
 <jsp:include page="common/footer.jsp" />

@@ -1,13 +1,16 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<%-- Home page flow: introduce the homestay, showcase guest experiences, and link to room browsing. --%>
+<%-- Shared page header and navigation. --%>
 <jsp:include page="common/header.jsp">
   <jsp:param name="pageTitle" value="Sogo Homestay - Giới Thiệu & Trải Nghiệm Không Gian Nghỉ Dưỡng" />
 </jsp:include>
 
 <jsp:include page="common/navbar.jsp" />
 
-    <!-- HERO SECTION - GIỚI THIỆU TỔNG QUAN -->
+<%-- Page content: hero, homestay overview, amenities, gallery, testimonials, and room call to action. --%>
+    <%-- Hero introduction and primary navigation links. --%>
     <section class="site-hero overlay" style="background-image: url(${pageContext.request.contextPath}/assets/images/hero_4.jpg)" data-stellar-background-ratio="0.5">
       <div class="container">
         <div class="row site-hero-inner justify-content-center align-items-center">
@@ -29,9 +32,9 @@
         </div>
       </a>
     </section>
-    <!-- END HERO SECTION -->
+    <%-- End hero introduction. --%>
 
-    <!-- PHẦN 1: CÂU CHUYỆN & GIỚI THIỆU VỀ SOGO HOMESTAY -->
+    <%-- Homestay story and overview. --%>
     <section class="py-5 bg-light" id="about-story">
       <div class="container py-5">
         <div class="row align-items-center">
@@ -54,7 +57,7 @@
       </div>
     </section>
 
-    <!-- PHẦN 2: TIỆN ÍCH & TRẢI NGHIỆM ĐẶC QUYỀN TẠI HOMESTAY -->
+    <%-- Amenities and guest experiences. --%>
     <section class="section">
       <div class="container">
         <div class="row justify-content-center text-center mb-5">
@@ -141,7 +144,7 @@
       </div>
     </section>
 
-    <!-- PHẦN 3: HÌNH ẢNH KHÔNG GIAN HOMESTAY (SLIDER) -->
+    <%-- Property image gallery. --%>
     <section class="section slider-section bg-light">
       <div class="container">
         <div class="row justify-content-center text-center mb-5">
@@ -184,7 +187,7 @@
       </div>
     </section>
 
-    <!-- PHẦN 4: ĐÁNH GIÁ CỦA DU KHÁCH (TESTIMONIALS) -->
+    <%-- Guest testimonials. --%>
     <section class="section testimonial-section">
       <div class="container">
         <div class="row justify-content-center text-center mb-5">
@@ -229,7 +232,7 @@
       </div>
     </section>
 
-    <!-- PHẦN 5: BANNER KÊU GỌI HÀNH ĐỘNG (CTA SANG TRANG ROOMS) -->
+    <%-- Final call to browse and book rooms. --%>
     <section class="section bg-primary text-white text-center py-5">
       <div class="container py-4">
         <div class="row justify-content-center">
@@ -244,4 +247,5 @@
       </div>
     </section>
 
+<%-- Shared page footer and scripts. --%>
 <jsp:include page="common/footer.jsp" />

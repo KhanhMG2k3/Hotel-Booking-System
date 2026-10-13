@@ -18,9 +18,15 @@ public class DBContext {
     private static final Properties properties = new Properties();
 
     static {
-        try (InputStream input = DBContext.class.getClassLoader().getResourceAsStream("db.properties")) {
-            if (input != null) {
-                properties.load(input);
+        // Step 1: Attempt to load configuration from root classpath or resources subfolder
+        InputStream input = DBContext.class.getClassLoader().getResourceAsStream("db.properties");
+        if (input == null) {
+            input = DBContext.class.getClassLoader().getResourceAsStream("resources/db.properties");
+        }
+
+        try (InputStream stream = input) {
+            if (stream != null) {
+                properties.load(stream);
                 Class.forName(properties.getProperty("db.driver", "com.mysql.cj.jdbc.Driver"));
             } else {
                 LOGGER.warning("db.properties not found, using default settings.");
@@ -33,19 +39,34 @@ public class DBContext {
 
     /**
      * Obtains a new database connection.
+     * 
      * @return Connection object
      * @throws SQLException if connection fails
      */
     public static Connection getConnection() throws SQLException {
-        String url = properties.getProperty("db.url", 
-                "jdbc:mysql://localhost:3306/homestay_db?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8");
+        String url = properties.getProperty("db.url",
+                "jdbc:mysql://localhost:3306/homestaybooking?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8");
         String user = properties.getProperty("db.user", "root");
         String pass = properties.getProperty("db.password", "");
         return DriverManager.getConnection(url, user, pass);
     }
 
     /**
+     * Opens a connection and reports whether the configured database is reachable.
+     */
+    public static void main(String[] args) throws SQLException {
+        try (Connection connection = getConnection()) {
+            if (!connection.isValid(5)) {
+                throw new SQLException("Database connection is invalid.");
+            }
+            System.out.println("Database connection successful.");
+            System.out.println("Database: " + connection.getCatalog());
+        }
+    }
+
+    /**
      * Utility method to safely close a connection.
+     * 
      * @param connection Connection to close
      */
     public static void closeConnection(Connection connection) {

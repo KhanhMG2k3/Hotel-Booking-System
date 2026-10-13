@@ -1,39 +1,21 @@
 package com.homestay.model;
 
-import java.io.Serializable;
 import java.sql.Timestamp;
 
-/**
- * User Model - Represents user accounts in the homestay system.
- */
-public class User implements Serializable {
-    private static final long serialVersionUID = 1L;
-
+/** Represents an account and its profile, role, and sign-in attributes. */
+public class User {
     private int id;
-    private int roleId;
-    private Role role;
     private String username;
-    private String password;
-    private String fullName;
-    private String email;
+    private String displayName;
+    private String avatarUrl;
     private String phone;
+    private String email;
+    private String password;
+    private String googleId;
+    private UserRole role;
     private String status;
+    private boolean twoFactorEnabled;
     private Timestamp createdAt;
-
-    public User() {
-    }
-
-    public User(int id, int roleId, String username, String password, String fullName, String email, String phone, String status, Timestamp createdAt) {
-        this.id = id;
-        this.roleId = roleId;
-        this.username = username;
-        this.password = password;
-        this.fullName = fullName;
-        this.email = email;
-        this.phone = phone;
-        this.status = status;
-        this.createdAt = createdAt;
-    }
 
     public int getId() {
         return id;
@@ -41,22 +23,6 @@ public class User implements Serializable {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public int getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(int roleId) {
-        this.roleId = roleId;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
     }
 
     public String getUsername() {
@@ -67,20 +33,28 @@ public class User implements Serializable {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getAvatarUrl() {
+        return avatarUrl;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getEmail() {
@@ -91,12 +65,28 @@ public class User implements Serializable {
         this.email = email;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getPassword() {
+        return password;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     public String getStatus() {
@@ -115,15 +105,25 @@ public class User implements Serializable {
         this.createdAt = createdAt;
     }
 
+    public boolean isTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(boolean twoFactorEnabled) {
+        this.twoFactorEnabled = twoFactorEnabled;
+    }
+
     @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
-                ", fullName='" + fullName + '\'' +
-                ", email='" + email + '\'' +
+                ", displayName='" + displayName + '\'' +
                 ", phone='" + phone + '\'' +
+                ", email='" + email + '\'' +
+                ", role=" + role +
                 ", status='" + status + '\'' +
+                ", createdAt=" + createdAt +
                 '}';
     }
 }

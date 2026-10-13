@@ -1,50 +1,22 @@
 package com.homestay.model;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Room Model - Represents homestay rooms and their details.
- */
-public class Room implements Serializable {
-    private static final long serialVersionUID = 1L;
-
+/** Represents a rentable room, its amenities, and its images. */
+public class Room {
     private int id;
-    private int typeId;
-    private RoomType roomType;
-    private String roomNumber;
+    private int propertyId;
     private String roomName;
+    private String roomType;
     private BigDecimal pricePerNight;
-    private int capacity;
-    private Double size;
-    private String bedType;
-    private String imageUrl;
-    private List<String> images = new ArrayList<>();
+    private int maxGuests;
+    private int bedCount;
+    private int bathroomCount;
+    private int sortOrder;
     private List<String> amenities = new ArrayList<>();
-    private String description;
-    private String status;
-    private boolean isFeatured;
-    private Timestamp createdAt;
-
-    public Room() {
-    }
-
-    public Room(int id, int typeId, String roomNumber, String roomName, BigDecimal pricePerNight, int capacity, String imageUrl, String description, String status, boolean isFeatured, Timestamp createdAt) {
-        this.id = id;
-        this.typeId = typeId;
-        this.roomNumber = roomNumber;
-        this.roomName = roomName;
-        this.pricePerNight = pricePerNight;
-        this.capacity = capacity;
-        this.imageUrl = imageUrl;
-        this.description = description;
-        this.status = status;
-        this.isFeatured = isFeatured;
-        this.createdAt = createdAt;
-    }
+    private List<RoomImage> images = new ArrayList<>();
 
     public int getId() {
         return id;
@@ -54,28 +26,12 @@ public class Room implements Serializable {
         this.id = id;
     }
 
-    public int getTypeId() {
-        return typeId;
+    public int getPropertyId() {
+        return propertyId;
     }
 
-    public void setTypeId(int typeId) {
-        this.typeId = typeId;
-    }
-
-    public RoomType getRoomType() {
-        return roomType;
-    }
-
-    public void setRoomType(RoomType roomType) {
-        this.roomType = roomType;
-    }
-
-    public String getRoomNumber() {
-        return roomNumber;
-    }
-
-    public void setRoomNumber(String roomNumber) {
-        this.roomNumber = roomNumber;
+    public void setPropertyId(int propertyId) {
+        this.propertyId = propertyId;
     }
 
     public String getRoomName() {
@@ -86,6 +42,14 @@ public class Room implements Serializable {
         this.roomName = roomName;
     }
 
+    public String getRoomType() {
+        return roomType;
+    }
+
+    public void setRoomType(String roomType) {
+        this.roomType = roomType;
+    }
+
     public BigDecimal getPricePerNight() {
         return pricePerNight;
     }
@@ -94,44 +58,36 @@ public class Room implements Serializable {
         this.pricePerNight = pricePerNight;
     }
 
-    public int getCapacity() {
-        return capacity;
+    public int getMaxGuests() {
+        return maxGuests;
     }
 
-    public void setCapacity(int capacity) {
-        this.capacity = capacity;
+    public void setMaxGuests(int maxGuests) {
+        this.maxGuests = maxGuests;
     }
 
-    public Double getSize() {
-        return size;
+    public int getBedCount() {
+        return bedCount;
     }
 
-    public void setSize(Double size) {
-        this.size = size;
+    public void setBedCount(int bedCount) {
+        this.bedCount = bedCount;
     }
 
-    public String getBedType() {
-        return bedType;
+    public int getBathroomCount() {
+        return bathroomCount;
     }
 
-    public void setBedType(String bedType) {
-        this.bedType = bedType;
+    public void setBathroomCount(int bathroomCount) {
+        this.bathroomCount = bathroomCount;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public int getSortOrder() {
+        return sortOrder;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public List<String> getImages() {
-        return images;
-    }
-
-    public void setImages(List<String> images) {
-        this.images = images;
+    public void setSortOrder(int sortOrder) {
+        this.sortOrder = sortOrder;
     }
 
     public List<String> getAmenities() {
@@ -139,50 +95,63 @@ public class Room implements Serializable {
     }
 
     public void setAmenities(List<String> amenities) {
-        this.amenities = amenities;
+        this.amenities = amenities == null ? new ArrayList<>() : new ArrayList<>(amenities);
     }
 
-    public String getDescription() {
-        return description;
+    public List<RoomImage> getImages() {
+        return images;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setImages(List<RoomImage> images) {
+        this.images = images == null ? new ArrayList<>() : new ArrayList<>(images);
     }
 
-    public String getStatus() {
-        return status;
-    }
+    /** Represents one image attached to a property room. */
+    public static class RoomImage {
+        private int id;
+        private String storedName;
+        private String mediaType;
+        private String contentType;
+        private int sortOrder;
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
+        public int getId() {
+            return id;
+        }
 
-    public boolean isFeatured() {
-        return isFeatured;
-    }
+        public void setId(int id) {
+            this.id = id;
+        }
 
-    public void setFeatured(boolean featured) {
-        isFeatured = featured;
-    }
+        public String getStoredName() {
+            return storedName;
+        }
 
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
+        public void setStoredName(String storedName) {
+            this.storedName = storedName;
+        }
 
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
+        public String getMediaType() {
+            return mediaType;
+        }
 
-    @Override
-    public String toString() {
-        return "Room{" +
-                "id=" + id +
-                ", roomNumber='" + roomNumber + '\'' +
-                ", roomName='" + roomName + '\'' +
-                ", pricePerNight=" + pricePerNight +
-                ", capacity=" + capacity +
-                ", status='" + status + '\'' +
-                '}';
+        public void setMediaType(String mediaType) {
+            this.mediaType = mediaType;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public void setContentType(String contentType) {
+            this.contentType = contentType;
+        }
+
+        public int getSortOrder() {
+            return sortOrder;
+        }
+
+        public void setSortOrder(int sortOrder) {
+            this.sortOrder = sortOrder;
+        }
     }
 }
