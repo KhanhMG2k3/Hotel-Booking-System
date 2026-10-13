@@ -7,6 +7,7 @@ import java.sql.Timestamp;
  * User Model - Represents user accounts in the homestay system.
  */
 public class User implements Serializable {
+
     private static final long serialVersionUID = 1L;
 
     private int id;
@@ -19,6 +20,13 @@ public class User implements Serializable {
     private String phone;
     private String status;
     private Timestamp createdAt;
+    // Cập nhật User.java — thêm 3 field còn thiếu. Thêm vào ngay sau createdAt
+    private String googleId;
+    private String authProvider = "local"; // mặc định local nếu không set
+    private String avatarUrl;
+    private java.sql.Date dateOfBirth;
+    private String gender;
+    private String address;
 
     public User() {
     }
@@ -33,6 +41,11 @@ public class User implements Serializable {
         this.phone = phone;
         this.status = status;
         this.createdAt = createdAt;
+    }
+    
+    public User(String username, String password){
+        this.username = username;
+        this.password = password;
     }
 
     public int getId() {
@@ -115,15 +128,64 @@ public class User implements Serializable {
         this.createdAt = createdAt;
     }
 
+    // Và thêm getter/setter tương ứng (đặt sau getCreatedAt()/setCreatedAt()):
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
+    }
+
+    public String getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(String authProvider) {
+        this.authProvider = authProvider;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public java.sql.Date getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(java.sql.Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     @Override
     public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", fullName='" + fullName + '\'' +
-                ", email='" + email + '\'' +
-                ", phone='" + phone + '\'' +
-                ", status='" + status + '\'' +
-                '}';
+        return "User{"
+                + "id=" + id
+                + ", username='" + username + '\''
+                + ", fullName='" + fullName + '\''
+                + ", email='" + email + '\''
+                + ", phone='" + phone + '\''
+                + ", status='" + status + '\''
+                + '}';
     }
 }

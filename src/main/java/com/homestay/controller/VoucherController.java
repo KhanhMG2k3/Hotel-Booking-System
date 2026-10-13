@@ -1,6 +1,7 @@
 package com.homestay.controller;
 
 import com.homestay.dao.VoucherDAO;
+import com.homestay.model.User;
 import com.homestay.model.Voucher;
 
 import jakarta.servlet.ServletException;
@@ -51,7 +52,10 @@ public class VoucherController extends HttpServlet {
 
         ensureCsrfToken(session);
 
-        int hostId = (Integer) session.getAttribute("hostUserId");
+        // Lấy Host ID từ session đăng nhập chung của nhóm.
+        User currentHost = (User) session.getAttribute("user");
+        int hostId = currentHost.getId();
+
         String action = request.getParameter("action");
 
         if ("edit".equals(action)) {
@@ -112,7 +116,10 @@ public class VoucherController extends HttpServlet {
             return;
         }
 
-        int hostId = (Integer) session.getAttribute("hostUserId");
+        // Lấy Host ID từ session, không lấy từ dữ liệu form.
+        User currentHost = (User) session.getAttribute("user");
+        int hostId = currentHost.getId();
+
         String action = request.getParameter("action");
 
         if (action == null) {
@@ -361,14 +368,24 @@ public class VoucherController extends HttpServlet {
 
     /**
      * Check that the session belongs to a logged-in Host.
+     * Uses the same session attributes as LoginServlet and HostFilter.
      */
     private boolean isAuthenticatedHost(HttpSession session) {
-        return session != null
-                && session.getAttribute("hostUserId")
-                        instanceof Integer
-                && ((Integer) session.getAttribute("hostUserId")) > 0
-                && "ROLE_HOST".equals(
-                        session.getAttribute("hostRole"));
+        if (session == null) {
+            return false;
+        }
+
+        Object attribute = session.getAttribute("user");
+
+        if (!(attribute instanceof User)) {
+            return false;
+        }
+
+        User user = (User) attribute;
+
+        return user.getId() > 0
+                && user.getRole() != null
+                && "ROLE_HOST".equals(user.getRole().getRoleName());
     }
 
     /**
