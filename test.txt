@@ -1,0 +1,243 @@
+================================================================================
+          QUY TRÌNH KIỂM THỬ TOÀN DIỆN LUỒNG IDENTITY & SECURITY
+                     HỆ THỐNG SOGO HOMESTAY BOOKING
+================================================================================
+
+Tài liệu này hướng dẫn chi tiết từng bước kiểm thử (manual test) cho toàn bộ
+các tính năng thuộc luồng Xác thực, Phân quyền, Bảo mật và Đăng ký Chủ nhà (Host).
+
+Môi trường kiểm thử:
+- Web App URL: http://localhost:8080/
+- Database: homestay_iter1_test (Master Schema)
+- Mật khẩu mặc định tài khoản mẫu: admin123
+
+--------------------------------------------------------------------------------
+MỤC LỤC CÁC KỊCH BẢN KIỂM THỬ (TEST SCENARIOS)
+--------------------------------------------------------------------------------
+Kịch bản 1: Đăng ký tài khoản thường (Local Registration) Dangky@123
+Kịch bản 2: Đăng nhập & Đăng xuất (Local Login & Logout)
+Kịch bản 3: Đăng nhập bằng Google (Google OAuth Sign-In)
+Kịch bản 4: Quên mật khẩu & Đặt lại mật khẩu (Forgot & Reset Password)
+Kịch bản 5: Xác thực 2 bước qua Email OTP (Two-Factor Authentication - 2FA)
+Kịch bản 6: Khách hàng nộp hồ sơ đăng ký làm Host (Host Onboarding Wizard)
+Kịch bản 7: Admin xét duyệt đơn đăng ký Host (Admin Review Workflow)
+Kịch bản 8: Kiểm tra sau duyệt: Đa quyền (Customer + Host) & Host Dashboard
+
+================================================================================
+KỊCH BẢN 1: ĐĂNG KÝ TÀI KHOẢN THƯỜNG (LOCAL REGISTRATION)
+================================================================================
+Mục tiêu: Kiểm tra tạo tài khoản thành công mà KHÔNG cần cột full_name, tự động gán
+vai trò CUSTOMER vào bảng userroles.
+
+Các bước thực hiện:
+1. Mở trình duyệt, truy cập: http://localhost:8080/register
+2. Nhập các trường thông tin:
+   - Tên đăng nhập (username): testuser01
+   - Số điện thoại (phone): 0912345678 (định dạng 10 số VN)
+   - Email: testuser01@gmail.com
+   - Mật khẩu: Test@123456 (tối thiểu 8 ký tự, có hoa, thường, số, ký tự đặc biệt)
+   - Xác nhận mật khẩu: Test@123456
+3. Bấm nút "Đăng ký" (Register).
+
+Kết quả mong đợi:
+- Đăng ký thành công, hệ thống tự động đăng nhập và chuyển hướng về trang chủ.
+- Kiểm tra Database bằng SQL:
+    SELECT * FROM users WHERE username = 'testuser01';
+    -> Cột display_name = 'testuser01', role_id = 1, status = 'ACTIVE'.
+    SELECT * FROM userroles WHERE user_id = (SELECT id FROM users WHERE username = 'testuser01');
+    -> Có 1 dòng với role_id = 1 (CUSTOMER).
+
+Test case phụ (Validation):
+- Nhập mật khẩu yếu (vd: 123456) -> Báo lỗi mật khẩu không đủ độ mạnh.
+- Nhập lại email hoặc username đã tồn tại -> Báo lỗi trùng lặp dữ liệu.
+
+================================================================================
+KỊCH BẢN 2: ĐĂNG NHẬP & ĐĂNG XUẤT (LOCAL LOGIN & LOGOUT)
+================================================================================
+Mục tiêu: Kiểm tra xác thực mật khẩu qua mã băm BCrypt.
+
+Các bước thực hiện:
+1. Truy cập: http://localhost:8080/login
+2. Nhập thông tin đăng nhập:
+   - Cách A: Nhập bằng username: testuser01 / Test@123456
+   - Cách B: Nhập bằng email: testuser01@gmail.com / Test@123456
+3. Bấm "Đăng nhập".
+4. Sau khi vào được hệ thống, bấm vào menu người dùng -> Chọn "Đăng xuất" (Logout).
+
+Kết quả mong đợi:
+- Đăng nhập thành công, phiên làm việc (Session) được khởi tạo.
+- Đăng xuất thành công, xóa Session và chuyển về trang đăng nhập/trang chủ.
+- Nhập sai mật khẩu: Hiển thị thông báo "Tên đăng nhập hoặc mật khẩu không chính xác".
+
+================================================================================
+KỊCH BẢN 3: ĐĂNG NHẬP BẰNG GOOGLE (GOOGLE OAUTH SIGN-IN)
+================================================================================
+Mục tiêu: Kiểm tra tài khoản Google tự động lấy phần text trước @ làm username
+và tự động gán role CUSTOMER trong bảng userroles.
+
+Các bước thực hiện:
+1. Mở trang đăng nhập: http://localhost:8080/login
+2. Bấm nút "Đăng nhập bằng Google" (Google Sign-In).
+3. Chọn tài khoản Google (ví dụ: hungjohn2004@gmail.com).
+
+Kết quả mong đợi:
+- Đăng nhập thành công ngay lập tức mà không cần nhập mật khẩu.
+- Kiểm tra Database bằng SQL:
+    SELECT id, username, display_name, email, google_id, role_id 
+    FROM users WHERE email = 'hungjohn2004@gmail.com';
+    -> Username được gán chính xác là: 'hungjohn2004' (thay vì chuỗi g_hash dài dòng).
+    -> Có google_id được lưu lại.
+- Kiểm tra bảng userroles:
+    SELECT * FROM userroles WHERE user_id = (SELECT id FROM users WHERE email = 'hungjohn2004@gmail.com');
+    -> Tự động được gán role_id = 1 (CUSTOMER).
+
+================================================================================
+KỊCH BẢN 4: QUÊN MẬT KHẨU & ĐẶT LẠI MẬT KHẨU (FORGOT & RESET PASSWORD)
+================================================================================
+Mục tiêu: Kiểm tra sinh token bảo mật và cập nhật mật khẩu mới qua link email.
+
+Các bước thực hiện:
+1. Tại trang http://localhost:8080/login -> Bấm link "Quên mật khẩu?" (Forgot Password).
+2. Nhập email tài khoản: testuser01@gmail.com -> Bấm "Gửi yêu cầu".
+3. Kiểm tra Database (hoặc log server/email):
+    SELECT token, expires_at, used FROM password_resets 
+    WHERE user_id = (SELECT id FROM users WHERE email = 'testuser01@gmail.com')
+    ORDER BY id DESC LIMIT 1;
+4. Truy cập link reset mật khẩu (hoặc mở trực tiếp theo cú pháp:
+   http://localhost:8080/reset-password?token=<TOKEN_LAY_TU_DB>).
+5. Nhập mật khẩu mới: NewPass@123456 -> Bấm "Lưu mật khẩu mới".
+
+Kết quả mong đợi:
+- Báo đổi mật khẩu thành công.
+- Bản ghi token trong bảng password_resets được tự động dọn sạch ngay sau khi dùng để giải phóng dung lượng DB và chống tái sử dụng.
+- Dùng mật khẩu NewPass@123456 đăng nhập lại thành công.
+
+================================================================================
+KỊCH BẢN 5: XÁC THỰC 2 BƯỚC QUA EMAIL OTP (2FA)
+================================================================================
+Mục tiêu: Bảo vệ tài khoản bằng mã OTP 6 số ngẫu nhiên có thời hạn.
+
+Các bước thực hiện:
+1. Đăng nhập tài khoản -> Truy cập trang Profile (http://localhost:8080/profile).
+2. Tại mục "Bảo mật", tích chọn công tắc "Bật xác thực hai yếu tố (2FA)" -> Bấm nút "Lưu thay đổi".
+3. Hệ thống cập nhật users.two_factor_enabled = 1 và gửi email thông báo an ninh:
+   - Người gửi: "Sogo Homestay Security"
+   - Tiêu đề: "Cảnh báo bảo mật tài khoản - Sogo Homestay"
+   - Nội dung: Thông báo tính năng 2FA đã được kích hoạt (không kèm mã OTP).
+4. Bấm vào menu người dùng -> Chọn "Đăng xuất" (Logout).
+5. Đăng nhập lại với username và mật khẩu tại http://localhost:8080/login:
+   - Hệ thống KHÔNG vào thẳng trang chủ mà tự động chuyển hướng sang trang: http://localhost:8080/verify-otp.
+   - Hệ thống sinh mã OTP 6 số ngẫu nhiên, lưu vào bảng email_otps và gửi email OTP:
+     + Người gửi: "Sogo Homestay"
+     + Tiêu đề: "Mã xác thực 2 bước (2FA) - Sogo Homestay"
+     + Nội dung: Chứa mã OTP 6 số (hiệu lực trong 5 phút).
+6. Kiểm tra mã trong Database hoặc email:
+    SELECT otp_code, purpose, expires_at, used FROM email_otps 
+    WHERE user_id = (SELECT id FROM users WHERE email = '...') 
+    ORDER BY id DESC LIMIT 1;
+7. Nhập mã OTP 6 số vào ô xác thực trên trang /verify-otp -> Bấm "Xác thực đăng nhập".
+
+Kết quả mong đợi:
+- Xác thực OTP thành công, hệ thống chuyển hướng về trang chủ và tạo phiên đăng nhập chính thức.
+- Bản ghi OTP trong bảng email_otps được tự động dọn sạch ngay khi xác thực thành công để giải phóng dung lượng DB và chống replay attack.
+- Nếu bấm "Gửi lại mã", hệ thống áp dụng cơ chế cooldown 60 giây chống spam.
+- Nếu nhập sai quá 5 lần hoặc mã hết hạn (5 phút), hệ thống sẽ từ chối và báo lỗi.
+
+================================================================================
+KỊCH BẢN 6: KHÁCH HÀNG NỘP HỒ SƠ ĐĂNG KÝ LÀM HOST (HOST ONBOARDING WIZARD)
+================================================================================
+Mục tiêu: Khách hàng điền thông tin Homestay + Phòng đầu tiên + Tải tài liệu KYC.
+
+Các bước thực hiện:
+1. Đăng nhập tài khoản Customer (ví dụ: khanhmg / admin123).
+2. Truy cập trang nộp đơn: http://localhost:8080/host/apply
+3. Điền thông tin Đơn đăng ký (Wizard):
+   - Tên người nộp: Pham Quang Hung (K18 HL)
+   - Số điện thoại: 0987654321
+   - Loại giấy tờ: Căn cước công dân (NATIONAL_ID)
+   - Số CCCD: 048098009999
+   - Tên cơ sở homestay: Sogo Riverview Villa
+   - Loại hình: Villa
+   - Địa chỉ: 123 Trần Phú, Hải Châu, Đà Nẵng
+   - Mô tả: Villa view sông Hàn tuyệt đẹp
+4. Khai báo Phòng đầu tiên:
+   - Tên phòng: Deluxe River Suite 101
+   - Loại phòng: SUITE
+   - Giá mỗi đêm: 1200000
+   - Số khách tối đa: 3
+   - Số giường: 2, Số phòng tắm: 1
+   - Chọn tiện nghi: Wi-Fi, Điều hòa, Bếp
+5. Tải lên ảnh phòng và tài liệu KYC (mặt trước/mặt sau CCCD).
+6. Bấm "Lưu bản nháp" (Save Draft) -> Kiểm tra trạng thái đơn là 'DRAFT'.
+7. Bấm "Nộp đơn xét duyệt" (Submit Application).
+
+Kết quả mong đợi:
+- Hệ thống báo "Đơn đăng ký của bạn đã được gửi thành công và đang chờ xét duyệt".
+- Kiểm tra Database:
+    SELECT id, status, document_status, property_name, room_count, max_guests 
+    FROM host_applications WHERE user_id = (SELECT id FROM users WHERE username = 'khanhmg');
+    -> status = 'PENDING', document_status = 'PENDING'.
+- Dữ liệu phòng nháp được lưu trọn vẹn trong: partner_application_rooms, 
+  partner_application_room_amenities, partner_application_room_images.
+
+================================================================================
+KỊCH BẢN 7: ADMIN XÉT DUYỆT ĐƠN ĐĂNG KÝ HOST (ADMIN REVIEW WORKFLOW)
+================================================================================
+Mục tiêu: Admin kiểm tra thông tin và ra quyết định Duyệt hoặc Từ chối đơn.
+
+Các bước thực hiện:
+1. Đăng xuất tài khoản khách.
+2. Đăng nhập bằng tài khoản Quản trị viên: admin / admin123.
+3. Truy cập trang Quản lý đơn Host: http://localhost:8080/admin/host-applications
+4. Thấy đơn của khanhmg đang ở trạng thái "Chờ duyệt" (PENDING) -> Bấm "Xem chi tiết".
+5. Kiểm tra đầy đủ thông tin: CCCD, thông tin Homestay, phòng đầu tiên và hình ảnh.
+
+Kịch bản A: Từ chối đơn (Reject):
+- Bấm "Từ chối" -> Nhập lý do: "Ảnh chụp CCCD bị mờ, vui lòng tải lại ảnh rõ nét." -> Xác nhận.
+- Đơn chuyển sang status = 'REJECTED'.
+- Khách hàng đăng nhập lại có thể thấy lý do và cập nhật lại bản nháp để nộp lại.
+
+Kịch bản B: Phê duyệt đơn (Approve):
+- Bấm "Phê duyệt" (Approve).
+- Hệ thống kích hoạt Transaction phê duyệt.
+
+Kết quả mong đợi khi Phê duyệt thành công:
+1. Đơn đăng ký: host_applications.status = 'APPROVED', document_status = 'VERIFIED'.
+2. Vai trò tài khoản (Thăng hạng Host):
+   - users.role_id chuyển thành 2 (HOST).
+   - Kiểm tra bảng userroles:
+     SELECT * FROM userroles WHERE user_id = (SELECT id FROM users WHERE username = 'khanhmg');
+     -> CÓ 2 DÒNG: role_id = 1 (CUSTOMER) VÀ role_id = 2 (HOST) -> ĐA QUYỀN THÀNH CÔNG!
+3. Chuyển hóa phòng nháp thành cơ sở kinh doanh thật:
+   - Dữ liệu tự động được đẩy vào bảng properties và rooms:
+     SELECT * FROM properties WHERE owner_id = (SELECT id FROM users WHERE username = 'khanhmg');
+     SELECT * FROM rooms WHERE property_id IN (SELECT id FROM properties WHERE owner_id = ...);
+     -> Homestay và phòng chính thức đã được kích hoạt (ACTIVE).
+
+================================================================================
+KỊCH BẢN 8: KIỂM TRA ĐA QUYỀN & TRANG QUẢN TRỊ HOST (HOST DASHBOARD)
+================================================================================
+Mục tiêu: Đảm bảo tài khoản sau khi trở thành Host có thể quản lý kinh doanh,
+đồng thời vẫn giữ đầy đủ tính năng của một khách hàng du lịch bình thường.
+
+Các bước thực hiện:
+1. Đăng nhập lại với tài khoản vừa được duyệt (khanhmg / admin123).
+2. Kiểm tra giao diện: Đã xuất hiện menu "Kênh Chủ nhà" (Host Dashboard).
+3. Truy cập: http://localhost:8080/host/dashboard
+   - Xem tổng doanh thu (Revenue).
+   - Xem thống kê số lượng đơn đặt phòng (Total Bookings).
+   - Xem biểu đồ doanh thu 12 tháng.
+   - Xem danh sách homestay và danh sách phòng thuộc quyền sở hữu của mình.
+4. Kiểm tra tính năng Customer:
+   - Quay lại trang chủ du lịch: http://localhost:8080/rooms
+   - Thử tìm kiếm và bấm đặt phòng tại một Homestay khác (ví dụ homestay của hostdemo).
+   - Khách hàng vẫn đặt phòng bình thường!
+
+Kết quả mong đợi:
+- Tài khoản hoạt động trơn tru cả 2 vai trò: Vừa là Khách hàng (Customer) khi đi du lịch,
+  vừa là Chủ nhà (Host) khi kinh doanh homestay.
+- Dữ liệu doanh thu và danh sách booking được đọc chính xác từ bảng bookings của Master Schema.
+
+================================================================================
+KẾT THÚC QUY TRÌNH KIỂM THỬ
+================================================================================

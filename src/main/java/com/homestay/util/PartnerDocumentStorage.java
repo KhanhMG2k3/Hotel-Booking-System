@@ -146,12 +146,17 @@ public final class PartnerDocumentStorage {
         Files.deleteIfExists(resolve(storedName));
     }
 
-    /** Streams a private verification document as an attachment response. */
+    /** Streams a private verification document as an inline response. */
     public static void writeResponse(String storedName, HttpServletResponse response)
             throws IOException {
         Path file = resolve(storedName);
         response.setContentType(getContentType(storedName));
-        response.setHeader("Content-Disposition", "attachment; filename=\"verification-document\"");
+        String extension = "";
+        int dotIndex = storedName != null ? storedName.lastIndexOf('.') : -1;
+        if (dotIndex != -1) {
+            extension = storedName.substring(dotIndex);
+        }
+        response.setHeader("Content-Disposition", "inline; filename=\"verification-document" + extension + "\"");
         response.setHeader("X-Content-Type-Options", "nosniff");
         response.setHeader("Cache-Control", "no-store");
         response.setContentLengthLong(Files.size(file));

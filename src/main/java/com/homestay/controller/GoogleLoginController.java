@@ -18,10 +18,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.MessageDigest;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.HexFormat;
 import java.util.Locale;
 
 /** Verifies Google sign-in credentials and links or creates local accounts. */
@@ -177,7 +175,7 @@ public class GoogleLoginController extends HttpServlet {
                                   HttpServletResponse response)
             throws GeneralSecurityException, SQLException, IOException {
         User googleUser = new User();
-        googleUser.setUsername(createGoogleUsername(googleId));
+        googleUser.setUsername(generateUsernameFromEmail(email));
         googleUser.setEmail(email);
         googleUser.setGoogleId(googleId);
         googleUser.setDisplayName(displayName);
@@ -250,11 +248,30 @@ public class GoogleLoginController extends HttpServlet {
         }
     }
 
-    /** Creates a deterministic, non-identifying username from a Google subject ID. */
-    private String createGoogleUsername(String googleId) throws GeneralSecurityException {
-        byte[] hash = MessageDigest.getInstance("SHA-256")
-                .digest(googleId.getBytes(StandardCharsets.UTF_8));
-        return "g_" + HexFormat.of().formatHex(hash).substring(0, 40);
+    /** Derives a clean, unique username from the email prefix (e.g. hungjohn2004@gmail.com -> hungjohn2004). */
+    private String generateUsernameFromEmail(String email) throws SQLException {
+        int atIndex = email.indexOf('@');
+        String base = atIndex > 0 ? email.substring(0, atIndex).trim().toLowerCase(Locale.ROOT) : email.trim().toLowerCase(Locale.ROOT);
+
+        // Sanitize: keep only letters, numbers, dots, underscores, and hyphens
+        base = base.replaceAll("[^a-z0-9._-]", "");
+        if (base.isEmpty()) {
+            base = "user";
+        }
+        if (base.length() > 40) {
+            base = base.substring(0, 40);
+        }
+
+        String candidate = base;
+        int counter = 1;
+        while (userDAO.existsByUsername(candidate)) {
+            candidate = base + "_" + counter;
+            counter++;
+            if (candidate.length() > 50) {
+                candidate = base.substring(0, 35) + "_" + counter;
+            }
+        }
+        return candidate;
     }
 
     /** Writes a JSON error body with the supplied HTTP status and message. */

@@ -59,7 +59,7 @@ public class DBContext {
             if (!connection.isValid(5)) {
                 throw new SQLException("Database connection is invalid.");
             }
-            System.out.println("Database connection successful.");
+            System.out.println("Database connection successful."  + LOGGER.getName());
             System.out.println("Database: " + connection.getCatalog());
         }
     }

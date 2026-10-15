@@ -393,6 +393,9 @@ public class HostApplicationDAO {
         String promoteSql = "UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'HOST') " +
                 "WHERE id = ? AND role_id = (SELECT id FROM roles WHERE name = 'CUSTOMER') " +
                 "AND status = 'ACTIVE'";
+        String addHostRoleSql = "INSERT INTO userroles (user_id, role_id) " +
+                "SELECT ?, id FROM roles WHERE name = 'HOST' " +
+                "ON DUPLICATE KEY UPDATE role_id = role_id";
         String updateSql = "UPDATE host_applications SET status = ?, reviewed_by = ?, " +
                 "reviewed_at = CURRENT_TIMESTAMP, rejection_reason = ?, document_status = ? " +
                 "WHERE id = ? AND status = 'PENDING'";
@@ -429,6 +432,10 @@ public class HostApplicationDAO {
                             connection.rollback();
                             return false;
                         }
+                    }
+                    try (PreparedStatement roleStatement = connection.prepareStatement(addHostRoleSql)) {
+                        roleStatement.setInt(1, applicantId);
+                        roleStatement.executeUpdate();
                     }
                     propertyDAO.createFromApprovedApplication(connection, applicationId);
                 }

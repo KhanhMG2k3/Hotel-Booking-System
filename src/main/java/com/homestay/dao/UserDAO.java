@@ -146,25 +146,43 @@ public class UserDAO {
     public boolean insert(User user) throws SQLException {
         String sql = "INSERT INTO users (username, display_name, phone, email, password) " +
                 "VALUES (?, ?, ?, ?, ?)";
+        String roleSql = "INSERT INTO userroles (user_id, role_id) " +
+                "SELECT ?, id FROM roles WHERE name = 'CUSTOMER' " +
+                "ON DUPLICATE KEY UPDATE role_id = role_id";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, user.getUsername());
-            statement.setString(2, user.getDisplayName());
-            statement.setString(3, user.getPhone());
-            statement.setString(4, user.getEmail());
-            statement.setString(5, user.getPassword());
-            // Persist the new account, then capture its generated key for the model.
-            if (statement.executeUpdate() != 1) {
-                return false;
-            }
-
-            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                if (!generatedKeys.next()) {
-                    throw new SQLException("The database did not return the new user ID.");
+        try (Connection connection = DBContext.getConnection()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString(1, user.getUsername());
+                statement.setString(2, user.getDisplayName());
+                statement.setString(3, user.getPhone());
+                statement.setString(4, user.getEmail());
+                statement.setString(5, user.getPassword());
+                // Persist the new account, then capture its generated key for the model.
+                if (statement.executeUpdate() != 1) {
+                    connection.rollback();
+                    return false;
                 }
-                user.setId(generatedKeys.getInt(1));
+
+                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                    if (!generatedKeys.next()) {
+                        throw new SQLException("The database did not return the new user ID.");
+                    }
+                    user.setId(generatedKeys.getInt(1));
+                }
+
+                try (PreparedStatement roleStatement = connection.prepareStatement(roleSql)) {
+                    roleStatement.setInt(1, user.getId());
+                    roleStatement.executeUpdate();
+                }
+
+                connection.commit();
                 return true;
+            } catch (SQLException | RuntimeException e) {
+                connection.rollback();
+                throw e;
+            } finally {
+                connection.setAutoCommit(true);
             }
         }
     }
@@ -206,15 +224,39 @@ public class UserDAO {
     public boolean insertGoogleUser(User user) throws SQLException {
         String sql = "INSERT INTO users (username, email, google_id, display_name, avatar_url) " +
                 "VALUES (?, ?, ?, ?, ?)";
+        String roleSql = "INSERT INTO userroles (user_id, role_id) " +
+                "SELECT ?, id FROM roles WHERE name = 'CUSTOMER' " +
+                "ON DUPLICATE KEY UPDATE role_id = role_id";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, user.getUsername());
-            statement.setString(2, user.getEmail());
-            statement.setString(3, user.getGoogleId());
-            statement.setString(4, user.getDisplayName());
-            statement.setString(5, user.getAvatarUrl());
-            return statement.executeUpdate() == 1;
+        try (Connection connection = DBContext.getConnection()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString(1, user.getUsername());
+                statement.setString(2, user.getEmail());
+                statement.setString(3, user.getGoogleId());
+                statement.setString(4, user.getDisplayName());
+                statement.setString(5, user.getAvatarUrl());
+                if (statement.executeUpdate() != 1) {
+                    connection.rollback();
+                    return false;
+                }
+                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        user.setId(generatedKeys.getInt(1));
+                        try (PreparedStatement roleStatement = connection.prepareStatement(roleSql)) {
+                            roleStatement.setInt(1, user.getId());
+                            roleStatement.executeUpdate();
+                        }
+                    }
+                }
+                connection.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                connection.rollback();
+                throw e;
+            } finally {
+                connection.setAutoCommit(true);
+            }
         }
     }
 

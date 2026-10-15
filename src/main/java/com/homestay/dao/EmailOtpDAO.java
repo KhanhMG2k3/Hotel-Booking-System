@@ -17,30 +17,30 @@ import java.sql.Timestamp;
 public class EmailOtpDAO {
 
     /**
-     * Purpose: Invalidates any existing unused OTPs for a user and purpose.
+     * Purpose: Purges old, expired, or previously used OTPs to prevent database bloat.
      * Parameters: userId (int), purpose (String)
-     * Return value: int (number of invalidated rows)
+     * Return value: int (number of deleted rows)
      */
     public int invalidatePreviousOtps(int userId, String purpose) throws SQLException {
-        // --- START: Invalidate Old OTPs Flow ---
-        String sql = "UPDATE email_otps SET used = TRUE WHERE user_id = ? AND purpose = ? AND used = FALSE";
+        // --- START: Clean Old OTPs Flow ---
+        String sql = "DELETE FROM email_otps WHERE (user_id = ? AND purpose = ?) OR expires_at < CURRENT_TIMESTAMP OR used = TRUE";
         try (Connection connection = DBContext.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             statement.setString(2, purpose);
             return statement.executeUpdate();
         }
-        // --- END: Invalidate Old OTPs Flow ---
+        // --- END: Clean Old OTPs Flow ---
     }
 
     /**
-     * Purpose: Inserts a newly generated OTP code into the database.
+     * Purpose: Inserts a newly generated OTP code into the database after cleaning up expired records.
      * Parameters: userId (int), otpCode (String), purpose (String), expiresAt (Timestamp)
      * Return value: boolean (true if insertion succeeded)
      */
     public boolean createOtp(int userId, String otpCode, String purpose, Timestamp expiresAt) throws SQLException {
         // --- START: Create OTP Flow ---
-        // Step 1: Invalidate previous unused codes first
+        // Step 1: Clean up old and expired codes first to keep database footprint at near zero
         invalidatePreviousOtps(userId, purpose);
 
         // Step 2: Insert new OTP record
@@ -87,13 +87,13 @@ public class EmailOtpDAO {
     }
 
     /**
-     * Purpose: Marks an OTP code as consumed to prevent replay attacks.
+     * Purpose: Consumes an OTP code immediately upon successful verification to prevent replay attacks and free DB space.
      * Parameters: otpId (int)
-     * Return value: boolean (true if marked successfully)
+     * Return value: boolean (true if consumed/deleted successfully)
      */
     public boolean markAsUsed(int otpId) throws SQLException {
         // --- START: Mark OTP Used Flow ---
-        String sql = "UPDATE email_otps SET used = TRUE WHERE id = ?";
+        String sql = "DELETE FROM email_otps WHERE id = ?";
         try (Connection connection = DBContext.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, otpId);

@@ -23,8 +23,8 @@ public class PasswordResetDAO {
      * @return true if token was created successfully
      */
     public boolean createResetToken(int userId, String token, Timestamp expiresAt) throws SQLException {
-        // Step 1: Invalidate existing unused tokens for this user
-        String invalidateSql = "UPDATE password_resets SET used = TRUE WHERE user_id = ? AND used = FALSE";
+        // Step 1: Clean up old/expired tokens for this user and expired tokens across the system to prevent DB bloat
+        String invalidateSql = "DELETE FROM password_resets WHERE user_id = ? OR expires_at < CURRENT_TIMESTAMP OR used = TRUE";
 
         // Step 2: Insert new reset token record
         String insertSql = "INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, ?)";
@@ -34,7 +34,7 @@ public class PasswordResetDAO {
             try (PreparedStatement invalidateStmt = connection.prepareStatement(invalidateSql);
                  PreparedStatement insertStmt = connection.prepareStatement(insertSql)) {
 
-                // Invalidate prior tokens
+                // Purge prior/expired tokens
                 invalidateStmt.setInt(1, userId);
                 invalidateStmt.executeUpdate();
 
@@ -94,14 +94,14 @@ public class PasswordResetDAO {
     }
 
     /**
-     * Marks the given password reset token as used.
+     * Consumes the given password reset token by deleting it immediately upon successful password change.
      * 
      * @param resetId Primary key of the reset record
-     * @return true if updated successfully
+     * @return true if updated/deleted successfully
      */
     public boolean markTokenUsed(int resetId) throws SQLException {
-        // Step 1: Prepare update statement
-        String sql = "UPDATE password_resets SET used = TRUE WHERE id = ?";
+        // Step 1: Prepare delete statement to prevent token reuse and eliminate DB bloat
+        String sql = "DELETE FROM password_resets WHERE id = ?";
 
         // Step 2: Execute statement
         try (Connection connection = DBContext.getConnection();

@@ -8,6 +8,7 @@ import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeUtility;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
@@ -20,7 +21,22 @@ import java.util.logging.Logger;
 public final class EmailUtil {
     private static final Logger LOGGER = Logger.getLogger(EmailUtil.class.getName());
 
+    static {
+        System.setProperty("mail.mime.charset", StandardCharsets.UTF_8.name());
+    }
+
     private EmailUtil() {
+    }
+
+    /**
+     * Encodes email subject explicitly in UTF-8 Base64 format (RFC 2047) to avoid any platform charset issues.
+     */
+    private static String encodeSubject(String subject) {
+        try {
+            return MimeUtility.encodeText(subject, StandardCharsets.UTF_8.name(), "B");
+        } catch (Exception e) {
+            return subject;
+        }
     }
 
     /**
@@ -58,6 +74,11 @@ public final class EmailUtil {
         props.put("mail.smtp.port", port.trim());
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+        props.put("mail.smtp.ssl.trust", host.trim());
+        props.put("mail.mime.charset", "UTF-8");
+        props.put("mail.smtp.connectiontimeout", "10000");
+        props.put("mail.smtp.timeout", "10000");
 
         // Step 5: Send the HTML email message via Jakarta Mail
         try {
@@ -71,7 +92,9 @@ public final class EmailUtil {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from, "Sogo Homestay", StandardCharsets.UTF_8.name()));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            message.setSubject("Đặt lại mật khẩu - Sogo Homestay");
+            String encodedSubject = encodeSubject("Đặt lại mật khẩu - Sogo Homestay");
+            message.setSubject(encodedSubject);
+            message.setHeader("Subject", encodedSubject);
 
             String safeName = (recipientName != null && !recipientName.isBlank()) ? recipientName : "Quý khách";
             String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>"
@@ -88,6 +111,8 @@ public final class EmailUtil {
                     + "</div>";
 
             message.setContent(htmlContent, "text/html; charset=UTF-8");
+            message.setHeader("Content-Type", "text/html; charset=UTF-8");
+            message.setHeader("Content-Transfer-Encoding", "8bit");
             Transport.send(message);
             LOGGER.info("Reset password email successfully sent to: " + toEmail);
             return true;
@@ -132,6 +157,11 @@ public final class EmailUtil {
         props.put("mail.smtp.port", port.trim());
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+        props.put("mail.smtp.ssl.trust", host.trim());
+        props.put("mail.mime.charset", "UTF-8");
+        props.put("mail.smtp.connectiontimeout", "10000");
+        props.put("mail.smtp.timeout", "10000");
 
         // Step 5: Send the HTML email message via Jakarta Mail
         try {
@@ -145,7 +175,9 @@ public final class EmailUtil {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from, "Sogo Homestay", StandardCharsets.UTF_8.name()));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            message.setSubject("Mã xác thực 2 bước (2FA) - Sogo Homestay");
+            String encodedSubject = encodeSubject("Mã xác thực 2 bước (2FA) - Sogo Homestay");
+            message.setSubject(encodedSubject);
+            message.setHeader("Subject", encodedSubject);
 
             String safeName = (recipientName != null && !recipientName.isBlank()) ? recipientName : "Quý khách";
             String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>"
@@ -164,6 +196,8 @@ public final class EmailUtil {
                     + "</div>";
 
             message.setContent(htmlContent, "text/html; charset=UTF-8");
+            message.setHeader("Content-Type", "text/html; charset=UTF-8");
+            message.setHeader("Content-Transfer-Encoding", "8bit");
             Transport.send(message);
             LOGGER.info("2FA OTP email successfully sent to: " + toEmail);
             return true;
@@ -207,6 +241,11 @@ public final class EmailUtil {
         props.put("mail.smtp.port", port.trim());
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+        props.put("mail.smtp.ssl.trust", host.trim());
+        props.put("mail.mime.charset", "UTF-8");
+        props.put("mail.smtp.connectiontimeout", "10000");
+        props.put("mail.smtp.timeout", "10000");
 
         // Step 5: Send the HTML email message via Jakarta Mail
         try {
@@ -220,7 +259,9 @@ public final class EmailUtil {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from, "Sogo Homestay Security", StandardCharsets.UTF_8.name()));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            message.setSubject("Cảnh báo bảo mật tài khoản - Sogo Homestay");
+            String encodedSubject = encodeSubject("Cảnh báo bảo mật tài khoản - Sogo Homestay");
+            message.setSubject(encodedSubject);
+            message.setHeader("Subject", encodedSubject);
 
             String safeName = (recipientName != null && !recipientName.isBlank()) ? recipientName : "Quý khách";
             String currentTime = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"))
@@ -240,6 +281,8 @@ public final class EmailUtil {
                     + "</div>";
 
             message.setContent(htmlContent, "text/html; charset=UTF-8");
+            message.setHeader("Content-Type", "text/html; charset=UTF-8");
+            message.setHeader("Content-Transfer-Encoding", "8bit");
             Transport.send(message);
             LOGGER.info("Security alert email successfully sent to: " + toEmail);
             return true;
