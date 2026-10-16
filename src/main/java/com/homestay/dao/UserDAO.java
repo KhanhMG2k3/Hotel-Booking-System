@@ -1,5 +1,6 @@
 package com.homestay.dao;
 
+import com.homestay.util.PasswordUtil;
 import com.homestay.context.DBContext;
 import com.homestay.model.Role;
 import com.homestay.model.User;
@@ -339,6 +340,48 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         String base = email.split("@")[0];
         return base + "_" + (System.currentTimeMillis() % 100000);
     }
+
+    /**
+ * Authenticate an active Host using email and password.
+ */
+public Optional<User> authenticateHost(String email, String plainPassword) {
+    if (email == null || email.trim().isEmpty()
+            || plainPassword == null || plainPassword.isEmpty()) {
+        return Optional.empty();
+    }
+
+    String sql = BASE_SELECT
+            + "WHERE u.email = ? AND r.role_name = 'ROLE_HOST'";
+
+    try (Connection conn = getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setString(1, email.trim());
+
+        try (ResultSet rs = ps.executeQuery()) {
+            if (!rs.next()) {
+                return Optional.empty();
+            }
+
+            User user = mapResultSetToUser(rs);
+
+            if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
+                return Optional.empty();
+            }
+
+            if (!PasswordUtil.verifyPassword(
+                    plainPassword, user.getPassword())) {
+                return Optional.empty();
+            }
+
+            user.setPassword(null);
+            return Optional.of(user);
+        }
+    } catch (SQLException e) {
+        logger.log(Level.SEVERE, "Error authenticating Host", e);
+        return Optional.empty();
+    }
+}
 
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
