@@ -47,7 +47,8 @@
 
           <!-- BỘ LỌC TÌM KIẾM (SEARCH & FILTERS) -->
           <div class="sogo-filter-card p-4 mb-4" data-aos="fade-up">
-            <form action="${pageContext.request.contextPath}/rooms" method="GET" id="searchFilterForm">
+            <form action="${pageContext.request.contextPath}/rooms" method="GET" id="searchFilterForm" onsubmit="var p=document.getElementById('pageInput'); if(p) p.value='1';">
+              <input type="hidden" name="page" id="pageInput" value="${currentPage}">
               <div class="row">
                 <!-- 1. Từ khóa -->
                 <div class="col-lg-3 col-md-6 mb-3">
@@ -98,6 +99,7 @@
                     <option value="4.5" ${rating == '4.5' ? 'selected' : ''}>⭐ 4.5 sao (4.5 - 4.7)</option>
                     <option value="4.0" ${rating == '4.0' ? 'selected' : ''}>⭐ 4.0 sao (4.0 - 4.4)</option>
                     <option value="3.5" ${rating == '3.5' ? 'selected' : ''}>⭐ 3.5 sao (3.5 - 3.9)</option>
+                    <option value="3.0" ${rating == '3.0' or rating == '3' ? 'selected' : ''}>⭐ 3.0 sao (3.0 - 3.4)</option>
                   </select>
                 </div>
               </div>
@@ -154,6 +156,9 @@
             <div>
               <span class="h6 font-weight-bold text-dark mb-0">
                 Tìm thấy <span class="text-primary font-weight-bold">${totalRoomsFound}</span> phòng phù hợp
+                <c:if test="${totalPages > 1}">
+                  <span class="badge badge-light border text-muted ml-2 font-weight-normal">Trang ${currentPage} / ${totalPages}</span>
+                </c:if>
               </span>
             </div>
             <div class="mt-2 mt-md-0">
@@ -179,6 +184,7 @@
                       <c:when test="${rating == '4.5'}">⭐ 4.5 sao (4.5 - 4.7)</c:when>
                       <c:when test="${rating == '4.0'}">⭐ 4.0 sao (4.0 - 4.4)</c:when>
                       <c:when test="${rating == '3.5'}">⭐ 3.5 sao (3.5 - 3.9)</c:when>
+                      <c:when test="${rating == '3.0' or rating == '3'}">⭐ 3.0 sao (3.0 - 3.4)</c:when>
                       <c:otherwise>⭐ ${rating}</c:otherwise>
                     </c:choose>
                   </strong>
@@ -222,18 +228,30 @@
                     <div class="room border rounded overflow-hidden shadow-sm h-100 d-flex flex-column bg-white">
 
                       <!-- HÌNH ẢNH CÓ LINK SANG CHI TIẾT PHÒNG -->
-                      <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}"
-                        class="d-block position-relative overflow-hidden">
-                        <img
-                          src="${pageContext.request.contextPath}/assets/${not empty room.imageUrl ? room.imageUrl : 'images/img_1.jpg'}"
-                          alt="${room.roomName}" class="img-fluid w-100 room-card-image">
-                        <span class="badge badge-primary position-absolute px-3 py-2 font-weight-bold room-code-badge">
-                          Mã: ${room.roomNumber}
-                        </span>
-                        <span class="badge badge-dark position-absolute px-2 py-1 room-gallery-badge">
-                          <i class="fa fa-camera mr-1"></i> Xem album ảnh
-                        </span>
-                      </a>
+                      <div class="position-relative overflow-hidden">
+                        <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}"
+                          class="d-block position-relative overflow-hidden">
+                          <img
+                            src="${pageContext.request.contextPath}/assets/${not empty room.imageUrl ? room.imageUrl : 'images/img_1.jpg'}"
+                            alt="${room.roomName}" class="img-fluid w-100 room-card-image">
+                          <span class="badge badge-primary position-absolute px-3 py-2 font-weight-bold room-code-badge">
+                            Mã: ${room.roomNumber}
+                          </span>
+                          <span class="badge badge-dark position-absolute px-2 py-1 room-gallery-badge">
+                            <i class="fa fa-camera mr-1"></i> Xem album ảnh
+                          </span>
+                        </a>
+
+                        <!-- NÚT YÊU THÍCH (WISHLIST) TRÊN CARD -->
+                        <c:set var="isThisWishlisted" value="${not empty wishlistRoomIds and wishlistRoomIds.contains(room.id)}" />
+                        <button type="button" 
+                          class="btn-wishlist-toggle ${isThisWishlisted ? 'active' : ''}" 
+                          data-room-id="${room.id}"
+                          title="${isThisWishlisted ? 'Bỏ lưu phòng yêu thích' : 'Lưu vào danh sách yêu thích'}"
+                          onclick="handleWishlistClick(event, this, ${room.id})">
+                          <i class="fa ${isThisWishlisted ? 'fa-heart text-danger' : 'fa-heart-o'}"></i>
+                        </button>
+                      </div>
 
                       <div class="p-4 text-center room-info flex-grow-1 d-flex flex-column justify-content-between">
                         <div>
@@ -271,7 +289,7 @@
                           <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="text-muted small">Giá thuê:</span>
                             <span class="h5 mb-0 text-primary font-weight-bold">
-                              <fmt:formatNumber value="${room.pricePerNight}" pattern="#,###" /> VNĐ <small
+                              ${room.formattedPrice} VNĐ <small
                                 class="text-muted font-weight-normal">/đêm</small>
                             </span>
                           </div>
@@ -316,6 +334,65 @@
               </c:otherwise>
             </c:choose>
           </div>
+
+          <!-- PHÂN TRANG (PAGINATION: 6 PHÒNG TRÊN 1 TRANG) -->
+          <c:if test="${totalPages > 1}">
+            <div class="row mt-3 mb-5" data-aos="fade-up">
+              <div class="col-12 d-flex justify-content-center align-items-center flex-column">
+                <nav aria-label="Room pagination">
+                  <ul class="pagination pagination-sogo justify-content-center flex-wrap mb-2">
+
+                    <!-- Nút Trang Đầu (First) -->
+                    <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                      <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)" title="Về trang đầu">
+                        <i class="fa fa-angle-double-left mr-1"></i> Đầu
+                      </a>
+                    </li>
+
+                    <!-- Nút Trang Trước (Previous) -->
+                    <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                      <a class="page-link" href="javascript:void(0)" onclick="goToPage(${currentPage - 1})" title="Trang trước">
+                        <i class="fa fa-angle-left mr-1"></i> Trước
+                      </a>
+                    </li>
+
+                    <!-- Các Số Trang -->
+                    <c:forEach var="i" begin="1" end="${totalPages}">
+                      <c:choose>
+                        <c:when test="${i == 1 or i == totalPages or (i >= currentPage - 2 and i <= currentPage + 2)}">
+                          <li class="page-item ${i == currentPage ? 'active' : ''}">
+                            <a class="page-link font-weight-bold" href="javascript:void(0)" onclick="goToPage(${i})">${i}</a>
+                          </li>
+                        </c:when>
+                        <c:when test="${i == currentPage - 3 or i == currentPage + 3}">
+                          <li class="page-item disabled"><span class="page-link">...</span></li>
+                        </c:when>
+                      </c:choose>
+                    </c:forEach>
+
+                    <!-- Nút Trang Sau (Next) -->
+                    <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+                      <a class="page-link" href="javascript:void(0)" onclick="goToPage(${currentPage + 1})" title="Trang sau">
+                        Sau <i class="fa fa-angle-right ml-1"></i>
+                      </a>
+                    </li>
+
+                    <!-- Nút Trang Cuối (Last) -->
+                    <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+                      <a class="page-link" href="javascript:void(0)" onclick="goToPage(${totalPages})" title="Đến trang cuối">
+                        Cuối <i class="fa fa-angle-double-right ml-1"></i>
+                      </a>
+                    </li>
+
+                  </ul>
+                </nav>
+
+                <div class="text-muted small mt-1">
+                  Hiển thị <strong>${(currentPage - 1) * pageSize + 1} - ${currentPage * pageSize > totalRoomsFound ? totalRoomsFound : currentPage * pageSize}</strong> trong tổng số <strong>${totalRoomsFound}</strong> phòng
+                </div>
+              </div>
+            </div>
+          </c:if>
         </div>
       </section>
 
@@ -370,14 +447,116 @@
         </div>
       </section>
 
+      <!-- TOAST THÔNG BÁO WISHLIST -->
+      <div id="wishlistToast" class="sogo-wishlist-toast">
+        <i class="fa fa-check-circle text-success mr-2" id="wishlistToastIcon"></i>
+        <span id="wishlistToastText">Đã cập nhật danh sách yêu thích</span>
+      </div>
+
       <script>
+        function goToPage(pageNumber) {
+          var pageInput = document.getElementById('pageInput');
+          var form = document.getElementById('searchFilterForm');
+          if (pageInput && form) {
+            pageInput.value = pageNumber;
+            form.submit();
+          } else {
+            var url = new URL(window.location.href);
+            url.searchParams.set('page', pageNumber);
+            window.location.href = url.toString();
+          }
+        }
+
         function setPriceRange(min, max) {
           var minInput = document.getElementById('minPriceInput');
           var maxInput = document.getElementById('maxPriceInput');
+          var pageInput = document.getElementById('pageInput');
           if (minInput) minInput.value = min;
           if (maxInput) maxInput.value = max;
+          if (pageInput) pageInput.value = '1';
           var form = document.getElementById('searchFilterForm');
           if (form) form.submit();
+        }
+
+        function showWishlistToast(message, isSuccess) {
+          var toast = document.getElementById('wishlistToast');
+          var toastText = document.getElementById('wishlistToastText');
+          var toastIcon = document.getElementById('wishlistToastIcon');
+          if (!toast) return;
+          toastText.textContent = message;
+          if (isSuccess) {
+            toastIcon.className = 'fa fa-check-circle text-success mr-2';
+          } else {
+            toastIcon.className = 'fa fa-info-circle text-warning mr-2';
+          }
+          toast.style.display = 'flex';
+          clearTimeout(window._wishlistToastTimer);
+          window._wishlistToastTimer = setTimeout(function() {
+            toast.style.display = 'none';
+          }, 3200);
+        }
+
+        function handleWishlistClick(e, btn, roomId) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          btn.disabled = true;
+
+          var params = new URLSearchParams();
+          params.append('roomId', roomId);
+
+          fetch('${pageContext.request.contextPath}/api/wishlist/toggle', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: params.toString()
+          })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            btn.disabled = false;
+            if (data.requireLogin) {
+              showWishlistToast(data.message || 'Vui lòng đăng nhập để lưu phòng yêu thích!', false);
+              setTimeout(function() {
+                window.location.href = '${pageContext.request.contextPath}/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+              }, 1200);
+              return;
+            }
+
+            if (data.success) {
+              var icon = btn.querySelector('i');
+              btn.classList.add('bounce');
+              setTimeout(function() { btn.classList.remove('bounce'); }, 450);
+
+              if (data.action === 'added') {
+                btn.classList.add('active');
+                if (icon) icon.className = 'fa fa-heart text-danger';
+                btn.setAttribute('title', 'Bỏ lưu phòng yêu thích');
+              } else {
+                btn.classList.remove('active');
+                if (icon) icon.className = 'fa fa-heart-o';
+                btn.setAttribute('title', 'Lưu vào danh sách yêu thích');
+              }
+
+              // Cập nhật số đếm badge ở navbar
+              var badges = document.querySelectorAll('#navbarWishlistBadge, .header-wishlist-badge');
+              badges.forEach(function(b) {
+                b.textContent = data.wishlistCount || 0;
+                b.style.display = 'inline-block';
+              });
+
+              showWishlistToast(data.message, true);
+            } else {
+              showWishlistToast(data.message || 'Đã xảy ra lỗi!', false);
+            }
+          })
+          .catch(function(err) {
+            btn.disabled = false;
+            console.error(err);
+            showWishlistToast('Không thể kết nối đến máy chủ!', false);
+          });
         }
       </script>
 

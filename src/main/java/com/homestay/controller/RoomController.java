@@ -1,16 +1,19 @@
 package com.homestay.controller;
 
 import com.homestay.dao.RoomDAO;
+import com.homestay.dao.WishlistDAO;
 import com.homestay.model.Room;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * RoomController - Handles listing and viewing rich details of homestay rooms.
@@ -19,11 +22,13 @@ import java.util.Optional;
 public class RoomController extends HttpServlet {
 
     private RoomDAO roomDAO;
+    private WishlistDAO wishlistDAO;
 
     @Override
     public void init() throws ServletException {
         super.init();
         this.roomDAO = new RoomDAO();
+        this.wishlistDAO = new WishlistDAO();
     }
 
     @Override
@@ -113,7 +118,27 @@ public class RoomController extends HttpServlet {
             try { provinceId = Integer.parseInt(provinceIdStr.trim()); } catch (NumberFormatException ignored) {}
         }
 
-        List<Room> rooms = roomDAO.searchRooms(keyword, minPrice, maxPrice, capacity, typeId, provinceId, minRating, maxRating, sortBy);
+        // Phân trang danh sách phòng: 6 phòng trên 1 trang
+        final int pageSize = 6;
+        String pageParam = request.getParameter("page");
+        int currentPage = 1;
+        if (pageParam != null && !pageParam.trim().isEmpty()) {
+            try {
+                currentPage = Integer.parseInt(pageParam.trim());
+                if (currentPage < 1) {
+                    currentPage = 1;
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+
+        int totalRoomsFound = roomDAO.countRooms(keyword, minPrice, maxPrice, capacity, typeId, provinceId, minRating, maxRating);
+        int totalPages = (totalRoomsFound > 0) ? (int) Math.ceil((double) totalRoomsFound / pageSize) : 1;
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        int offset = (currentPage - 1) * pageSize;
+        List<Room> rooms = roomDAO.searchRooms(keyword, minPrice, maxPrice, capacity, typeId, provinceId, minRating, maxRating, sortBy, offset, pageSize);
         List<com.homestay.model.RoomType> roomTypes = roomDAO.getAllRoomTypes();
         List<com.homestay.model.Province> provinces = roomDAO.getAllProvinces();
 
@@ -130,8 +155,19 @@ public class RoomController extends HttpServlet {
         request.setAttribute("minRating", minRating);
         request.setAttribute("maxRating", maxRating);
         request.setAttribute("sortBy", sortBy != null ? sortBy : "");
-        request.setAttribute("totalRoomsFound", rooms.size());
+        request.setAttribute("totalRoomsFound", totalRoomsFound);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("pageSize", pageSize);
         request.setAttribute("activePage", "rooms");
+
+        HttpSession session = request.getSession(false);
+        Integer userId = (session != null) ? (Integer) session.getAttribute("userId") : null;
+        if (userId != null) {
+            Set<Integer> wishlistRoomIds = wishlistDAO.getWishlistRoomIds(userId);
+            request.setAttribute("wishlistRoomIds", wishlistRoomIds);
+            request.setAttribute("wishlistCount", wishlistRoomIds.size());
+        }
 
         request.getRequestDispatcher("/WEB-INF/views/rooms.jsp").forward(request, response);
     }
@@ -146,6 +182,15 @@ public class RoomController extends HttpServlet {
                 if (roomOpt.isPresent()) {
                     request.setAttribute("room", roomOpt.get());
                     request.setAttribute("activePage", "rooms");
+
+                    HttpSession session = request.getSession(false);
+                    Integer userId = (session != null) ? (Integer) session.getAttribute("userId") : null;
+                    if (userId != null) {
+                        boolean isWishlisted = wishlistDAO.isRoomInWishlist(userId, id);
+                        request.setAttribute("isWishlisted", isWishlisted);
+                        request.setAttribute("wishlistCount", wishlistDAO.getWishlistCount(userId));
+                    }
+
                     request.getRequestDispatcher("/WEB-INF/views/room-detail.jsp").forward(request, response);
                     return;
                 }

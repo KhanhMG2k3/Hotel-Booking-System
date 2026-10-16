@@ -215,15 +215,19 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         return room;
     }
 
-    /**
-     * Search rooms with dynamic filters: keyword, price range, capacity, room type, province/city, star rating range (min-max), and sort.
-     */
-    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
-                                  Integer capacity, Integer typeId, Integer provinceId, Double minRating, Double maxRating, String sortBy) {
-        List<Room> rooms = new ArrayList<>();
-        StringBuilder sql = new StringBuilder(BASE_SELECT);
+    private static final String COUNT_SELECT = 
+            "SELECT COUNT(DISTINCT r.room_id) " +
+            "FROM rooms r " +
+            "JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+            "LEFT JOIN properties prop ON rt.property_id = prop.property_id " +
+            "LEFT JOIN destinations dest ON prop.destination_id = dest.destination_id " +
+            "LEFT JOIN provinces prov ON dest.province_id = prov.province_id ";
+
+    private void buildSearchWhereClause(StringBuilder sql, List<Object> params,
+                                        String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                                        Integer capacity, Integer typeId, Integer provinceId,
+                                        Double minRating, Double maxRating) {
         sql.append("WHERE 1=1 ");
-        List<Object> params = new ArrayList<>();
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append("AND (LOWER(rt.room_name) LIKE ? OR LOWER(rt.description) LIKE ? OR LOWER(r.room_number) LIKE ? OR LOWER(prov.province_name) LIKE ? OR LOWER(prop.address) LIKE ? OR LOWER(prop.property_name) LIKE ?) ");
@@ -270,6 +274,61 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             sql.append("AND COALESCE(rt.rating, 4.5) <= ? ");
             params.add(maxRating);
         }
+    }
+
+    private void setPreparedStatementParam(PreparedStatement ps, int index, Object p) throws SQLException {
+        if (p instanceof Integer) {
+            ps.setInt(index, (Integer) p);
+        } else if (p instanceof Double) {
+            ps.setDouble(index, (Double) p);
+        } else if (p instanceof java.math.BigDecimal) {
+            ps.setBigDecimal(index, (java.math.BigDecimal) p);
+        } else {
+            ps.setString(index, p.toString());
+        }
+    }
+
+    /**
+     * Count rooms matching search filters for pagination.
+     */
+    public int countRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                          Integer capacity, Integer typeId, Integer provinceId, Double minRating, Double maxRating) {
+        StringBuilder sql = new StringBuilder(COUNT_SELECT);
+        List<Object> params = new ArrayList<>();
+        buildSearchWhereClause(sql, params, keyword, minPrice, maxPrice, capacity, typeId, provinceId, minRating, maxRating);
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                setPreparedStatementParam(ps, i + 1, params.get(i));
+            }
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error counting rooms", e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+        return 0;
+    }
+
+    /**
+     * Search rooms with dynamic filters and pagination (offset, limit).
+     */
+    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                                  Integer capacity, Integer typeId, Integer provinceId, Double minRating, Double maxRating,
+                                  String sortBy, int offset, int limit) {
+        List<Room> rooms = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
+        List<Object> params = new ArrayList<>();
+        buildSearchWhereClause(sql, params, keyword, minPrice, maxPrice, capacity, typeId, provinceId, minRating, maxRating);
 
         if ("price_asc".equalsIgnoreCase(sortBy)) {
             sql.append("ORDER BY rt.base_price ASC ");
@@ -283,6 +342,12 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             sql.append("ORDER BY r.room_id ASC ");
         }
 
+        if (limit > 0) {
+            sql.append("LIMIT ? OFFSET ? ");
+            params.add(limit);
+            params.add(Math.max(0, offset));
+        }
+
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -291,16 +356,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             conn = getConnection();
             ps = conn.prepareStatement(sql.toString());
             for (int i = 0; i < params.size(); i++) {
-                Object p = params.get(i);
-                if (p instanceof Integer) {
-                    ps.setInt(i + 1, (Integer) p);
-                } else if (p instanceof Double) {
-                    ps.setDouble(i + 1, (Double) p);
-                } else if (p instanceof java.math.BigDecimal) {
-                    ps.setBigDecimal(i + 1, (java.math.BigDecimal) p);
-                } else {
-                    ps.setString(i + 1, p.toString());
-                }
+                setPreparedStatementParam(ps, i + 1, params.get(i));
             }
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -308,21 +364,29 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
                 rooms.add(room);
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error searching rooms", e);
+            logger.log(Level.SEVERE, "Error searching rooms with pagination", e);
         } finally {
             closeResources(conn, ps, rs);
         }
         return rooms;
     }
 
+    /**
+     * Search rooms with dynamic filters: keyword, price range, capacity, room type, province/city, star rating range (min-max), and sort.
+     */
+    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                                  Integer capacity, Integer typeId, Integer provinceId, Double minRating, Double maxRating, String sortBy) {
+        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, provinceId, minRating, maxRating, sortBy, 0, -1);
+    }
+
     public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
                                   Integer capacity, Integer typeId, Double minRating, Double maxRating, String sortBy) {
-        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, null, minRating, maxRating, sortBy);
+        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, null, minRating, maxRating, sortBy, 0, -1);
     }
 
     public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
                                   Integer capacity, Integer typeId, Double minRating, String sortBy) {
-        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, null, minRating, null, sortBy);
+        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, null, minRating, null, sortBy, 0, -1);
     }
 
     /**

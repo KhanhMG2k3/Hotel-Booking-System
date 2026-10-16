@@ -50,12 +50,19 @@
             </div>
 
             <div class="col-lg-8 mb-4">
-              <div class="main-image-wrap rounded overflow-hidden shadow">
+              <div class="main-image-wrap rounded overflow-hidden shadow position-relative">
                 <a href="${pageContext.request.contextPath}/assets/${room.imageUrl}" data-fancybox="gallery"
                   data-caption="${room.roomName} - Ảnh Chính">
                   <img src="${pageContext.request.contextPath}/assets/${room.imageUrl}" alt="${room.roomName}"
                     class="img-fluid w-100 room-detail-image">
                 </a>
+                <button type="button" 
+                  class="btn-wishlist-toggle ${isWishlisted ? 'active' : ''}" 
+                  id="imageDetailWishlistBtn"
+                  title="${isWishlisted ? 'Bỏ lưu phòng yêu thích' : 'Lưu vào danh sách yêu thích'}"
+                  onclick="toggleDetailWishlist(${room.id})">
+                  <i id="imageDetailWishlistIcon" class="fa ${isWishlisted ? 'fa-heart text-danger' : 'fa-heart-o'}"></i>
+                </button>
               </div>
             </div>
 
@@ -159,7 +166,7 @@
                   tuyến</span>
                 <div class="my-3">
                   <span class="h2 font-weight-bold text-primary">
-                    <fmt:formatNumber value="${room.pricePerNight}" pattern="#,###" />
+                    ${room.formattedPrice}
                   </span>
                   <span class="text-muted font-weight-bold"> VNĐ / đêm</span>
                 </div>
@@ -182,9 +189,18 @@
                 </div>
 
                 <a href="${pageContext.request.contextPath}/reservation?roomId=${room.id}"
-                  class="btn btn-primary btn-block text-white font-weight-bold py-3 shadow mb-3">
+                  class="btn btn-primary btn-block text-white font-weight-bold py-3 shadow mb-2">
                   <i class="fa fa-calendar-check-o mr-2"></i> Tiến Hành Đặt Phòng
                 </a>
+
+                <!-- NÚT WISHLIST -->
+                <button type="button" id="btnDetailWishlist"
+                  class="btn btn-block py-2 mb-3 font-weight-bold ${isWishlisted ? 'btn-danger text-white' : 'btn-outline-danger'}"
+                  onclick="toggleDetailWishlist(${room.id})"
+                  style="border-radius: 8px; transition: all 0.25s ease;">
+                  <i id="detailWishlistIcon" class="fa ${isWishlisted ? 'fa-heart' : 'fa-heart-o'} mr-2"></i>
+                  <span id="detailWishlistText">${isWishlisted ? 'Đã Lưu Vào Yêu Thích' : 'Lưu Vào Danh Sách Yêu Thích'}</span>
+                </button>
 
                 <div class="text-center">
                   <p class="text-muted small mb-1">Cần hỗ trợ tư vấn nhanh?</p>
@@ -198,5 +214,114 @@
 
         </div>
       </section>
+
+      <!-- TOAST THÔNG BÁO WISHLIST -->
+      <div id="wishlistToast" class="sogo-wishlist-toast">
+        <i class="fa fa-check-circle text-success mr-2" id="wishlistToastIcon"></i>
+        <span id="wishlistToastText">Đã cập nhật danh sách yêu thích</span>
+      </div>
+
+      <script>
+        function showDetailToast(message, isSuccess) {
+          var toast = document.getElementById('wishlistToast');
+          var toastText = document.getElementById('wishlistToastText');
+          var toastIcon = document.getElementById('wishlistToastIcon');
+          if (!toast) return;
+          toastText.textContent = message;
+          if (isSuccess) {
+            toastIcon.className = 'fa fa-check-circle text-success mr-2';
+          } else {
+            toastIcon.className = 'fa fa-info-circle text-warning mr-2';
+          }
+          toast.style.display = 'flex';
+          clearTimeout(window._detailWishlistTimer);
+          window._detailWishlistTimer = setTimeout(function() {
+            toast.style.display = 'none';
+          }, 3200);
+        }
+
+        function toggleDetailWishlist(roomId) {
+          var btnCard = document.getElementById('btnDetailWishlist');
+          var textCard = document.getElementById('detailWishlistText');
+          var iconCard = document.getElementById('detailWishlistIcon');
+          var btnImg = document.getElementById('imageDetailWishlistBtn');
+          var iconImg = document.getElementById('imageDetailWishlistIcon');
+
+          if (btnCard) btnCard.disabled = true;
+          if (btnImg) btnImg.disabled = true;
+
+          var params = new URLSearchParams();
+          params.append('roomId', roomId);
+
+          fetch('${pageContext.request.contextPath}/api/wishlist/toggle', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: params.toString()
+          })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (btnCard) btnCard.disabled = false;
+            if (btnImg) btnImg.disabled = false;
+
+            if (data.requireLogin) {
+              showDetailToast(data.message || 'Vui lòng đăng nhập để lưu phòng yêu thích!', false);
+              setTimeout(function() {
+                window.location.href = '${pageContext.request.contextPath}/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+              }, 1200);
+              return;
+            }
+
+            if (data.success) {
+              var isAdded = (data.action === 'added');
+
+              if (btnCard && textCard && iconCard) {
+                if (isAdded) {
+                  btnCard.className = 'btn btn-block py-2 mb-3 font-weight-bold btn-danger text-white';
+                  iconCard.className = 'fa fa-heart mr-2';
+                  textCard.textContent = 'Đã Lưu Vào Yêu Thích';
+                } else {
+                  btnCard.className = 'btn btn-block py-2 mb-3 font-weight-bold btn-outline-danger';
+                  iconCard.className = 'fa fa-heart-o mr-2';
+                  textCard.textContent = 'Lưu Vào Danh Sách Yêu Thích';
+                }
+              }
+
+              if (btnImg && iconImg) {
+                btnImg.classList.add('bounce');
+                setTimeout(function() { btnImg.classList.remove('bounce'); }, 450);
+                if (isAdded) {
+                  btnImg.classList.add('active');
+                  iconImg.className = 'fa fa-heart text-danger';
+                  btnImg.setAttribute('title', 'Bỏ lưu phòng yêu thích');
+                } else {
+                  btnImg.classList.remove('active');
+                  iconImg.className = 'fa fa-heart-o';
+                  btnImg.setAttribute('title', 'Lưu vào danh sách yêu thích');
+                }
+              }
+
+              // Update badges
+              var badges = document.querySelectorAll('#navbarWishlistBadge, .header-wishlist-badge');
+              badges.forEach(function(b) {
+                b.textContent = data.wishlistCount || 0;
+                b.style.display = 'inline-block';
+              });
+
+              showDetailToast(data.message, true);
+            } else {
+              showDetailToast(data.message || 'Đã xảy ra lỗi!', false);
+            }
+          })
+          .catch(function(err) {
+            if (btnCard) btnCard.disabled = false;
+            if (btnImg) btnImg.disabled = false;
+            console.error(err);
+            showDetailToast('Không thể kết nối đến máy chủ!', false);
+          });
+        }
+      </script>
 
       <jsp:include page="common/footer.jsp" />
