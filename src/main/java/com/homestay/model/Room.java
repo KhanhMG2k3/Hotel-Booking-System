@@ -14,16 +14,22 @@ public class Room implements Serializable {
 
     private int id;
     private int typeId;
+    private int propertyId;
     private RoomType roomType;
+    private String roomTypeName;
     private String roomNumber;
     private String roomName;
     private String location;
     private BigDecimal pricePerNight;
     private int capacity;
+    private int bedCount;
+    private int bathroomCount;
+    private int sortOrder;
     private Double size;
     private String bedType;
     private String imageUrl;
     private List<String> images = new ArrayList<>();
+    private List<RoomImage> roomImages = new ArrayList<>();
     private List<String> amenities = new ArrayList<>();
     private String description;
     private String status;
@@ -69,12 +75,29 @@ public class Room implements Serializable {
         this.typeId = typeId;
     }
 
+    public int getPropertyId() {
+        return propertyId;
+    }
+
+    public void setPropertyId(int propertyId) {
+        this.propertyId = propertyId;
+    }
+
     public RoomType getRoomType() {
         return roomType;
     }
 
     public void setRoomType(RoomType roomType) {
         this.roomType = roomType;
+    }
+
+    public void setRoomType(String roomTypeName) {
+        this.roomTypeName = roomTypeName;
+    }
+
+    public String getRoomTypeName() {
+        if (roomTypeName != null) return roomTypeName;
+        return roomType != null ? roomType.getTypeName() : null;
     }
 
     public String getRoomNumber() {
@@ -117,6 +140,38 @@ public class Room implements Serializable {
         this.capacity = capacity;
     }
 
+    public int getMaxGuests() {
+        return capacity;
+    }
+
+    public void setMaxGuests(int maxGuests) {
+        this.capacity = maxGuests;
+    }
+
+    public int getBedCount() {
+        return bedCount;
+    }
+
+    public void setBedCount(int bedCount) {
+        this.bedCount = bedCount;
+    }
+
+    public int getBathroomCount() {
+        return bathroomCount;
+    }
+
+    public void setBathroomCount(int bathroomCount) {
+        this.bathroomCount = bathroomCount;
+    }
+
+    public int getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(int sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
     public Double getSize() {
         return size;
     }
@@ -146,7 +201,15 @@ public class Room implements Serializable {
     }
 
     public void setImages(List<String> images) {
-        this.images = images;
+        this.images = images == null ? new ArrayList<>() : images;
+    }
+
+    public List<RoomImage> getRoomImages() {
+        return roomImages;
+    }
+
+    public void setRoomImages(List<RoomImage> roomImages) {
+        this.roomImages = roomImages == null ? new ArrayList<>() : roomImages;
     }
 
     public List<String> getAmenities() {
@@ -154,7 +217,7 @@ public class Room implements Serializable {
     }
 
     public void setAmenities(List<String> amenities) {
-        this.amenities = amenities;
+        this.amenities = amenities == null ? new ArrayList<>() : amenities;
     }
 
     public String getDescription() {
@@ -184,6 +247,7 @@ public class Room implements Serializable {
     public Timestamp getCreatedAt() {
         return createdAt;
     }
+
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
     }
@@ -254,5 +318,55 @@ public class Room implements Serializable {
                 ", capacity=" + capacity +
                 ", status='" + status + '\'' +
                 '}';
+    }
+
+    /** Represents one image attached to a property room. */
+    public static class RoomImage implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private int id;
+        private String storedName;
+        private String mediaType;
+        private String contentType;
+        private int sortOrder;
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getStoredName() {
+            return storedName;
+        }
+
+        public void setStoredName(String storedName) {
+            this.storedName = storedName;
+        }
+
+        public String getMediaType() {
+            return mediaType;
+        }
+
+        public void setMediaType(String mediaType) {
+            this.mediaType = mediaType;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public void setContentType(String contentType) {
+            this.contentType = contentType;
+        }
+
+        public int getSortOrder() {
+            return sortOrder;
+        }
+
+        public void setSortOrder(int sortOrder) {
+            this.sortOrder = sortOrder;
+        }
     }
 }

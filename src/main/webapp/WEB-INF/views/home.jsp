@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<%-- Home page flow: introduce the homestay, showcase guest experiences, and link to room browsing. --%>
+<%-- Shared page header and navigation. --%>
 <jsp:include page="common/header.jsp">
     <jsp:param name="pageTitle" value="Sogo Homestay - Giới Thiệu & Trải Nghiệm Không Gian Nghỉ Dưỡng" />
 </jsp:include>

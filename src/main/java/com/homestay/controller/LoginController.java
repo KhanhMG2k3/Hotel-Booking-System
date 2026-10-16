@@ -1,8 +1,12 @@
 package com.homestay.controller;
 
+import com.homestay.context.AppConfig;
+import com.homestay.dao.EmailOtpDAO;
 import com.homestay.dao.UserDAO;
 import com.homestay.model.User;
-
+import com.homestay.util.EmailUtil;
+import com.homestay.util.LoginUtil;
+import com.homestay.util.PasswordUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,221 +14,178 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Locale;
 
+/**
+ * Handles local account sign-in, two-factor authentication, and prepares the login view.
+ */
 public class LoginController extends HttpServlet {
-
-    private static final Logger LOGGER =
-            Logger.getLogger(LoginController.class.getName());
-
-    private static final String LOGIN_VIEW =
-            "/WEB-INF/views/login.jsp";
-
-    private static final String HOST_VOUCHERS =
-            "/host/vouchers";
+    private static final String LOGIN_VIEW = "/WEB-INF/views/login.jsp";
 
     private final UserDAO userDAO = new UserDAO();
-    private final SecureRandom secureRandom = new SecureRandom();
+    private final EmailOtpDAO otpDAO = new EmailOtpDAO();
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    @Override
-    protected void doGet(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
+    private static final int MAX_FAILED_LOGINS = 5;
+    private static final long LOCKOUT_DURATION_MS = 15 * 60 * 1000L; // 15 minutes lockout
+    private static final java.util.concurrent.ConcurrentHashMap<String, LoginAttemptTracker> ATTEMPTS =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader("Cache-Control", "no-store");
+    /** Inner helper class tracking failed login attempts and temporary lockout state per user identifier. */
+    private static final class LoginAttemptTracker {
+        private int failedCount;
+        private long lockedUntil;
 
-        String path = request.getServletPath();
-
-        if ("/logout".equals(path)) {
-            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-            return;
-        }
-
-        HttpSession session = request.getSession(false);
-
-        if (isAuthenticatedHost(session)) {
-            response.sendRedirect(
-                    request.getContextPath() + HOST_VOUCHERS);
-            return;
-        }
-
-        // Create a session-bound CSRF token for the login form.
-        if (session == null) {
-            session = request.getSession(true);
-        }
-
-        if (session.getAttribute("csrfToken") == null) {
-            session.setAttribute("csrfToken", generateCsrfToken());
-        }
-
-        request.setAttribute("pageTitle", "Đăng nhập Host - Sogo Homestay");
-        request.getRequestDispatcher(LOGIN_VIEW)
-                .forward(request, response);
-    }
-
-    @Override
-    protected void doPost(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
-
-        request.setCharacterEncoding("UTF-8");
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader("Cache-Control", "no-store");
-
-        String path = request.getServletPath();
-
-        if ("/logout".equals(path)) {
-            handleLogout(request, response);
-            return;
-        }
-
-        if (!"/login".equals(path)) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
-
-        HttpSession session = request.getSession(false);
-
-        if (session == null || !isValidCsrfToken(
-                session, request.getParameter("csrfToken"))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN,
-                    "Yêu cầu không hợp lệ. Vui lòng tải lại trang.");
-            return;
-        }
-
-        if (isAuthenticatedHost(session)) {
-            response.sendRedirect(
-                    request.getContextPath() + HOST_VOUCHERS);
-            return;
-        }
-
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-
-        if (username == null || username.trim().isEmpty()
-                || password == null || password.isEmpty()) {
-            showLoginError(request, response,
-                    "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.");
-            return;
-        }
-
-        Optional<User> authenticatedUser;
-
-        try {
-            authenticatedUser = userDAO.authenticateHost(
-                    username.trim(), password);
-        } catch (RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Host authentication failed internally", e);
-            showLoginError(request, response,
-                    "Không thể đăng nhập lúc này. Vui lòng thử lại.");
-            return;
-        }
-
-        if (authenticatedUser.isEmpty()) {
-            showLoginError(request, response,
-                    "Tên đăng nhập, mật khẩu không đúng hoặc tài khoản "
-                    + "không có quyền Host đang hoạt động.");
-            return;
-        }
-
-        User user = authenticatedUser.get();
-
-        // Prevent session fixation by rotating the session ID after login.
-        request.changeSessionId();
-
-        // Store only the minimum identity and authorization information.
-        session = request.getSession(false);
-        session.setAttribute("hostUserId", user.getId());
-        session.setAttribute("hostUsername", user.getUsername());
-        session.setAttribute("hostRole", "ROLE_HOST");
-        session.setAttribute("csrfToken", generateCsrfToken());
-
-        response.sendRedirect(
-                request.getContextPath() + HOST_VOUCHERS);
-    }
-
-    private void handleLogout(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws IOException {
-
-        HttpSession session = request.getSession(false);
-
-        if (session == null || !isValidCsrfToken(
-                session, request.getParameter("csrfToken"))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN,
-                    "Yêu cầu đăng xuất không hợp lệ.");
-            return;
-        }
-
-        session.invalidate();
-
-        response.sendRedirect(
-                request.getContextPath() + "/login?loggedOut=1");
-    }
-
-    private void showLoginError(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            String message)
-            throws ServletException, IOException {
-
-        HttpSession session = request.getSession(false);
-
-        if (session == null) {
-            session = request.getSession(true);
-        }
-
-        if (session.getAttribute("csrfToken") == null) {
-            session.setAttribute("csrfToken", generateCsrfToken());
-        }
-
-        request.setAttribute("loginError", message);
-        request.setAttribute("pageTitle", "Đăng nhập Host - Sogo Homestay");
-
-        request.getRequestDispatcher(LOGIN_VIEW)
-                .forward(request, response);
-    }
-
-    private boolean isAuthenticatedHost(HttpSession session) {
-        return session != null
-                && session.getAttribute("hostUserId") instanceof Integer
-                && "ROLE_HOST".equals(session.getAttribute("hostRole"));
-    }
-
-    private boolean isValidCsrfToken(
-            HttpSession session, String submittedToken) {
-
-        if (session == null || submittedToken == null) {
+        synchronized boolean isLocked() {
+            if (lockedUntil > System.currentTimeMillis()) {
+                return true;
+            }
+            if (lockedUntil != 0L) {
+                failedCount = 0;
+                lockedUntil = 0L;
+            }
             return false;
         }
 
-        Object savedToken = session.getAttribute("csrfToken");
-
-        return savedToken instanceof String
-                && java.security.MessageDigest.isEqual(
-                        ((String) savedToken).getBytes(
-                                java.nio.charset.StandardCharsets.UTF_8),
-                        submittedToken.getBytes(
-                                java.nio.charset.StandardCharsets.UTF_8));
-    }
-
-    private String generateCsrfToken() {
-        byte[] bytes = new byte[32];
-        secureRandom.nextBytes(bytes);
-
-        StringBuilder token = new StringBuilder(bytes.length * 2);
-
-        for (byte b : bytes) {
-            token.append(String.format("%02x", b & 0xff));
+        synchronized long getRemainingLockoutMinutes() {
+            long diff = lockedUntil - System.currentTimeMillis();
+            if (diff <= 0) return 0;
+            return (diff + 59_999L) / 60_000L;
         }
 
-        return token.toString();
+        synchronized int recordFailure() {
+            long now = System.currentTimeMillis();
+            if (lockedUntil > now) {
+                return failedCount;
+            }
+            failedCount++;
+            if (failedCount >= MAX_FAILED_LOGINS) {
+                lockedUntil = now + LOCKOUT_DURATION_MS;
+            }
+            return failedCount;
+        }
+
+        synchronized void reset() {
+            failedCount = 0;
+            lockedUntil = 0L;
+        }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session != null && session.getAttribute("loginError") != null) {
+            request.setAttribute("messageError", session.getAttribute("loginError"));
+            session.removeAttribute("loginError");
+        }
+        prepareLoginView(request);
+        request.getRequestDispatcher(LOGIN_VIEW).forward(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        String loginIdentifier = valueOrEmpty(request.getParameter("loginIdentifier"))
+                .trim().toLowerCase(Locale.ROOT);
+        String password = valueOrEmpty(request.getParameter("password"));
+        request.setAttribute("loginIdentifier", loginIdentifier);
+
+        if (!LoginUtil.consumeCsrfToken(request, request.getParameter("csrfToken"))) {
+            request.setAttribute("messageError", "Phiên đăng nhập hết hạn. Vui lòng thử lại.");
+            forwardToLogin(request, response);
+            return;
+        }
+        if (loginIdentifier.isEmpty() || loginIdentifier.length() > 254
+                || password.isEmpty() || password.length() > 128) {
+            request.setAttribute("messageError", "Vui lòng nhập đầy đủ email/tên đăng nhập và mật khẩu hợp lệ.");
+            forwardToLogin(request, response);
+            return;
+        }
+
+        LoginAttemptTracker tracker = ATTEMPTS.computeIfAbsent(loginIdentifier, k -> new LoginAttemptTracker());
+        if (tracker.isLocked()) {
+            long remainingMinutes = tracker.getRemainingLockoutMinutes();
+            request.setAttribute("messageError",
+                    "Tài khoản đang bị tạm khóa 15 phút do nhập sai mật khẩu quá 5 lần. Vui lòng thử lại sau "
+                    + remainingMinutes + " phút hoặc sử dụng 'Quên mật khẩu'.");
+            forwardToLogin(request, response);
+            return;
+        }
+
+        try {
+            User user = userDAO.findByLoginIdentifier(loginIdentifier);
+            if (user == null || user.getPassword() == null
+                    || !PasswordUtil.verify(password, user.getPassword())) {
+                int failed = tracker.recordFailure();
+                int remainingAttempts = MAX_FAILED_LOGINS - failed;
+
+                if (remainingAttempts <= 0) {
+                    request.setAttribute("messageError",
+                            "Bạn đã nhập sai mật khẩu 5 lần liên tiếp. Tài khoản đã bị tạm khóa trong 15 phút để đảm bảo an toàn.");
+                } else {
+                    request.setAttribute("messageError",
+                            "Email/tên đăng nhập hoặc mật khẩu không đúng. Bạn còn " + remainingAttempts + " lần thử trước khi bị khóa tạm 15 phút.");
+                }
+                forwardToLogin(request, response);
+                return;
+            }
+
+            if (!"ACTIVE".equals(user.getStatus())) {
+                request.setAttribute("messageError", "Tài khoản của bạn đã bị khóa hoặc chưa được kích hoạt.");
+                forwardToLogin(request, response);
+                return;
+            }
+
+            tracker.reset();
+
+            if (user.isTwoFactorEnabled()) {
+                int codeNumber = 100000 + SECURE_RANDOM.nextInt(900000);
+                String otpCode = String.valueOf(codeNumber);
+                Timestamp expiresAt = new Timestamp(System.currentTimeMillis() + 5 * 60 * 1000L);
+
+                otpDAO.createOtp(user.getId(), otpCode, "LOGIN_2FA", expiresAt);
+                EmailUtil.sendOtpEmail(user.getEmail(), user.getDisplayName(), otpCode);
+
+                request.getSession().setAttribute("pending2faUserId", user.getId());
+                request.getSession().setAttribute("otpLastSentTime", System.currentTimeMillis());
+                request.getSession().setAttribute("otpFailedAttempts", 0);
+                response.sendRedirect(request.getContextPath() + "/verify-otp");
+                return;
+            }
+
+            LoginUtil.signIn(request, user);
+            // If host, set host attributes for voucher management
+            if (user.getRole() != null && "ROLE_HOST".equalsIgnoreCase(user.getRole().getName())) {
+                request.getSession().setAttribute("hostUserId", user.getId());
+                request.getSession().setAttribute("hostRole", "ROLE_HOST");
+            }
+
+            response.sendRedirect(request.getContextPath() + "/");
+        } catch (SQLException e) {
+            throw new ServletException("Unable to authenticate the local account.", e);
+        } catch (GeneralSecurityException e) {
+            throw new ServletException("Unable to verify the account password.", e);
+        }
+    }
+
+    private void forwardToLogin(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        prepareLoginView(request);
+        request.getRequestDispatcher(LOGIN_VIEW).forward(request, response);
+    }
+
+    private void prepareLoginView(HttpServletRequest request) {
+        request.setAttribute("csrfToken", LoginUtil.getOrCreateCsrfToken(request));
+        request.setAttribute("googleClientId", AppConfig.getGoogleClientId());
+    }
+
+    private String valueOrEmpty(String value) {
+        return value == null ? "" : value;
     }
 }

@@ -1,128 +1,169 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Đăng nhập Host - Sogo Homestay</title>
+<%-- Login flow: authenticate with account credentials or Google, with registration fallback. --%>
+<%-- Shared page header and navigation. --%>
+<jsp:include page="common/header.jsp">
+  <jsp:param name="pageTitle" value="Đăng nhập - Sogo Homestay" />
+</jsp:include>
 
-    <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/assets/css/bootstrap.min.css">
+<jsp:include page="common/navbar.jsp" />
 
-    <style>
-        body {
-            min-height: 100vh;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            background: #f5f6f8;
-            font-family: Arial, sans-serif;
-        }
+<%-- Page content: credential form, Google sign-in, and authentication feedback. --%>
+<section class="section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="text-center mb-4">
+          <span class="text-primary font-weight-bold text-uppercase letter-spacing-1">Tài khoản</span>
+          <h1 class="heading mt-2">Đăng nhập</h1>
+        </div>
 
-        .login-card {
-            width: 100%;
-            max-width: 440px;
-            padding: 36px;
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, .08);
-        }
+        <c:if test="${not empty messageError}">
+          <div class="alert alert-danger" role="alert">
+            <c:out value="${messageError}" />
+          </div>
+        </c:if>
 
-        .login-card h1 {
-            margin-bottom: 8px;
-            font-size: 27px;
-            font-weight: 700;
-        }
+        <c:if test="${not empty loginError}">
+          <div class="alert alert-danger" role="alert">
+            <c:out value="${loginError}" />
+          </div>
+        </c:if>
 
-        .login-description {
-            margin-bottom: 26px;
-            color: #6c757d;
-        }
-
-        .form-label {
-            font-weight: 600;
-        }
-
-        .form-control {
-            min-height: 46px;
-        }
-
-        .btn-login {
-            width: 100%;
-            min-height: 46px;
-            margin-top: 8px;
-            font-weight: 600;
-        }
-
-        .back-link {
-            display: block;
-            margin-top: 22px;
-            text-align: center;
-        }
-    </style>
-</head>
-
-<body>
-<div class="login-card">
-    <h1>Sogo Homestay</h1>
-    <p class="login-description">Đăng nhập dành cho Host</p>
-
-    <c:if test="${not empty param.loggedOut}">
-        <div class="alert alert-success" role="status">
+        <c:if test="${not empty param.loggedOut}">
+          <div class="alert alert-success" role="status">
             Bạn đã đăng xuất thành công.
+          </div>
+        </c:if>
+
+        <c:if test="${param.resetSuccess == '1'}">
+          <div class="alert alert-success" role="alert">
+            Mật khẩu của bạn đã được cập nhật thành công. Vui lòng đăng nhập bằng mật khẩu mới.
+          </div>
+        </c:if>
+
+        <c:if test="${param.passwordChanged == '1'}">
+          <div class="alert alert-success" role="alert">
+            Mật khẩu đã được thay đổi thành công. Vì lý do bảo mật, vui lòng đăng nhập lại bằng mật khẩu mới.
+          </div>
+        </c:if>
+
+        <%-- Submit account credentials. --%>
+        <form action="${pageContext.request.contextPath}/login" method="post">
+          <input type="hidden" name="csrfToken" value="<c:out value='${csrfToken}' />">
+          <div class="form-group">
+            <label for="loginIdentifier">Email hoặc tên đăng nhập</label>
+            <input type="text" id="loginIdentifier" name="loginIdentifier" class="form-control"
+                   maxlength="100" autocomplete="username" required
+                   value="<c:out value='${loginIdentifier}' />">
+            <small class="form-text text-muted">
+              Nhập email hoặc tên đăng nhập bạn đã dùng khi đăng ký.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label for="password" class="mb-0">Mật khẩu</label>
+              <a href="${pageContext.request.contextPath}/forgot-password" class="small text-primary">Quên mật khẩu?</a>
+            </div>
+            <div class="password-input-wrap">
+              <input type="password" id="password" name="password" class="form-control"
+                     maxlength="128" autocomplete="current-password" required>
+              <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility(this, event)" aria-label="Hiện mật khẩu" tabindex="-1">
+                <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="icon-eye-off" style="display:none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block py-3 font-weight-bold">Đăng nhập</button>
+        </form>
+
+        <div class="text-center my-4">
+          <span class="text-muted">Hoặc đăng nhập bằng</span>
         </div>
-    </c:if>
 
-    <c:if test="${not empty loginError}">
-        <div class="alert alert-danger" role="alert">
-            <c:out value="${loginError}"/>
-        </div>
-    </c:if>
+        <div id="googleLoginError" class="alert alert-danger d-none" role="alert"></div>
+        <p class="text-muted text-center small">
+          Nếu email Google đã có tài khoản, đăng nhập Google sẽ dùng chung tài khoản đó.
+        </p>
 
-    <form method="post"
-          action="${pageContext.request.contextPath}/login">
+        <%-- Render Google sign-in when configured, then provide its callback handling. --%>
+        <c:choose>
+          <c:when test="${not empty googleClientId}">
+            <div id="g_id_onload"
+                 data-client_id="<c:out value='${googleClientId}' />"
+                 data-callback="handleGoogleCredential"
+                 data-ux_mode="popup"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin text-center d-flex justify-content-center"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="signin_with"
+                 data-shape="rectangular"
+                 data-logo_alignment="left">
+            </div>
+            <script src="https://accounts.google.com/gsi/client" async defer></script>
+          </c:when>
+          <c:otherwise>
+            <p class="text-muted text-center small">
+              Đăng nhập Google chưa được cấu hình trên máy chủ.
+            </p>
+          </c:otherwise>
+        </c:choose>
 
-        <input type="hidden" name="csrfToken"
-               value="<c:out value='${sessionScope.csrfToken}'/>">
+        <input type="hidden" id="googleCsrfToken" value="<c:out value='${csrfToken}' />">
+        <script>
+          async function handleGoogleCredential(googleResponse) {
+            const errorBox = document.getElementById("googleLoginError");
+            errorBox.classList.add("d-none");
 
-        <div class="mb-3">
-            <label for="username" class="form-label">
-                Tên đăng nhập
-            </label>
-            <input type="text"
-                   id="username"
-                   name="username"
-                   class="form-control"
-                   autocomplete="username"
-                   maxlength="100"
-                   required>
-        </div>
+            try {
+              const response = await fetch("${pageContext.request.contextPath}/login/google", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                  "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+                },
+                body: new URLSearchParams({
+                  credential: googleResponse.credential,
+                  csrfToken: document.getElementById("googleCsrfToken").value
+                })
+              });
+              const result = await response.json();
 
-        <div class="mb-3">
-            <label for="password" class="form-label">
-                Mật khẩu
-            </label>
-            <input type="password"
-                   id="password"
-                   name="password"
-                   class="form-control"
-                   autocomplete="current-password"
-                   required>
-        </div>
+              if (!response.ok) {
+                errorBox.textContent = result.message || "Đăng nhập Google thất bại.";
+                errorBox.classList.remove("d-none");
+                return;
+              }
 
-        <button type="submit" class="btn btn-primary btn-login">
-            Đăng nhập
-        </button>
-    </form>
+              window.location.assign("${pageContext.request.contextPath}/");
+            } catch (error) {
+              errorBox.textContent = "Không thể kết nối để đăng nhập Google. Vui lòng thử lại.";
+              errorBox.classList.remove("d-none");
+            }
+          }
+        </script>
 
-    <a class="back-link"
-       href="${pageContext.request.contextPath}/home">
-        Quay lại trang chủ
-    </a>
-</div>
-</body>
-</html>
+        <%-- Link new users to account registration. --%>
+        <p class="text-center mt-4">
+          Chưa có tài khoản?
+          <a href="${pageContext.request.contextPath}/register" class="font-weight-bold">Đăng ký ngay</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%-- Shared page footer and scripts. --%>
+<jsp:include page="common/footer.jsp" />

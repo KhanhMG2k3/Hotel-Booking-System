@@ -11,7 +11,15 @@ import java.sql.Timestamp;
 public class Booking implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    public enum Status {
+        PENDING,
+        CONFIRMED,
+        COMPLETED,
+        CANCELLED
+    }
+
     private int id;
+    private String bookingCode;
     private Integer userId;
     private User user;
     private String customerName;
@@ -21,17 +29,25 @@ public class Booking implements Serializable {
     private Room room;
     private Date checkInDate;
     private Date checkOutDate;
-    private int adults;
-    private int children;
+    private int adults = 1;
+    private int children = 0;
+    private int guestCount = 1;
     private BigDecimal totalPrice;
     private String notes;
-    private String status;
+    private String specialRequests;
+    private String status = "CONFIRMED";
     private Timestamp createdAt;
+
+    // Presentation attributes
+    private String roomName;
+    private String propertyName;
 
     public Booking() {
     }
 
-    public Booking(int id, Integer userId, String customerName, String customerEmail, String customerPhone, int roomId, Date checkInDate, Date checkOutDate, int adults, int children, BigDecimal totalPrice, String notes, String status, Timestamp createdAt) {
+    public Booking(int id, Integer userId, String customerName, String customerEmail, String customerPhone,
+                   int roomId, Date checkInDate, Date checkOutDate, int adults, int children,
+                   BigDecimal totalPrice, String notes, String status, Timestamp createdAt) {
         this.id = id;
         this.userId = userId;
         this.customerName = customerName;
@@ -42,6 +58,7 @@ public class Booking implements Serializable {
         this.checkOutDate = checkOutDate;
         this.adults = adults;
         this.children = children;
+        this.guestCount = adults + children;
         this.totalPrice = totalPrice;
         this.notes = notes;
         this.status = status;
@@ -56,11 +73,23 @@ public class Booking implements Serializable {
         this.id = id;
     }
 
+    public String getBookingCode() {
+        return bookingCode;
+    }
+
+    public void setBookingCode(String bookingCode) {
+        this.bookingCode = bookingCode;
+    }
+
     public Integer getUserId() {
         return userId;
     }
 
     public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public void setUserId(int userId) {
         this.userId = userId;
     }
 
@@ -84,8 +113,12 @@ public class Booking implements Serializable {
         return customerEmail;
     }
 
-    public void setEmail(String customerEmail) {
+    public void setCustomerEmail(String customerEmail) {
         this.customerEmail = customerEmail;
+    }
+
+    public void setEmail(String email) {
+        this.customerEmail = email;
     }
 
     public String getCustomerPhone() {
@@ -134,6 +167,7 @@ public class Booking implements Serializable {
 
     public void setAdults(int adults) {
         this.adults = adults;
+        this.guestCount = this.adults + this.children;
     }
 
     public int getChildren() {
@@ -142,6 +176,15 @@ public class Booking implements Serializable {
 
     public void setChildren(int children) {
         this.children = children;
+        this.guestCount = this.adults + this.children;
+    }
+
+    public int getGuestCount() {
+        return guestCount > 0 ? guestCount : (adults + children);
+    }
+
+    public void setGuestCount(int guestCount) {
+        this.guestCount = guestCount;
     }
 
     public BigDecimal getTotalPrice() {
@@ -153,11 +196,25 @@ public class Booking implements Serializable {
     }
 
     public String getNotes() {
-        return notes;
+        return notes != null ? notes : specialRequests;
     }
 
     public void setNotes(String notes) {
         this.notes = notes;
+        if (this.specialRequests == null) {
+            this.specialRequests = notes;
+        }
+    }
+
+    public String getSpecialRequests() {
+        return specialRequests != null ? specialRequests : notes;
+    }
+
+    public void setSpecialRequests(String specialRequests) {
+        this.specialRequests = specialRequests;
+        if (this.notes == null) {
+            this.notes = specialRequests;
+        }
     }
 
     public String getStatus() {
@@ -168,12 +225,32 @@ public class Booking implements Serializable {
         this.status = status;
     }
 
+    public void setStatus(Status status) {
+        this.status = status != null ? status.name() : "CONFIRMED";
+    }
+
     public Timestamp getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
+    }
+
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    public void setPropertyName(String propertyName) {
+        this.propertyName = propertyName;
     }
 
     @Override

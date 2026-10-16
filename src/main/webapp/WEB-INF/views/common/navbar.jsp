@@ -17,23 +17,25 @@
                     </a>
                     <c:choose>
                         <c:when test="${not empty sessionScope.userId}">
+                            <c:set var="displayName" value="${not empty sessionScope.displayName ? sessionScope.displayName : sessionScope.userName}" />
                             <c:set var="navAvatarSrc" value="" />
-                            <c:if test="${not empty sessionScope.avatar}">
+                            <c:if test="${not empty sessionScope.avatar or not empty sessionScope.avatarUrl}">
+                                <c:set var="rawAvatar" value="${not empty sessionScope.avatar ? sessionScope.avatar : sessionScope.avatarUrl}" />
                                 <c:choose>
-                                    <c:when test="${fn:startsWith(sessionScope.avatar, 'http://') or fn:startsWith(sessionScope.avatar, 'https://')}">
-                                        <c:set var="navAvatarSrc" value="${sessionScope.avatar}" />
+                                    <c:when test="${fn:startsWith(rawAvatar, 'http://') or fn:startsWith(rawAvatar, 'https://')}">
+                                        <c:set var="navAvatarSrc" value="${rawAvatar}" />
                                     </c:when>
-                                    <c:when test="${fn:startsWith(sessionScope.avatar, '/assets/')}">
-                                        <c:set var="navAvatarSrc" value="${pageContext.request.contextPath}${sessionScope.avatar}" />
+                                    <c:when test="${fn:startsWith(rawAvatar, '/assets/')}">
+                                        <c:set var="navAvatarSrc" value="${pageContext.request.contextPath}${rawAvatar}" />
                                     </c:when>
-                                    <c:when test="${fn:startsWith(sessionScope.avatar, 'assets/')}">
-                                        <c:set var="navAvatarSrc" value="${pageContext.request.contextPath}/${sessionScope.avatar}" />
+                                    <c:when test="${fn:startsWith(rawAvatar, 'assets/')}">
+                                        <c:set var="navAvatarSrc" value="${pageContext.request.contextPath}/${rawAvatar}" />
                                     </c:when>
-                                    <c:when test="${fn:startsWith(sessionScope.avatar, '/')}">
-                                        <c:set var="navAvatarSrc" value="${pageContext.request.contextPath}/assets${sessionScope.avatar}" />
+                                    <c:when test="${fn:startsWith(rawAvatar, '/')}">
+                                        <c:set var="navAvatarSrc" value="${pageContext.request.contextPath}/assets${rawAvatar}" />
                                     </c:when>
                                     <c:otherwise>
-                                        <c:set var="navAvatarSrc" value="${pageContext.request.contextPath}/assets/${sessionScope.avatar}" />
+                                        <c:set var="navAvatarSrc" value="${pageContext.request.contextPath}/assets/${rawAvatar}" />
                                     </c:otherwise>
                                 </c:choose>
                             </c:if>
@@ -44,25 +46,25 @@
                                             <img src="${navAvatarSrc}" alt="Avatar" class="user-avatar-img"
                                                  onerror="this.style.display='none'; document.getElementById('navbarAvatarFallback').style.display='inline-flex';">
                                             <span id="navbarAvatarFallback" class="user-avatar-fallback" style="display:none;">
-                                                ${fn:toUpperCase(fn:substring(sessionScope.userName, 0, 1))}
+                                                ${fn:toUpperCase(fn:substring(displayName, 0, 1))}
                                             </span>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="user-avatar-fallback">
-                                                ${fn:toUpperCase(fn:substring(sessionScope.userName, 0, 1))}
+                                                ${fn:toUpperCase(fn:substring(displayName, 0, 1))}
                                             </span>
                                         </c:otherwise>
                                     </c:choose>
-                                    <span class="user-name"><c:out value="${sessionScope.userName}" /></span>
+                                    <span class="user-name"><c:out value="${displayName}" /></span>
                                     <i class="fa fa-angle-down user-caret ml-1"></i>
                                 </button>
                                 <div class="user-dropdown" id="userDropdown" role="menu">
                                     <div class="user-dropdown-header">
-                                        <div class="user-dropdown-name"><c:out value="${sessionScope.userName}" /></div>
-                                        <c:if test="${not empty sessionScope.userEmail}">
-                                            <span class="user-dropdown-email"><c:out value="${sessionScope.userEmail}" /></span>
+                                        <div class="user-dropdown-name"><c:out value="${displayName}" /></div>
+                                        <c:if test="${not empty sessionScope.userEmail or not empty sessionScope.email}">
+                                            <span class="user-dropdown-email"><c:out value="${not empty sessionScope.userEmail ? sessionScope.userEmail : sessionScope.email}" /></span>
                                         </c:if>
-                                        <c:set var="uRoleName" value="${not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : ''}" />
+                                        <c:set var="uRoleName" value="${not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : (not empty sessionScope.role ? sessionScope.role : '')}" />
                                         <c:set var="uRoleId" value="${sessionScope.roleId}" />
                                         <c:set var="isUserAdmin" value="${uRoleId == 1 || uRoleId == 5 || uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN'}" />
                                         <c:set var="isUserHost" value="${uRoleId == 3 || uRoleName == 'HOST' || uRoleName == 'ROLE_HOST' || uRoleName == 'HOTEL_OWNER'}" />
@@ -102,6 +104,9 @@
                                         <a href="${pageContext.request.contextPath}/admin/dashboard" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-cogs"></i> Trang Quản Trị
                                         </a>
+                                        <a href="${pageContext.request.contextPath}/admin/host-applications" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-file-text-o"></i> Duyệt Đơn Host
+                                        </a>
                                     </c:if>
                                     <div class="user-dropdown-divider"></div>
                                     <button type="button" class="user-dropdown-item user-dropdown-logout" data-toggle="modal" data-target="#logoutModal" role="menuitem">
@@ -120,7 +125,7 @@
                             <!-- Dấu gạch đứng phân cách nhẹ -->
                             <span class="text-white-50 mx-2" style="user-select: none;">|</span>
 
-                            <!-- Nút Đăng nhập & Đăng ký ban đầu của bạn -->
+                            <!-- Nút Đăng nhập & Đăng ký -->
                             <a class="auth-link" href="${pageContext.request.contextPath}/login">Đăng nhập</a>
                             <a class="auth-link auth-link-primary" href="${pageContext.request.contextPath}/register">Đăng ký</a>
                         </c:otherwise>
@@ -156,6 +161,7 @@
                             <!-- Thẻ tóm tắt thông tin người dùng (Đã đăng nhập vs Khách) -->
                             <c:choose>
                                 <c:when test="${not empty sessionScope.userId}">
+                                    <c:set var="displayName" value="${not empty sessionScope.displayName ? sessionScope.displayName : sessionScope.userName}" />
                                     <div class="drawer-user-card">
                                         <div class="drawer-user-avatar-wrap">
                                             <c:choose>
@@ -163,21 +169,21 @@
                                                     <img src="${navAvatarSrc}" alt="Avatar" class="drawer-user-avatar"
                                                          onerror="this.style.display='none'; var fb=document.getElementById('drawerAvatarFallback'); if(fb) fb.style.setProperty('display', 'inline-flex', 'important');">
                                                     <span id="drawerAvatarFallback" class="drawer-user-avatar-fallback" style="display:none !important;">
-                                                        ${fn:toUpperCase(fn:substring(sessionScope.userName, 0, 1))}
+                                                        ${fn:toUpperCase(fn:substring(displayName, 0, 1))}
                                                     </span>
                                                 </c:when>
                                                 <c:otherwise>
                                                     <span class="drawer-user-avatar-fallback">
-                                                        ${fn:toUpperCase(fn:substring(sessionScope.userName, 0, 1))}
+                                                        ${fn:toUpperCase(fn:substring(displayName, 0, 1))}
                                                     </span>
                                                 </c:otherwise>
                                             </c:choose>
                                             <span class="drawer-user-status-dot" title="Đang hoạt động"></span>
                                         </div>
                                         <div class="drawer-user-info">
-                                            <h6 class="drawer-user-name"><c:out value="${sessionScope.userName}" /></h6>
-                                            <c:if test="${not empty sessionScope.userEmail}">
-                                                <span class="drawer-user-email"><c:out value="${sessionScope.userEmail}" /></span>
+                                            <h6 class="drawer-user-name"><c:out value="${displayName}" /></h6>
+                                            <c:if test="${not empty sessionScope.userEmail or not empty sessionScope.email}">
+                                                <span class="drawer-user-email"><c:out value="${not empty sessionScope.userEmail ? sessionScope.userEmail : sessionScope.email}" /></span>
                                             </c:if>
                                             <div class="mt-1">
                                                 <c:choose>
@@ -323,6 +329,13 @@
                                                     <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                                 </a>
                                             </li>
+                                            <li class="drawer-nav-item">
+                                                <a href="${pageContext.request.contextPath}/admin/host-applications" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon icon-admin"><i class="fa fa-file-text-o"></i></span>
+                                                    <span class="drawer-nav-text">Duyệt Đơn Host</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
                                         </c:if>
                                         <li class="drawer-nav-item">
                                             <a href="javascript:void(0)" class="drawer-nav-link text-danger" data-toggle="modal" data-target="#logoutModal" onclick="closeSiteNavbar()">
@@ -361,6 +374,7 @@
     </div>
 </header>
 <!-- END head -->
+
 <!-- Modal Xác nhận Đăng xuất -->
 <div class="modal fade sogo-modal" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -377,8 +391,9 @@
                 <h4 class="modal-title mb-2" id="logoutModalTitle">Xác nhận đăng xuất</h4>
                 <p class="text-muted mb-4">
                     Bạn có chắc chắn muốn đăng xuất khỏi tài khoản
-                    <c:if test="${not empty sessionScope.userName}">
-                        <strong><c:out value="${sessionScope.userName}" /></strong>
+                    <c:set var="displayName" value="${not empty sessionScope.displayName ? sessionScope.displayName : sessionScope.userName}" />
+                    <c:if test="${not empty displayName}">
+                        <strong><c:out value="${displayName}" /></strong>
                     </c:if>
                     không?
                 </p>
@@ -387,6 +402,9 @@
                         Ở lại
                     </button>
                     <form action="${pageContext.request.contextPath}/logout" method="post" class="m-0 d-inline">
+                        <c:if test="${not empty sessionScope.logoutCsrfToken}">
+                            <input type="hidden" name="csrfToken" value="<c:out value='${sessionScope.logoutCsrfToken}' />">
+                        </c:if>
                         <button type="submit" class="btn btn-logout px-4 py-2 rounded-pill font-weight-bold">
                             <i class="fa fa-sign-out mr-1"></i> Đăng xuất
                         </button>
@@ -396,6 +414,7 @@
         </div>
     </div>
 </div>
+
 <!-- Toast Thông báo Đăng xuất thành công -->
 <c:if test="${param.logout == 'success'}">
     <div class="sogo-toast alert alert-dismissible fade show" role="alert" id="logoutSuccessToast">
@@ -408,6 +427,7 @@
         </button>
     </div>
 </c:if>
+
 <script>
     function closeSiteNavbar() {
         if (typeof $ !== 'undefined') {

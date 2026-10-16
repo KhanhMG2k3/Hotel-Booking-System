@@ -1,4 +1,3 @@
-
 package com.homestay.context;
 
 import java.io.InputStream;
@@ -10,45 +9,33 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * DBContext - Manages database connections using JDBC.
- * Implements Singleton pattern for properties loading
- * and connection factory.
+ * DBContext - Manages database connections using JDBC. Implements Singleton
+ * pattern for properties loading and connection factory.
  */
 public class DBContext {
 
     private static final Logger LOGGER = Logger.getLogger(DBContext.class.getName());
-
     private static final Properties properties = new Properties();
     private static final Properties appProperties = new Properties();
 
     static {
-        // Load database configuration
-        try (InputStream input = DBContext.class.getClassLoader()
-                .getResourceAsStream("db.properties")) {
-
+        try (InputStream input = DBContext.class.getClassLoader().getResourceAsStream("db.properties")) {
             if (input != null) {
                 properties.load(input);
             } else {
-                LOGGER.log(Level.WARNING,
-                        "db.properties not found in classpath");
+                LOGGER.log(Level.WARNING, "db.properties not found in classpath");
             }
-
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING,
-                    "Failed to load db.properties", e);
+            LOGGER.log(Level.WARNING, "Failed to load db.properties", e);
         }
 
         // Load application configuration
-        try (InputStream input = DBContext.class.getClassLoader()
-                .getResourceAsStream("app.properties")) {
-
+        try (InputStream input = DBContext.class.getClassLoader().getResourceAsStream("app.properties")) {
             if (input != null) {
                 appProperties.load(input);
             }
-
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING,
-                    "Failed to load app.properties", e);
+            LOGGER.log(Level.WARNING, "Failed to load app.properties", e);
         }
     }
 
@@ -65,17 +52,11 @@ public class DBContext {
         String pass = properties.getProperty("db.password", "");
 
         // Explicitly load MySQL JDBC Driver.
-        // Fixes "No suitable driver found" in some Tomcat environments.
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            LOGGER.log(Level.SEVERE,
-                    "MySQL JDBC Driver not found in classpath", e);
-
-            throw new SQLException(
-                    "MySQL JDBC Driver not found. "
-                    + "Check mysql-connector-j dependency.", e
-            );
+            LOGGER.log(Level.SEVERE, "MySQL JDBC Driver not found in classpath", e);
+            throw new SQLException("MySQL JDBC Driver not found. Check mysql-connector-j dependency.", e);
         }
 
         return DriverManager.getConnection(url, user, pass);
@@ -87,29 +68,23 @@ public class DBContext {
      * @param connection Connection to close
      */
     public static void closeConnection(Connection connection) {
-
         if (connection != null) {
             try {
                 connection.close();
             } catch (SQLException e) {
-                LOGGER.log(Level.WARNING,
-                        "Error while closing connection", e);
+                LOGGER.log(Level.WARNING, "Error while closing connection", e);
             }
         }
     }
 
     /**
      * Đọc một giá trị bất kỳ từ db.properties.
-     * Có thể dùng chung cho các cấu hình khác ngoài database,
-     * ví dụ Google Client ID.
      *
      * @param key tên property
      * @param defaultValue giá trị mặc định nếu không tìm thấy key
      * @return giá trị cấu hình
      */
-    public static String getProperty(
-            String key, String defaultValue) {
-
+    public static String getProperty(String key, String defaultValue) {
         return properties.getProperty(key, defaultValue);
     }
 
@@ -120,35 +95,19 @@ public class DBContext {
      * @param defaultValue giá trị mặc định nếu không tìm thấy key
      * @return giá trị cấu hình
      */
-    public static String getAppProperty(
-            String key, String defaultValue) {
-
+    public static String getAppProperty(String key, String defaultValue) {
         return appProperties.getProperty(key, defaultValue);
     }
 
     /**
      * Hàm test nhanh kết nối database.
-     * Có thể chạy trực tiếp để kiểm tra kết nối MySQL.
-     * Không ảnh hưởng đến các class khác gọi getConnection().
      */
     public static void main(String[] args) {
-
         try (Connection conn = getConnection()) {
-
-            System.out.println(
-                    "✅ Kết nối DB thành công: " + !conn.isClosed()
-            );
-
-            System.out.println(
-                    "   URL: " + conn.getMetaData().getURL()
-            );
-
-            System.out.println(
-                    "   User: " + conn.getMetaData().getUserName()
-            );
-
+            System.out.println("✅ Kết nối DB thành công: " + !conn.isClosed());
+            System.out.println("   URL: " + conn.getMetaData().getURL());
+            System.out.println("   User: " + conn.getMetaData().getUserName());
         } catch (SQLException e) {
-
             System.out.println("❌ Kết nối DB thất bại:");
             e.printStackTrace();
         }

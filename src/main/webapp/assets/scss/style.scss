@@ -2,6 +2,7 @@
 @import "variables";
 @import "mixins";
 
+// Define the shared typography and colors used by the theme styles.
 $font-family-sans-serif: 'Roboto', arial, sans-serif;
 $font-family-serif: 'Playfair Display', times, serif;
 $bg-light : #f2f4fb;
@@ -97,6 +98,8 @@ h1, h2, h3, h4, h5 {
 textarea.form-control {
 	height: inherit;
 }
+
+// Keep the global header and navigation styling together for responsive updates.
 .site-header {
 	position: fixed;
 	top: 0;

@@ -1,6 +1,7 @@
 package com.homestay.model;
 
 import java.io.Serializable;
+import java.sql.Date;
 import java.sql.Timestamp;
 
 /**
@@ -14,17 +15,18 @@ public class User implements Serializable {
     private int roleId;
     private Role role;
     private String username;
-    private String password;
+    private String displayName;
     private String fullName;
     private String email;
+    private String password;
     private String phone;
-    private String status;
-    private Timestamp createdAt;
-    // Cập nhật User.java — thêm 3 field còn thiếu. Thêm vào ngay sau createdAt
-    private String googleId;
-    private String authProvider = "local"; // mặc định local nếu không set
     private String avatarUrl;
-    private java.sql.Date dateOfBirth;
+    private String status = "ACTIVE";
+    private boolean twoFactorEnabled = false;
+    private Timestamp createdAt;
+    private String googleId;
+    private String authProvider = "local";
+    private Date dateOfBirth;
     private String gender;
     private String address;
 
@@ -37,13 +39,14 @@ public class User implements Serializable {
         this.username = username;
         this.password = password;
         this.fullName = fullName;
+        this.displayName = fullName;
         this.email = email;
         this.phone = phone;
         this.status = status;
         this.createdAt = createdAt;
     }
-    
-    public User(String username, String password){
+
+    public User(String username, String password) {
         this.username = username;
         this.password = password;
     }
@@ -70,6 +73,19 @@ public class User implements Serializable {
 
     public void setRole(Role role) {
         this.role = role;
+        if (role != null) {
+            this.roleId = role.getId();
+        }
+    }
+
+    public void setRole(UserRole userRole) {
+        if (userRole != null) {
+            Role r = new Role();
+            r.setId(userRole.getId());
+            r.setRoleName(userRole.getName());
+            this.role = r;
+            this.roleId = userRole.getId();
+        }
     }
 
     public String getUsername() {
@@ -80,20 +96,32 @@ public class User implements Serializable {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
+    public String getDisplayName() {
+        if (displayName != null && !displayName.isBlank()) {
+            return displayName;
+        }
+        return fullName;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+        if (this.fullName == null || this.fullName.isBlank()) {
+            this.fullName = displayName;
+        }
     }
 
     public String getFullName() {
-        return fullName;
+        if (fullName != null && !fullName.isBlank()) {
+            return fullName;
+        }
+        return displayName;
     }
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+        if (this.displayName == null || this.displayName.isBlank()) {
+            this.displayName = fullName;
+        }
     }
 
     public String getEmail() {
@@ -104,12 +132,28 @@ public class User implements Serializable {
         this.email = email;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public String getPhone() {
         return phone;
     }
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 
     public String getStatus() {
@@ -120,6 +164,14 @@ public class User implements Serializable {
         this.status = status;
     }
 
+    public boolean isTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(boolean twoFactorEnabled) {
+        this.twoFactorEnabled = twoFactorEnabled;
+    }
+
     public Timestamp getCreatedAt() {
         return createdAt;
     }
@@ -128,7 +180,6 @@ public class User implements Serializable {
         this.createdAt = createdAt;
     }
 
-    // Và thêm getter/setter tương ứng (đặt sau getCreatedAt()/setCreatedAt()):
     public String getGoogleId() {
         return googleId;
     }
@@ -145,19 +196,11 @@ public class User implements Serializable {
         this.authProvider = authProvider;
     }
 
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
-    public void setAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
-    }
-
-    public java.sql.Date getDateOfBirth() {
+    public Date getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(java.sql.Date dateOfBirth) {
+    public void setDateOfBirth(Date dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 

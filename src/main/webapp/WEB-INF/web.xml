@@ -1,41 +1,178 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
     <display-name>Sogo Homestay Booking System</display-name>
-    <servlet-mapping>
-        <servlet-name>AboutController</servlet-name>
-        <url-pattern>/about</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>TermsController</servlet-name>
-        <url-pattern>/terms</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>FaqController</servlet-name>
-        <url-pattern>/faq</url-pattern>
-    </servlet-mapping>
+
+    <!-- Provide a session-bound logout CSRF token to authenticated requests. -->
+    <filter>
+        <filter-name>LogoutCsrfFilter</filter-name>
+        <filter-class>com.homestay.filter.LogoutCsrfFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>LogoutCsrfFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
+
+    <!-- Forward the application root to the public homepage JSP. -->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
-    <!-- Home Controller -->
-    <servlet>
-        <servlet-name>HomeController</servlet-name>
-        <servlet-class>com.homestay.controller.HomeController</servlet-class>
-    </servlet>
+
+    <!-- Map static pages -->
     <servlet>
         <servlet-name>AboutController</servlet-name>
         <servlet-class>com.homestay.controller.AboutController</servlet-class>
     </servlet>
+    <servlet-mapping>
+        <servlet-name>AboutController</servlet-name>
+        <url-pattern>/about</url-pattern>
+    </servlet-mapping>
+
     <servlet>
         <servlet-name>TermsController</servlet-name>
         <servlet-class>com.homestay.controller.TermsController</servlet-class>
     </servlet>
+    <servlet-mapping>
+        <servlet-name>TermsController</servlet-name>
+        <url-pattern>/terms</url-pattern>
+    </servlet-mapping>
+
     <servlet>
         <servlet-name>FaqController</servlet-name>
         <servlet-class>com.homestay.controller.FaqController</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>HomeController</servlet-name>
-        <url-pattern>/home</url-pattern>
-        <url-pattern>/index</url-pattern>
+        <servlet-name>FaqController</servlet-name>
+        <url-pattern>/faq</url-pattern>
     </servlet-mapping>
+
+    <!-- Map account pages and authentication actions to their controllers. -->
+    <servlet>
+        <servlet-name>LoginController</servlet-name>
+        <servlet-class>com.homestay.controller.LoginController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LoginController</servlet-name>
+        <url-pattern>/login</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>GoogleLoginController</servlet-name>
+        <servlet-class>com.homestay.controller.GoogleLoginController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>GoogleLoginController</servlet-name>
+        <url-pattern>/login/google</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>RegisterController</servlet-name>
+        <servlet-class>com.homestay.controller.RegisterController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RegisterController</servlet-name>
+        <url-pattern>/register</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ForgotPasswordController</servlet-name>
+        <servlet-class>com.homestay.controller.ForgotPasswordController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ForgotPasswordController</servlet-name>
+        <url-pattern>/forgot-password</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ResetPasswordController</servlet-name>
+        <servlet-class>com.homestay.controller.ResetPasswordController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ResetPasswordController</servlet-name>
+        <url-pattern>/reset-password</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>VerifyOtpController</servlet-name>
+        <servlet-class>com.homestay.controller.VerifyOtpController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>VerifyOtpController</servlet-name>
+        <url-pattern>/verify-otp</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ProfileController</servlet-name>
+        <servlet-class>com.homestay.controller.ProfileController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProfileController</servlet-name>
+        <url-pattern>/profile</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>LogoutController</servlet-name>
+        <servlet-class>com.homestay.controller.LogoutController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LogoutController</servlet-name>
+        <url-pattern>/logout</url-pattern>
+    </servlet-mapping>
+
+    <!-- Map Host and administrator pages and APIs to their controllers. -->
+    <servlet>
+        <servlet-name>HostApplicationController</servlet-name>
+        <servlet-class>com.homestay.controller.HostApplicationController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>HostApplicationController</servlet-name>
+        <url-pattern>/become-host</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>HostDashboardController</servlet-name>
+        <servlet-class>com.homestay.controller.HostDashboardController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>HostDashboardController</servlet-name>
+        <url-pattern>/host/dashboard</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>HostPropertyApiController</servlet-name>
+        <servlet-class>com.homestay.controller.HostPropertyApiController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>HostPropertyApiController</servlet-name>
+        <url-pattern>/api/host/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminHostApplicationsController</servlet-name>
+        <servlet-class>com.homestay.controller.AdminHostApplicationsController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminHostApplicationsController</servlet-name>
+        <url-pattern>/admin/host-applications</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>PartnerApplicationApiController</servlet-name>
+        <servlet-class>com.homestay.controller.PartnerApplicationApiController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PartnerApplicationApiController</servlet-name>
+        <url-pattern>/api/partner-applications/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminPartnerApplicationsApiController</servlet-name>
+        <servlet-class>com.homestay.controller.AdminPartnerApplicationsApiController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminPartnerApplicationsApiController</servlet-name>
+        <url-pattern>/api/admin/partner-applications/*</url-pattern>
+    </servlet-mapping>
+
 </web-app>

@@ -1750,4 +1750,47 @@ body.menu-open .site-header.scrolled .site-logo a {
 }
 
 
-
+
+/* Project-specific CSS overrides belong in this stylesheet. */
+
+/* Password input visibility toggle */
+.password-input-wrap {
+  position: relative;
+  width: 100%;
+}
+.password-input-wrap .form-control {
+  padding-right: 48px !important;
+}
+.password-input-wrap .btn-toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: #888;
+  font-size: 18px;
+  line-height: 1;
+  z-index: 10;
+  outline: none;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+.password-input-wrap .btn-toggle-password:hover,
+.password-input-wrap .btn-toggle-password:focus {
+  color: #f7a840;
+  outline: none;
+}

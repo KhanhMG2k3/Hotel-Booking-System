@@ -619,11 +619,30 @@
                                 </div>
 
                                 <!-- 6. Ngày sinh -->
-                                <div class="form-group mb-4">
+                                <div class="form-group mb-3">
                                     <label class="fitflow-label">Ngày sinh</label>
                                     <input type="date" class="fitflow-input" name="dateOfBirth"
                                            value="${u.dateOfBirth}">
                                 </div>
+
+                                <!-- 7. Bảo mật 2FA -->
+                                <div class="form-group mb-4 border-top pt-3">
+                                    <label class="fitflow-label font-weight-bold mb-2">Bảo mật hai lớp (2FA)</label>
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" id="twoFactorEnabled" name="twoFactorEnabled"
+                                               <c:if test="${u.twoFactorEnabled || profile.twoFactorEnabled}">checked</c:if>>
+                                        <label class="custom-control-label" for="twoFactorEnabled">
+                                            Kích hoạt xác thực 2 bước (Email OTP) khi đăng nhập
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Khi bật tính năng này, hệ thống sẽ gửi mã OTP gồm 6 chữ số đến email của bạn mỗi lần đăng nhập.
+                                    </small>
+                                </div>
+
+                                <c:if test="${not empty csrfToken}">
+                                    <input type="hidden" name="csrfToken" value="<c:out value='${csrfToken}' />">
+                                </c:if>
 
                                 <!-- Nút Lưu thay đổi (To, màu vàng hổ phách bo góc như ảnh mẫu) -->
                                 <button type="submit" class="fitflow-btn-submit">
@@ -850,6 +869,9 @@
                         Ở lại
                     </button>
                     <form action="${pageContext.request.contextPath}/logout" method="post" class="m-0 d-inline">
+                        <c:if test="${not empty sessionScope.logoutCsrfToken}">
+                            <input type="hidden" name="csrfToken" value="<c:out value='${sessionScope.logoutCsrfToken}' />">
+                        </c:if>
                         <button type="submit" class="btn btn-logout px-4 py-2 rounded-pill font-weight-bold">
                             <i class="fa fa-sign-out mr-1"></i> Đăng xuất
                         </button>
