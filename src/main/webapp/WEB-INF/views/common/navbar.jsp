@@ -32,7 +32,6 @@
                                     </c:otherwise>
                                 </c:choose>
                             </c:if>
-
                             <div class="user-menu" id="userMenuContainer">
                                 <button class="user-menu-toggle" id="userMenuToggle" type="button" aria-haspopup="true" aria-expanded="false" title="Tài khoản của tôi">
                                     <c:choose>
@@ -52,7 +51,6 @@
                                     <span class="user-name"><c:out value="${sessionScope.userName}" /></span>
                                     <i class="fa fa-angle-down user-caret ml-1"></i>
                                 </button>
-
                                 <div class="user-dropdown" id="userDropdown" role="menu">
                                     <div class="user-dropdown-header">
                                         <div class="user-dropdown-name"><c:out value="${sessionScope.userName}" /></div>
@@ -63,7 +61,6 @@
                                         <c:set var="uRoleId" value="${sessionScope.roleId}" />
                                         <c:set var="isUserAdmin" value="${uRoleId == 1 || uRoleId == 5 || uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN'}" />
                                         <c:set var="isUserHost" value="${uRoleId == 3 || uRoleName == 'HOST' || uRoleName == 'ROLE_HOST' || uRoleName == 'HOTEL_OWNER'}" />
-
                                         <c:choose>
                                             <c:when test="${isUserAdmin}">
                                                 <span class="user-role-badge"><i class="fa fa-shield mr-1"></i> Quản trị viên</span>
@@ -106,26 +103,33 @@
                             </div>
                         </c:when>
                         <c:otherwise>
+                            <!-- Các nút điều hướng thêm vào trước Đăng nhập / Đăng ký -->
+                            <a class="auth-link ${activePage == 'rooms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/rooms">Danh Sách Phòng</a>
+                            <a class="auth-link ${activePage == 'about' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/about">Về Chúng Tôi</a>
+                            <a class="auth-link ${activePage == 'terms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/terms">Điều Khoản</a>
+                            <a class="auth-link ${activePage == 'faq' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/faq">FAQ</a>
+
+                            <!-- Dấu gạch đứng phân cách nhẹ -->
+                            <span class="text-white-50 mx-2" style="user-select: none;">|</span>
+
+                            <!-- Nút Đăng nhập & Đăng ký ban đầu của bạn -->
                             <a class="auth-link" href="${pageContext.request.contextPath}/login">Đăng nhập</a>
                             <a class="auth-link auth-link-primary" href="${pageContext.request.contextPath}/register">Đăng ký</a>
                         </c:otherwise>
                     </c:choose>
                 </div>
-
                 <div class="site-menu-toggle js-site-menu-toggle" data-aos="fade" title="Menu điều hướng">
                     <span></span>
                     <span></span>
                     <span></span>
                 </div>
                 <!-- END menu-toggle -->
-
                 <div class="site-navbar js-site-navbar" id="siteNavbarOverlay">
                     <!-- Lớp phủ làm tối và mờ nền khi mở menu -->
                     <div class="site-navbar-backdrop" onclick="closeSiteNavbar()" title="Nhấn để đóng menu"></div>
-
-                    <!-- Thanh điều hướng dạng cột dọc một bên (Sidebar Drawer kiểu Antigravity) -->
+                    <!-- Thanh điều hướng dạng cột dọc một bên (Sidebar Drawer) -->
                     <aside class="site-navbar-drawer" role="navigation" aria-label="Menu điều hướng">
-                        
+
                         <!-- Header Drawer: Logo & Nút đóng X -->
                         <div class="drawer-header">
                             <div class="drawer-brand">
@@ -139,10 +143,8 @@
                                 <i class="fa fa-times"></i>
                             </button>
                         </div>
-
                         <!-- Thân Drawer cuộn mượt mà -->
                         <div class="drawer-body">
-
                             <!-- Thẻ tóm tắt thông tin người dùng (Đã đăng nhập vs Khách) -->
                             <c:choose>
                                 <c:when test="${not empty sessionScope.userId}">
@@ -205,7 +207,6 @@
                                     </div>
                                 </c:otherwise>
                             </c:choose>
-
                             <!-- Khối 1: ĐIỀU HƯỚNG CHÍNH -->
                             <div class="drawer-section">
                                 <div class="drawer-section-label">ĐIỀU HƯỚNG CHÍNH</div>
@@ -232,15 +233,29 @@
                                             <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                         </a>
                                     </li>
-                                    <li class="drawer-nav-item">
-                                        <a href="${pageContext.request.contextPath}/assets/about.html" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                    <li class="drawer-nav-item ${activePage == 'about' ? 'active' : ''}">
+                                        <a href="${pageContext.request.contextPath}/about" class="drawer-nav-link" onclick="closeSiteNavbar()">
                                             <span class="drawer-nav-icon icon-about"><i class="fa fa-info-circle"></i></span>
                                             <span class="drawer-nav-text">Về Chúng Tôi</span>
                                             <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                         </a>
                                     </li>
-                                    <li class="drawer-nav-item">
-                                        <a href="${pageContext.request.contextPath}/assets/contact.html" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                    <li class="drawer-nav-item ${activePage == 'terms' ? 'active' : ''}">
+                                        <a href="${pageContext.request.contextPath}/terms" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                            <span class="drawer-nav-icon icon-terms"><i class="fa fa-file-text-o"></i></span>
+                                            <span class="drawer-nav-text">Điều Khoản & Chính Sách</span>
+                                            <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                        </a>
+                                    </li>
+                                    <li class="drawer-nav-item ${activePage == 'faq' ? 'active' : ''}">
+                                        <a href="${pageContext.request.contextPath}/faq" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                            <span class="drawer-nav-icon icon-faq"><i class="fa fa-question-circle"></i></span>
+                                            <span class="drawer-nav-text">Hỏi Đáp (FAQ)</span>
+                                            <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                        </a>
+                                    </li>
+                                    <li class="drawer-nav-item ${activePage == 'contact' ? 'active' : ''}">
+                                        <a href="${pageContext.request.contextPath}/contact" class="drawer-nav-link" onclick="closeSiteNavbar()">
                                             <span class="drawer-nav-icon icon-contact"><i class="fa fa-envelope-o"></i></span>
                                             <span class="drawer-nav-text">Liên Hệ</span>
                                             <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
@@ -248,7 +263,6 @@
                                     </li>
                                 </ul>
                             </div>
-
                             <!-- Khối 2: TÀI KHOẢN & DỊCH VỤ (Khi đã đăng nhập) -->
                             <c:if test="${not empty sessionScope.userId}">
                                 <div class="drawer-section">
@@ -305,7 +319,6 @@
                                     </ul>
                                 </div>
                             </c:if>
-
                             <!-- Khối hỗ trợ nhanh Hotline -->
                             <div class="drawer-help-card">
                                 <div class="drawer-help-icon"><i class="fa fa-phone"></i></div>
@@ -314,9 +327,7 @@
                                     <a href="tel:19008888" class="drawer-help-phone">1900 8888</a>
                                 </div>
                             </div>
-
                         </div>
-
                         <!-- Footer Drawer: Mạng xã hội & Bản quyền -->
                         <div class="drawer-footer">
                             <div class="drawer-social-links">
@@ -328,7 +339,6 @@
                                 &copy; 2026 Sogo Homestay. All rights reserved.
                             </div>
                         </div>
-
                     </aside>
                 </div>
             </div>
@@ -336,8 +346,7 @@
     </div>
 </header>
 <!-- END head -->
-
-<!-- Modal Xác nhận Đăng xuất (Chuẩn theme Sogo Homestay) -->
+<!-- Modal Xác nhận Đăng xuất -->
 <div class="modal fade sogo-modal" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -372,7 +381,6 @@
         </div>
     </div>
 </div>
-
 <!-- Toast Thông báo Đăng xuất thành công -->
 <c:if test="${param.logout == 'success'}">
     <div class="sogo-toast alert alert-dismissible fade show" role="alert" id="logoutSuccessToast">
@@ -385,7 +393,6 @@
         </button>
     </div>
 </c:if>
-
 <script>
     function closeSiteNavbar() {
         if (typeof $ !== 'undefined') {
@@ -394,25 +401,24 @@
             $('body').removeClass('menu-open');
         } else {
             var nav = document.getElementById('siteNavbarOverlay');
-            if (nav) nav.style.display = 'none';
+            if (nav)
+                nav.style.display = 'none';
             var toggle = document.querySelector('.site-menu-toggle');
-            if (toggle) toggle.classList.remove('open');
+            if (toggle)
+                toggle.classList.remove('open');
             document.body.classList.remove('menu-open');
         }
     }
-
     // Đóng drawer khi nhấn phím Escape
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' || e.keyCode === 27) {
             closeSiteNavbar();
         }
     });
-
     document.addEventListener('DOMContentLoaded', function () {
         var menuContainer = document.getElementById('userMenuContainer');
         var toggle = document.getElementById('userMenuToggle');
         var dropdown = document.getElementById('userDropdown');
-
         if (toggle && dropdown && menuContainer) {
             toggle.addEventListener('click', function (e) {
                 e.stopPropagation();
@@ -420,7 +426,6 @@
                 menuContainer.classList.toggle('open', isOpen);
                 toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             });
-
             document.addEventListener('click', function (e) {
                 if (!menuContainer.contains(e.target)) {
                     dropdown.classList.remove('show');
@@ -429,7 +434,6 @@
                 }
             });
         }
-
         // Tự động ẩn toast logout sau 4.5s
         var toast = document.getElementById('logoutSuccessToast');
         if (toast) {

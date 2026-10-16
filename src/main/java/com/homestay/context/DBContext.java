@@ -46,7 +46,7 @@ public class DBContext {
      */
     public static Connection getConnection() throws SQLException {
         String url = properties.getProperty("db.url",
-                "jdbc:mysql://localhost:3306/homestaybooking?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8");
+                "jdbc:mysql://localhost:3306/homestay_iter1_test?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8");
         String user = properties.getProperty("db.user", "root");
         String pass = properties.getProperty("db.password", "");
         return DriverManager.getConnection(url, user, pass);

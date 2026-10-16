@@ -6,7 +6,8 @@
         <div class="row mb-4">
           <div class="col-md-3 mb-5">
             <ul class="list-unstyled link">
-              <li><a href="${pageContext.request.contextPath}/assets/about.html">Về chúng tôi</a></li>
+              <li><a href="${pageContext.request.contextPath}/about">Về chúng tôi</a></li>
+              <li><a href="${pageContext.request.contextPath}/terms">Chính sách & Điều khoản</a></li>
               <li><a href="${pageContext.request.contextPath}/rooms">Danh sách phòng</a></li>
               <li><a href="${pageContext.request.contextPath}/reservation">Đặt phòng nhanh</a></li>
             </ul>
