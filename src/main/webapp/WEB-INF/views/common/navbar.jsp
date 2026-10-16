@@ -10,6 +10,11 @@
             </div>
             <div class="col-6 col-lg-8 header-actions-container">
                 <div class="auth-actions">
+                    <!-- NÚT DANH SÁCH YÊU THÍCH TRÊN HEADER -->
+                    <a href="${pageContext.request.contextPath}/wishlist" class="header-wishlist-link" title="Danh sách phòng yêu thích">
+                        <i class="fa fa-heart"></i>
+                        <span class="header-wishlist-badge" id="navbarWishlistBadge">${not empty wishlistCount ? wishlistCount : (not empty sessionScope.wishlistCount ? sessionScope.wishlistCount : 0)}</span>
+                    </a>
                     <c:choose>
                         <c:when test="${not empty sessionScope.userId}">
                             <c:set var="navAvatarSrc" value="" />
@@ -79,6 +84,9 @@
                                     </a>
                                     <a href="${pageContext.request.contextPath}/my-bookings" class="user-dropdown-item" role="menuitem">
                                         <i class="fa fa-calendar-check-o"></i> Lịch sử đặt phòng
+                                    </a>
+                                    <a href="${pageContext.request.contextPath}/wishlist" class="user-dropdown-item" role="menuitem">
+                                        <i class="fa fa-heart text-danger"></i> Danh sách yêu thích
                                     </a>
                                     <c:if test="${!isUserAdmin && !isUserHost}">
                                         <a href="${pageContext.request.contextPath}/become-host" class="user-dropdown-item" role="menuitem">
@@ -230,6 +238,13 @@
                                         <a href="${pageContext.request.contextPath}/reservation" class="drawer-nav-link" onclick="closeSiteNavbar()">
                                             <span class="drawer-nav-icon icon-reservation"><i class="fa fa-calendar-check-o"></i></span>
                                             <span class="drawer-nav-text">Đặt Phòng Nhanh</span>
+                                            <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                        </a>
+                                    </li>
+                                    <li class="drawer-nav-item ${activePage == 'wishlist' ? 'active' : ''}">
+                                        <a href="${pageContext.request.contextPath}/wishlist" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                            <span class="drawer-nav-icon" style="background:#fff1f2; color:#f43f5e;"><i class="fa fa-heart"></i></span>
+                                            <span class="drawer-nav-text">Danh Sách Yêu Thích</span>
                                             <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                         </a>
                                     </li>

@@ -236,6 +236,14 @@ public class Room implements Serializable {
         this.address = address;
     }
 
+    public String getFormattedPrice() {
+        if (pricePerNight == null) {
+            return "0";
+        }
+        java.text.DecimalFormat df = new java.text.DecimalFormat("#,###");
+        return df.format(pricePerNight);
+    }
+
     @Override
     public String toString() {
         return "Room{" +
