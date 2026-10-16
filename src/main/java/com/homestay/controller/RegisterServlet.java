@@ -21,7 +21,7 @@ import org.mindrot.jbcrypt.BCrypt;
  *
  * @author admin
  */
-@WebServlet(name = "RegisterServlet", urlPatterns = {"/register"})
+@WebServlet(name = "RegisterServlet")
 public class RegisterServlet extends HttpServlet {
 
     private final UserDAO userDao = new UserDAO();

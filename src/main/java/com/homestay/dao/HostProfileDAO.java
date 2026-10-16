@@ -15,11 +15,11 @@ public class HostProfileDAO {
 
     public Optional<HostProfile> findById(int id) {
         String sql = """
-                SELECT id, user_id, business_name, business_type,
-                       phone, verification_status, rejection_reason,
-                       created_at, updated_at
+                SELECT profile_id AS id, user_id, '' AS business_name, '' AS business_type,
+                       '' AS phone, approval_status AS verification_status, rejection_reason,
+                       applied_at AS created_at, reviewed_at AS updated_at
                 FROM host_profiles
-                WHERE id = ?
+                WHERE profile_id = ?
                 """;
 
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -40,9 +40,9 @@ public class HostProfileDAO {
 
     public Optional<HostProfile> findByUserId(int userId) {
         String sql = """
-                SELECT id, user_id, business_name, business_type,
-                       phone, verification_status, rejection_reason,
-                       created_at, updated_at
+                SELECT profile_id AS id, user_id, '' AS business_name, '' AS business_type,
+                       '' AS phone, approval_status AS verification_status, rejection_reason,
+                       applied_at AS created_at, reviewed_at AS updated_at
                 FROM host_profiles
                 WHERE user_id = ?
                 """;
@@ -135,9 +135,10 @@ public class HostProfileDAO {
 
         String sql = """
                 UPDATE host_profiles
-                SET verification_status = ?,
-                    rejection_reason = ?
-                WHERE id = ?
+                SET approval_status = ?,
+                    rejection_reason = ?,
+                    reviewed_at = CURRENT_TIMESTAMP
+                WHERE profile_id = ?
                 """;
 
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -191,16 +192,17 @@ public class HostProfileDAO {
 
         String updateProfileSql = """
             UPDATE host_profiles
-            SET verification_status = 'APPROVED',
-                rejection_reason = NULL
-            WHERE id = ?
+            SET approval_status = 'APPROVED',
+                rejection_reason = NULL,
+                reviewed_at = CURRENT_TIMESTAMP
+            WHERE profile_id = ?
               AND user_id = ?
             """;
 
         String updateUserRoleSql = """
             UPDATE users
             SET role_id = ?
-            WHERE id = ?
+            WHERE user_id = ?
             """;
 
         Connection connection = null;
@@ -260,12 +262,12 @@ public class HostProfileDAO {
     // lấy tất cả hồ sơ đang chờ admin duyệt 
     public List<HostProfile> findPendingProfiles() {
         String sql = """
-            SELECT id, user_id, business_name, business_type,
-                   phone, verification_status, rejection_reason,
-                   created_at, updated_at
+            SELECT profile_id AS id, user_id, '' AS business_name, '' AS business_type,
+                   '' AS phone, approval_status AS verification_status, rejection_reason,
+                   applied_at AS created_at, reviewed_at AS updated_at
             FROM host_profiles
-            WHERE verification_status = 'PENDING'
-            ORDER BY created_at ASC
+            WHERE approval_status = 'PENDING'
+            ORDER BY applied_at ASC
             """;
 
         List<HostProfile> profiles = new ArrayList<>();

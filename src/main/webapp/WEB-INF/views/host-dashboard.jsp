@@ -11,10 +11,55 @@
 <jsp:include page="common/navbar.jsp" />
 
 <style>
+  /* Header cố định nền trắng sắc nét cho Host Dashboard - tránh đè giao diện */
+  .site-header {
+    background: #ffffff !important;
+    padding: 14px 0 !important;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08) !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 1030 !important;
+  }
+  .site-header .site-logo a {
+    color: #1a1a1a !important;
+  }
+  .site-header .site-menu-toggle span {
+    background: #1a1a1a !important;
+  }
+  .site-header .user-name {
+    color: #1a1a1a !important;
+  }
+  .site-header .user-caret {
+    color: #1a1a1a !important;
+  }
+  .site-header .auth-link:not(.auth-link-primary) {
+    color: #202b32 !important;
+  }
+  .site-header .auth-link:not(.auth-link-primary):hover {
+    color: #f59e0b !important;
+  }
+  .site-header .auth-divider {
+    color: rgba(32, 43, 50, 0.3) !important;
+  }
+  .site-header .user-menu-toggle {
+    background: #f8f9fa !important;
+    border-color: #e9ecef !important;
+  }
+  .site-header .user-menu-toggle:hover {
+    background: #eef2f7 !important;
+    border-color: #f59e0b !important;
+  }
+  .site-header .header-wishlist-link {
+    color: #202b32 !important;
+  }
+
   .host-dashboard-wrapper {
     background-color: #f8fafc;
-    padding-top: 40px;
+    padding-top: 125px !important;
     padding-bottom: 70px;
+    min-height: 85vh;
   }
   .stat-card {
     background: #ffffff;
@@ -156,9 +201,14 @@
           Xin chào, <strong><c:out value="${hostName}" /></strong>! Dưới đây là phân tích doanh thu và các đơn đặt phòng mới nhất của bạn.
         </p>
       </div>
-      <div class="col-md-4 text-md-right mt-3 mt-md-0">
-        <span class="text-muted small d-block">Dữ liệu doanh thu năm</span>
-        <h4 class="font-weight-bold text-primary mb-0"><c:out value="${currentYear}" /></h4>
+      <div class="col-md-4 text-md-right mt-3 mt-md-0 d-flex flex-column align-items-md-end justify-content-center">
+        <a href="${pageContext.request.contextPath}/host/vouchers" class="btn btn-warning font-weight-bold px-3 py-2 shadow-sm mb-2" style="background:#f59e0b; border-color:#d97706; color:#ffffff;">
+          <i class="fa fa-ticket mr-1"></i> Quản lý Voucher
+        </a>
+        <div>
+          <span class="text-muted small">Dữ liệu năm: </span>
+          <span class="font-weight-bold text-primary"><c:out value="${currentYear}" /></span>
+        </div>
       </div>
     </div>
 

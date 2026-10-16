@@ -91,6 +91,7 @@ public final class LoginUtil {
 
         HttpSession session = request.getSession();
         request.changeSessionId();
+        session.setAttribute("user", user);
         session.setAttribute("userId", user.getId());
         session.setAttribute("username", user.getUsername());
         session.setAttribute("displayName", getDisplayName(user));
@@ -124,5 +125,29 @@ public final class LoginUtil {
         byte[] tokenBytes = new byte[32];
         SECURE_RANDOM.nextBytes(tokenBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+    }
+
+    /**
+     * Determines the landing dashboard page according to the user's role.
+     * Admin -> /admin/dashboard, Host -> /host/dashboard, Customer/Other -> /
+     */
+    public static String getPostLoginRedirectPath(User user) {
+        if (user == null || user.getRole() == null) {
+            return "/";
+        }
+        String roleName = user.getRole().getName();
+        if (roleName == null) {
+            roleName = user.getRole().getRoleName();
+        }
+        if (roleName != null) {
+            String upper = roleName.toUpperCase(java.util.Locale.ROOT);
+            if (upper.contains("ADMIN")) {
+                return "/admin/dashboard";
+            }
+            if (upper.contains("HOST")) {
+                return "/host/dashboard";
+            }
+        }
+        return "/";
     }
 }

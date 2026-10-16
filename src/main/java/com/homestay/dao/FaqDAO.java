@@ -17,7 +17,7 @@ public class FaqDAO extends BaseDAO {
      */
     public List<Faq> getActiveFaqs(String keyword, String category) {
         List<Faq> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT id, category, question, answer, order_index, status FROM faqs WHERE status = 'ACTIVE'");
+        StringBuilder sql = new StringBuilder("SELECT faq_id AS id, category, question, answer, order_index, CASE WHEN status = 1 THEN 'ACTIVE' ELSE 'INACTIVE' END AS status FROM faqs WHERE status = 1");
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND (question LIKE ? OR answer LIKE ?)");
@@ -25,7 +25,7 @@ public class FaqDAO extends BaseDAO {
         if (category != null && !category.trim().isEmpty() && !"ALL".equalsIgnoreCase(category)) {
             sql.append(" AND category = ?");
         }
-        sql.append(" ORDER BY order_index ASC, id ASC");
+        sql.append(" ORDER BY order_index ASC, faq_id ASC");
 
         Connection conn = null;
         PreparedStatement ps = null;
@@ -69,7 +69,7 @@ public class FaqDAO extends BaseDAO {
      */
     public List<Faq> getAllFaqsForAdmin() {
         List<Faq> list = new ArrayList<>();
-        String sql = "SELECT id, category, question, answer, order_index, status FROM faqs ORDER BY category, order_index ASC";
+        String sql = "SELECT faq_id AS id, category, question, answer, order_index, CASE WHEN status = 1 THEN 'ACTIVE' ELSE 'INACTIVE' END AS status FROM faqs ORDER BY category, order_index ASC";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -124,7 +124,7 @@ public class FaqDAO extends BaseDAO {
      * Admin: Cập nhật câu hỏi
      */
     public boolean updateFaq(Faq faq) {
-        String sql = "UPDATE faqs SET category = ?, question = ?, answer = ?, order_index = ?, status = ? WHERE id = ?";
+        String sql = "UPDATE faqs SET category = ?, question = ?, answer = ?, order_index = ?, status = CASE WHEN ? = 'ACTIVE' THEN 1 ELSE 0 END WHERE faq_id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -149,7 +149,7 @@ public class FaqDAO extends BaseDAO {
      * Admin: Xóa câu hỏi
      */
     public boolean deleteFaq(int id) {
-        String sql = "DELETE FROM faqs WHERE id = ?";
+        String sql = "DELETE FROM faqs WHERE faq_id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
         try {

@@ -1,5 +1,6 @@
 package com.homestay.filter;
 
+import com.homestay.dao.UserDAO;
 import com.homestay.model.User;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -27,6 +28,8 @@ import java.io.IOException;
 })
 public class AuthFilter implements Filter {
 
+    private final UserDAO userDAO = new UserDAO();
+
     @Override
     public void doFilter(
             ServletRequest request,
@@ -44,6 +47,12 @@ public class AuthFilter implements Filter {
             Object userAttribute = session.getAttribute("user");
             if (userAttribute instanceof User) {
                 user = (User) userAttribute;
+            } else if (session.getAttribute("userId") instanceof Number) {
+                int uid = ((Number) session.getAttribute("userId")).intValue();
+                user = userDAO.findById(uid).orElse(null);
+                if (user != null) {
+                    session.setAttribute("user", user);
+                }
             }
         }
 

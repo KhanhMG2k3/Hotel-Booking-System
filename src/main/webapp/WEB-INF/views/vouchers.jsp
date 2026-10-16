@@ -15,9 +15,54 @@
           href="${pageContext.request.contextPath}/assets/css/style.css">
 
     <style>
+        /* Header cố định nền trắng sắc nét cho trang Quản lý Voucher */
+        .site-header {
+            background: #ffffff !important;
+            padding: 14px 0 !important;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08) !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            z-index: 1030 !important;
+        }
+        .site-header .site-logo a {
+            color: #1a1a1a !important;
+        }
+        .site-header .site-menu-toggle span {
+            background: #1a1a1a !important;
+        }
+        .site-header .user-name {
+            color: #1a1a1a !important;
+        }
+        .site-header .user-caret {
+            color: #1a1a1a !important;
+        }
+        .site-header .auth-link:not(.auth-link-primary) {
+            color: #202b32 !important;
+        }
+        .site-header .auth-link:not(.auth-link-primary):hover {
+            color: #f59e0b !important;
+        }
+        .site-header .auth-divider {
+            color: rgba(32, 43, 50, 0.3) !important;
+        }
+        .site-header .user-menu-toggle {
+            background: #f8f9fa !important;
+            border-color: #e9ecef !important;
+        }
+        .site-header .user-menu-toggle:hover {
+            background: #eef2f7 !important;
+            border-color: #f59e0b !important;
+        }
+        .site-header .header-wishlist-link {
+            color: #202b32 !important;
+        }
+
         .voucher-page {
-            min-height: 70vh;
-            padding: 40px 0 60px;
+            min-height: 75vh;
+            padding-top: 125px !important;
+            padding-bottom: 60px;
             background: #f7f8fa;
         }
 
@@ -94,17 +139,25 @@
 
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
             <div>
-                <p class="text-uppercase text-muted mb-1">Host Dashboard</p>
+                <a href="${pageContext.request.contextPath}/host/dashboard" class="text-primary font-weight-bold text-decoration-none small d-inline-flex align-items-center mb-1">
+                    <i class="fa fa-arrow-left mr-1"></i> Quay lại Host Dashboard
+                </a>
                 <h1 class="h2 mb-2">Quản lý voucher</h1>
                 <p class="text-muted mb-0">
                     Tạo và quản lý mã giảm giá cho khách đặt phòng.
                 </p>
             </div>
 
-            <a class="btn btn-warning mt-3 mt-md-0"
-               href="${pageContext.request.contextPath}/host/vouchers#voucher-form">
-                + Tạo voucher
-            </a>
+            <div class="mt-3 mt-md-0 d-flex gap-2">
+                <a class="btn btn-outline-secondary mr-2"
+                   href="${pageContext.request.contextPath}/host/dashboard">
+                    <i class="fa fa-dashboard mr-1"></i> Dashboard
+                </a>
+                <a class="btn btn-warning"
+                   href="${pageContext.request.contextPath}/host/vouchers#voucher-form">
+                    + Tạo voucher
+                </a>
+            </div>
         </div>
 
         <div class="row mb-4">

@@ -18,7 +18,7 @@ import org.mindrot.jbcrypt.BCrypt;
  *
  * @author admin
  */
-@WebServlet(name = "LoginServlet", urlPatterns = { "/login" })
+@WebServlet(name = "LoginServlet")
 public class LoginServlet extends HttpServlet {
 
     private final UserDAO userDao = new UserDAO();

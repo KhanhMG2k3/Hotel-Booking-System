@@ -63,7 +63,7 @@ public class AdminHostApplicationsController extends HttpServlet {
             request.setAttribute("activePage", "admin-host-applications");
             request.getRequestDispatcher(VIEW).forward(request, response);
             // --- END: Page Rendering Flow ---
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new ServletException("Unable to authorize the Host Applications page.", e);
         }
     }

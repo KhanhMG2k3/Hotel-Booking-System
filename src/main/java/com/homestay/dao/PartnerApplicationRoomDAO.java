@@ -108,9 +108,9 @@ public class PartnerApplicationRoomDAO {
         String sql = "SELECT r.id, r.application_id, r.room_name, r.room_type, r.price_per_night, " +
                 "r.max_guests, r.bed_count, r.bathroom_count, r.sort_order " +
                 "FROM partner_application_rooms r JOIN host_applications a ON a.id = r.application_id " +
-                "JOIN users u ON u.id = a.user_id JOIN roles role ON role.id = u.role_id " +
+                "JOIN users u ON u.user_id = a.user_id JOIN roles role ON role.role_id = u.role_id " +
                 "WHERE r.id = ? AND a.user_id = ? AND a.status = 'DRAFT' " +
-                "AND u.status = 'ACTIVE' AND role.name = 'CUSTOMER' LIMIT 1";
+                "AND u.status = 'ACTIVE' AND (role.role_name = 'CUSTOMER' OR role.role_name = 'ROLE_CUSTOMER') LIMIT 1";
         try (Connection connection = DBContext.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, roomId);
@@ -309,9 +309,9 @@ public class PartnerApplicationRoomDAO {
     public boolean delete(int applicationId, int userId, int roomId) throws SQLException {
         String sql = "DELETE r FROM partner_application_rooms r " +
                 "JOIN host_applications a ON a.id = r.application_id " +
-                "JOIN users u ON u.id = a.user_id JOIN roles role ON role.id = u.role_id " +
+                "JOIN users u ON u.user_id = a.user_id JOIN roles role ON role.role_id = u.role_id " +
                 "WHERE r.id = ? AND r.application_id = ? AND a.user_id = ? " +
-                "AND a.status = 'DRAFT' AND u.status = 'ACTIVE' AND role.name = 'CUSTOMER'";
+                "AND a.status = 'DRAFT' AND u.status = 'ACTIVE' AND (role.role_name = 'CUSTOMER' OR role.role_name = 'ROLE_CUSTOMER')";
         // Delete the owned room and recalculate its parent application capacity atomically.
         try (Connection connection = DBContext.getConnection()) {
             connection.setAutoCommit(false);
@@ -695,9 +695,9 @@ public class PartnerApplicationRoomDAO {
         String sql = "DELETE i FROM partner_application_room_images i " +
                 "JOIN partner_application_rooms r ON r.id = i.room_id " +
                 "JOIN host_applications a ON a.id = r.application_id " +
-                "JOIN users u ON u.id = a.user_id JOIN roles role ON role.id = u.role_id " +
+                "JOIN users u ON u.user_id = a.user_id JOIN roles role ON role.role_id = u.role_id " +
                 "WHERE i.id = ? AND r.id = ? AND a.id = ? AND a.user_id = ? " +
-                "AND a.status = 'DRAFT' AND u.status = 'ACTIVE' AND role.name = 'CUSTOMER'";
+                "AND a.status = 'DRAFT' AND u.status = 'ACTIVE' AND (role.role_name = 'CUSTOMER' OR role.role_name = 'ROLE_CUSTOMER')";
         String[] storedName = new String[1];
         // Capture the file reference and remove its row in one transaction before cleanup.
         try (Connection connection = DBContext.getConnection()) {
@@ -743,9 +743,9 @@ public class PartnerApplicationRoomDAO {
     private boolean lockEditableApplication(Connection connection, int applicationId, int userId)
             throws SQLException {
         String sql = "SELECT a.id FROM host_applications a " +
-                "JOIN users u ON u.id = a.user_id JOIN roles role ON role.id = u.role_id " +
+                "JOIN users u ON u.user_id = a.user_id JOIN roles role ON role.role_id = u.role_id " +
                 "WHERE a.id = ? AND a.user_id = ? AND a.status = 'DRAFT' " +
-                "AND u.status = 'ACTIVE' AND role.name = 'CUSTOMER' FOR UPDATE";
+                "AND u.status = 'ACTIVE' AND (role.role_name = 'CUSTOMER' OR role.role_name = 'ROLE_CUSTOMER') FOR UPDATE";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, applicationId);
             statement.setInt(2, userId);

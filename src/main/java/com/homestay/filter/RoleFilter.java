@@ -1,5 +1,6 @@
 package com.homestay.filter;
 
+import com.homestay.dao.UserDAO;
 import com.homestay.model.User;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -15,6 +16,8 @@ import java.io.IOException;
 //đăng ký filter cho toàn bộ URL bắt đầu bằng /admin/
 @WebFilter(urlPatterns = {"/admin/*"})
 public class RoleFilter implements Filter {
+
+    private final UserDAO userDAO = new UserDAO();
 
     @Override
     public void doFilter(
@@ -40,14 +43,21 @@ public class RoleFilter implements Filter {
 
             if (userAttribute instanceof User) {
                 user = (User) userAttribute;
+            } else if (session.getAttribute("userId") instanceof Number) {
+                int uid = ((Number) session.getAttribute("userId")).intValue();
+                user = userDAO.findById(uid).orElse(null);
+                if (user != null) {
+                    session.setAttribute("user", user);
+                }
             }
         }
 
         boolean isAdmin = user != null
                 && user.getRole() != null
-                && "ROLE_ADMIN".equals(
-                        user.getRole().getRoleName()
-                );
+                && ("ROLE_ADMIN".equalsIgnoreCase(user.getRole().getRoleName())
+                    || "ADMIN".equalsIgnoreCase(user.getRole().getRoleName())
+                    || "ROLE_ADMIN".equalsIgnoreCase(user.getRole().getName())
+                    || "ADMIN".equalsIgnoreCase(user.getRole().getName()));
 
         if (!isAdmin) {
             if (user == null) {

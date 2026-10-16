@@ -7,7 +7,7 @@
     <jsp:param name="pageTitle" value="Thông tin tài khoản - Sogo Homestay" />
 </jsp:include>
 
-<c:set var="u" value="${profileUser}" />
+<c:set var="u" value="${not empty profileUser ? profileUser : (not empty profile ? profile : sessionScope.user)}" />
 
 <!-- Xác định đường dẫn Avatar chuẩn: URL ngoại dùng trực tiếp, file upload cục bộ dùng contextPath -->
 <c:choose>
@@ -464,12 +464,12 @@
                         <c:set var="puRoleName" value="${not empty u.role.roleName ? u.role.roleName : ''}" />
                         <c:set var="puRoleId" value="${u.roleId}" />
                         <c:choose>
-                            <c:when test="${puRoleId == 5 || puRoleName == 'ADMIN' || puRoleName == 'ROLE_ADMIN'}">
+                            <c:when test="${puRoleId == 1 || puRoleId == 5 || puRoleName == 'ADMIN' || puRoleName == 'ROLE_ADMIN'}">
                                 <span class="fitflow-role-badge fitflow-role-admin">
                                     <i class="fa fa-shield"></i> Quản trị viên
                                 </span>
                             </c:when>
-                            <c:when test="${puRoleId == 2 || puRoleId == 3 || puRoleName == 'HOST' || puRoleName == 'ROLE_HOST' || puRoleName == 'HOTEL_OWNER'}">
+                            <c:when test="${puRoleId == 3 || puRoleName == 'HOST' || puRoleName == 'ROLE_HOST' || puRoleName == 'HOTEL_OWNER'}">
                                 <span class="fitflow-role-badge fitflow-role-host">
                                     <i class="fa fa-home"></i> Chủ Homestay
                                 </span>
@@ -488,16 +488,19 @@
                             <span><i class="fa fa-calendar-check-o mr-1 text-warning"></i> Tham gia:</span>
                             <strong class="text-dark">
                                 <c:choose>
+                                    <c:when test="${not empty joinDateFormatted}">
+                                        ${joinDateFormatted}
+                                    </c:when>
                                     <c:when test="${not empty u.createdAt}">
                                         <fmt:formatDate value="${u.createdAt}" pattern="dd/MM/yyyy" />
                                     </c:when>
-                                    <c:otherwise>2026</c:otherwise>
+                                    <c:otherwise>16/10/2026</c:otherwise>
                                 </c:choose>
                             </strong>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span><i class="fa fa-shield mr-1 text-success"></i> Trạng thái:</span>
-                            <span class="badge badge-success px-2 py-1">${u.status}</span>
+                            <span class="badge badge-success px-2 py-1">${not empty u.status ? (u.status == 'ACTIVE' ? 'Hoạt động' : u.status) : 'Hoạt động'}</span>
                         </div>
                     </div>
 
@@ -678,6 +681,9 @@
 
                                     <form method="post" action="${pageContext.request.contextPath}/profile" id="changePasswordForm">
                                         <input type="hidden" name="action" value="changePassword">
+                                        <c:if test="${not empty csrfToken}">
+                                            <input type="hidden" name="csrfToken" value="<c:out value='${csrfToken}' />">
+                                        </c:if>
 
                                         <div class="form-group mb-3">
                                             <label class="fitflow-label">Mật khẩu hiện tại <span class="text-danger">*</span></label>

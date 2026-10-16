@@ -109,9 +109,11 @@ public class RegisterController extends HttpServlet {
             // Hash the password before storing a new local account.
             User user = new User();
             user.setUsername(username);
-            user.setDisplayName(email.substring(0, email.indexOf('@')));
+            user.setFullName(username);
+            user.setDisplayName(username);
             user.setPhone(phone);
             user.setEmail(email);
+            user.setStatus("ACTIVE");
             user.setPassword(PasswordUtil.hash(password));
 
             if (!userDAO.insert(user)) {
@@ -120,7 +122,7 @@ public class RegisterController extends HttpServlet {
                 return;
             }
 
-            User registeredUser = userDAO.findById(user.getId());
+            User registeredUser = userDAO.findById(user.getId()).orElse(null);
             if (registeredUser == null) {
                 throw new SQLException("The newly created account could not be loaded.");
             }

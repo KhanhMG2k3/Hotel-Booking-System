@@ -83,6 +83,7 @@ public class VoucherController extends HttpServlet {
 
         request.setAttribute(
                 "vouchers", voucherDAO.findByHostId(hostId));
+        request.setAttribute("activePage", "host-vouchers");
 
         request.getRequestDispatcher(VIEW)
                 .forward(request, response);

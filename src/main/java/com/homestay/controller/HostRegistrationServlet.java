@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpSession;
  *
  * @author admin
  */
-@WebServlet(name="HostRegistrationServlet", urlPatterns={"/become-host"})
+@WebServlet(name="HostRegistrationServlet")
 public class HostRegistrationServlet extends HttpServlet {
    private final HostProfileDAO hostProfileDAO = new HostProfileDAO();
     /** 

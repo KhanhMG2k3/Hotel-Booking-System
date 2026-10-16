@@ -53,7 +53,7 @@ public class VerifyOtpController extends HttpServlet {
 
         int userId = ((Number) session.getAttribute("pending2faUserId")).intValue();
         try {
-            User user = userDAO.findById(userId);
+            User user = userDAO.findById(userId).orElse(null);
             if (user == null || !"ACTIVE".equals(user.getStatus())) {
                 cleanupOtpSession(session);
                 response.sendRedirect(request.getContextPath() + "/login");
@@ -63,7 +63,7 @@ public class VerifyOtpController extends HttpServlet {
             // Populate view attributes including cooldown and attempt counters
             prepareView(request, session, user);
             request.getRequestDispatcher(VIEW).forward(request, response);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new ServletException("Unable to prepare OTP verification view.", e);
         }
         // --- END: Verification Authorization Flow ---
@@ -95,7 +95,7 @@ public class VerifyOtpController extends HttpServlet {
                 return;
             }
 
-            User user = userDAO.findById(userId);
+            User user = userDAO.findById(userId).orElse(null);
             if (user == null || !"ACTIVE".equals(user.getStatus())) {
                 cleanupOtpSession(session);
                 response.sendRedirect(request.getContextPath() + "/login");
@@ -164,7 +164,12 @@ public class VerifyOtpController extends HttpServlet {
             otpDAO.markAsUsed(validOtp.getId());
             cleanupOtpSession(session);
             LoginUtil.signIn(request, user);
-            response.sendRedirect(request.getContextPath() + "/");
+            if (user.getRole() != null && "ROLE_HOST".equalsIgnoreCase(user.getRole().getName())) {
+                request.getSession().setAttribute("hostUserId", user.getId());
+                request.getSession().setAttribute("hostRole", "ROLE_HOST");
+            }
+            String redirectPath = LoginUtil.getPostLoginRedirectPath(user);
+            response.sendRedirect(request.getContextPath() + redirectPath);
 
         } catch (SQLException e) {
             throw new ServletException("Unable to process 2FA verification.", e);
@@ -237,7 +242,7 @@ public class VerifyOtpController extends HttpServlet {
     private void prepareViewAndForward(HttpServletRequest request, HttpServletResponse response,
                                        int userId, HttpSession session)
             throws SQLException, ServletException, IOException {
-        User user = userDAO.findById(userId);
+        User user = userDAO.findById(userId).orElse(null);
         if (user != null) {
             prepareView(request, session, user);
         }

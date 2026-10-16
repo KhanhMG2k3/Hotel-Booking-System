@@ -174,11 +174,10 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
                      "FROM bookings b " +
                      "JOIN rooms r ON b.room_id = r.room_id " +
                      "JOIN properties p ON r.property_id = p.property_id " +
-                     "WHERE (p.host_id = ? OR p.owner_id = ?) AND b.status IN ('CONFIRMED', 'COMPLETED')";
+                     "WHERE p.host_id = ? AND b.status IN ('CONFIRMED', 'COMPLETED')";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, hostId);
-            ps.setInt(2, hostId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getBigDecimal(1);
@@ -201,13 +200,12 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
                      "FROM bookings b " +
                      "JOIN rooms r ON b.room_id = r.room_id " +
                      "JOIN properties p ON r.property_id = p.property_id " +
-                     "WHERE (p.host_id = ? OR p.owner_id = ?) AND YEAR(b.check_in_date) = ? AND b.status IN ('CONFIRMED', 'COMPLETED') " +
+                     "WHERE p.host_id = ? AND YEAR(b.check_in_date) = ? AND b.status IN ('CONFIRMED', 'COMPLETED') " +
                      "GROUP BY MONTH(b.check_in_date)";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, hostId);
-            ps.setInt(2, hostId);
-            ps.setInt(3, year);
+            ps.setInt(2, year);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     monthlyData.put(rs.getInt("booking_month"), rs.getBigDecimal("month_total"));
@@ -223,14 +221,13 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
                      "FROM bookings b " +
                      "JOIN rooms r ON b.room_id = r.room_id " +
                      "JOIN properties p ON r.property_id = p.property_id " +
-                     "WHERE (p.host_id = ? OR p.owner_id = ?) " +
+                     "WHERE p.host_id = ? " +
                      "ORDER BY b.created_at DESC LIMIT ? OFFSET ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, hostId);
-            ps.setInt(2, hostId);
-            ps.setInt(3, limit);
-            ps.setInt(4, offset);
+            ps.setInt(2, limit);
+            ps.setInt(3, offset);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Booking b = mapResultSetToBooking(rs);
@@ -247,11 +244,31 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
         String sql = "SELECT COUNT(*) FROM bookings b " +
                      "JOIN rooms r ON b.room_id = r.room_id " +
                      "JOIN properties p ON r.property_id = p.property_id " +
-                     "WHERE (p.host_id = ? OR p.owner_id = ?)";
+                     "WHERE p.host_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, hostId);
-            ps.setInt(2, hostId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        return 0;
+    }
+
+    public int countTotalBookingsByHost(int hostId) throws SQLException {
+        return countBookingsByHost(hostId);
+    }
+
+    public int countCompletedStaysByHost(int hostId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM bookings b " +
+                     "JOIN rooms r ON b.room_id = r.room_id " +
+                     "JOIN properties p ON r.property_id = p.property_id " +
+                     "WHERE p.host_id = ? AND b.status = 'COMPLETED'";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hostId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1);

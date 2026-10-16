@@ -13,7 +13,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.io.IOException;
 import java.util.Optional;
 
-@WebServlet(name = "ProfileServlet", urlPatterns = { "/profile" })
+@WebServlet(name = "ProfileServlet")
 @jakarta.servlet.annotation.MultipartConfig(
         fileSizeThreshold = 1024 * 1024 * 2, // 2MB
         maxFileSize = 1024 * 1024 * 10,      // 10MB

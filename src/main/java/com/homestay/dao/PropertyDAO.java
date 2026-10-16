@@ -21,11 +21,11 @@ public class PropertyDAO {
 
     public Optional<Property> findById(int propertyId) {
         String sql = """
-                SELECT id, host_id, name, description, property_type,
-                       address, city, country, status,
+                SELECT property_id AS id, host_id, property_name AS name, description, property_type,
+                       address, city, '' AS country, status,
                        created_at, updated_at
                 FROM properties
-                WHERE id = ?
+                WHERE property_id = ?
                 """;
 
         try (Connection connection = DBContext.getConnection();
@@ -50,11 +50,11 @@ public class PropertyDAO {
             int hostProfileId) {
 
         String sql = """
-                SELECT id, host_id, name, description, property_type,
-                       address, city, country, status,
+                SELECT property_id AS id, host_id, property_name AS name, description, property_type,
+                       address, city, '' AS country, status,
                        created_at, updated_at
                 FROM properties
-                WHERE id = ?
+                WHERE property_id = ?
                   AND host_id = ?
                 """;
 
@@ -78,8 +78,8 @@ public class PropertyDAO {
 
     public List<Property> findByHostId(int hostProfileId) {
         String sql = """
-                SELECT id, host_id, name, description, property_type,
-                       address, city, country, status,
+                SELECT property_id AS id, host_id, property_name AS name, description, property_type,
+                       address, city, '' AS country, status,
                        created_at, updated_at
                 FROM properties
                 WHERE host_id = ?
@@ -107,11 +107,11 @@ public class PropertyDAO {
 
     public List<Property> findPublished() {
         String sql = """
-                SELECT id, host_id, name, description, property_type,
-                       address, city, country, status,
+                SELECT property_id AS id, host_id, property_name AS name, description, property_type,
+                       address, city, '' AS country, status,
                        created_at, updated_at
                 FROM properties
-                WHERE status = 'PUBLISHED'
+                WHERE status = 'ACTIVE' OR status = 'PUBLISHED'
                 ORDER BY created_at DESC
                 """;
 
@@ -133,8 +133,8 @@ public class PropertyDAO {
 
     public List<Property> findAll() {
         String sql = """
-                SELECT id, host_id, name, description, property_type,
-                       address, city, country, status,
+                SELECT property_id AS id, host_id, property_name AS name, description, property_type,
+                       address, city, '' AS country, status,
                        created_at, updated_at
                 FROM properties
                 ORDER BY created_at DESC
@@ -240,7 +240,7 @@ public class PropertyDAO {
 
         String sql = """
                 DELETE FROM properties
-                WHERE id = ?
+                WHERE property_id = ?
                   AND host_id = ?
                 """;
 
@@ -265,7 +265,7 @@ public class PropertyDAO {
         String sql = """
                 UPDATE properties
                 SET status = ?
-                WHERE id = ?
+                WHERE property_id = ?
                 """;
 
         try (Connection connection = DBContext.getConnection();
@@ -308,10 +308,10 @@ public class PropertyDAO {
 
     /** Checks whether an active account has both the Host role and an approval record. */
     public boolean isApprovedHost(int userId) throws SQLException {
-        String sql = "SELECT 1 FROM users u JOIN roles r ON r.id = u.role_id " +
-                "WHERE u.id = ? AND u.status = 'ACTIVE' AND r.name = 'HOST' " +
+        String sql = "SELECT 1 FROM users u JOIN roles r ON r.role_id = u.role_id " +
+                "WHERE u.user_id = ? AND u.status = 'ACTIVE' AND (r.role_name = 'HOST' OR r.role_name = 'ROLE_HOST') " +
                 "AND EXISTS (SELECT 1 FROM host_applications a " +
-                "WHERE a.user_id = u.id AND a.status = 'APPROVED') LIMIT 1";
+                "WHERE a.user_id = u.user_id AND a.status = 'APPROVED') LIMIT 1";
         try (Connection connection = DBContext.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
@@ -352,10 +352,10 @@ public class PropertyDAO {
                 "property_type, description, address, city, district, ward, latitude, longitude, " +
                 "room_count, max_guests, status) " +
                 "SELECT ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 'ACTIVE' " +
-                "FROM users u JOIN roles r ON r.id = u.role_id " +
-                "WHERE u.id = ? AND u.status = 'ACTIVE' AND r.name = 'HOST' " +
+                "FROM users u JOIN roles r ON r.role_id = u.role_id " +
+                "WHERE u.user_id = ? AND u.status = 'ACTIVE' AND (r.role_name = 'HOST' OR r.role_name = 'ROLE_HOST') " +
                 "AND EXISTS (SELECT 1 FROM host_applications a " +
-                "WHERE a.user_id = u.id AND a.status = 'APPROVED')";
+                "WHERE a.user_id = u.user_id AND a.status = 'APPROVED')";
         try (Connection connection = DBContext.getConnection();
              PreparedStatement statement = connection.prepareStatement(
                      sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -376,13 +376,13 @@ public class PropertyDAO {
         if (!isValidProperty(property)) {
             return false;
         }
-        String sql = "UPDATE properties p JOIN users u ON u.id = p.owner_id " +
-                "JOIN roles r ON r.id = u.role_id SET p.property_name = ?, p.property_type = ?, " +
+        String sql = "UPDATE properties p JOIN users u ON u.user_id = p.owner_id " +
+                "JOIN roles r ON r.role_id = u.role_id SET p.property_name = ?, p.property_type = ?, " +
                 "p.description = ?, p.address = ?, p.city = ?, p.district = ?, p.ward = ?, " +
                 "p.latitude = ?, p.longitude = ? WHERE p.id = ? AND p.owner_id = ? " +
-                "AND u.status = 'ACTIVE' AND r.name = 'HOST' " +
+                "AND u.status = 'ACTIVE' AND (r.role_name = 'HOST' OR r.role_name = 'ROLE_HOST') " +
                 "AND EXISTS (SELECT 1 FROM host_applications a " +
-                "WHERE a.user_id = u.id AND a.status = 'APPROVED')";
+                "WHERE a.user_id = u.user_id AND a.status = 'APPROVED')";
         try (Connection connection = DBContext.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             bindProperty(statement, property, 1);
@@ -394,11 +394,11 @@ public class PropertyDAO {
 
     /** Deletes a property only when it belongs to the active approved Host. */
     public boolean delete(int ownerId, int propertyId) throws SQLException {
-        String sql = "DELETE p FROM properties p JOIN users u ON u.id = p.owner_id " +
-                "JOIN roles r ON r.id = u.role_id WHERE p.id = ? AND p.owner_id = ? " +
-                "AND u.status = 'ACTIVE' AND r.name = 'HOST' " +
+        String sql = "DELETE p FROM properties p JOIN users u ON u.user_id = p.owner_id " +
+                "JOIN roles r ON r.role_id = u.role_id WHERE p.id = ? AND p.owner_id = ? " +
+                "AND u.status = 'ACTIVE' AND (r.role_name = 'HOST' OR r.role_name = 'ROLE_HOST') " +
                 "AND EXISTS (SELECT 1 FROM host_applications a " +
-                "WHERE a.user_id = u.id AND a.status = 'APPROVED')";
+                "WHERE a.user_id = u.user_id AND a.status = 'APPROVED')";
         try (Connection connection = DBContext.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, propertyId);
@@ -416,9 +416,9 @@ public class PropertyDAO {
                 "SELECT a.user_id, a.id, a.property_name, a.property_type, a.property_description, " +
                 "a.property_address, a.property_city, a.property_district, a.property_ward, " +
                 "a.latitude, a.longitude, a.room_count, a.max_guests, 'ACTIVE' " +
-                "FROM host_applications a JOIN users u ON u.id = a.user_id " +
-                "JOIN roles r ON r.id = u.role_id " +
-                "WHERE a.id = ? AND a.status = 'PENDING' AND u.status = 'ACTIVE' AND r.name = 'HOST'";
+                "FROM host_applications a JOIN users u ON u.user_id = a.user_id " +
+                "JOIN roles r ON r.role_id = u.role_id " +
+                "WHERE a.id = ? AND a.status = 'PENDING' AND u.status = 'ACTIVE' AND (r.role_name = 'HOST' OR r.role_name = 'ROLE_HOST')";
 
         int propertyId;
         try (PreparedStatement statement = connection.prepareStatement(
@@ -443,10 +443,10 @@ public class PropertyDAO {
 
     /** Loads a Host's properties and their room details in newest-first order. */
     public List<Property> findByOwnerId(int ownerId) throws SQLException {
-        String sql = "SELECT id, owner_id, application_id, property_name, property_type, " +
+        String sql = "SELECT property_id AS id, host_id AS owner_id, application_id, property_name, property_type, " +
                 "description, address, city, district, ward, latitude, longitude, room_count, " +
                 "max_guests, status, created_at, updated_at FROM properties " +
-                "WHERE owner_id = ? ORDER BY created_at DESC, id DESC";
+                "WHERE host_id = ? ORDER BY created_at DESC, property_id DESC";
         List<Property> properties = new ArrayList<>();
         try (Connection connection = DBContext.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -466,10 +466,12 @@ public class PropertyDAO {
     /** Lists a property's rooms only when the specified Host owns the property. */
     public List<Room> findRoomsByPropertyAndOwner(int propertyId, int ownerId)
             throws SQLException {
-        String sql = "SELECT r.id, r.property_id, r.room_name, r.room_type, r.price_per_night, " +
-                "r.max_guests, r.bed_count, r.bathroom_count, r.sort_order " +
-                "FROM rooms r JOIN properties p ON p.id = r.property_id " +
-                "WHERE p.id = ? AND p.owner_id = ? ORDER BY r.sort_order, r.id";
+        String sql = "SELECT r.room_id AS id, r.property_id, r.room_name, " +
+                "COALESCE(rt.type_name, CAST(r.room_type_id AS CHAR)) AS room_type, r.price_per_night, " +
+                "r.capacity AS max_guests, r.bed_count, r.bathroom_count, r.sort_order " +
+                "FROM rooms r JOIN properties p ON p.property_id = r.property_id " +
+                "LEFT JOIN room_types rt ON rt.id = r.room_type_id " +
+                "WHERE p.property_id = ? AND p.host_id = ? ORDER BY r.sort_order, r.room_id";
         List<Room> rooms = new ArrayList<>();
         try (Connection connection = DBContext.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -489,10 +491,12 @@ public class PropertyDAO {
 
     /** Loads one room only when its parent property belongs to the specified Host. */
     public Room findRoomByIdAndOwner(int roomId, int ownerId) throws SQLException {
-        String sql = "SELECT r.id, r.property_id, r.room_name, r.room_type, r.price_per_night, " +
-                "r.max_guests, r.bed_count, r.bathroom_count, r.sort_order " +
-                "FROM rooms r JOIN properties p ON p.id = r.property_id " +
-                "WHERE r.id = ? AND p.owner_id = ? LIMIT 1";
+        String sql = "SELECT r.room_id AS id, r.property_id, r.room_name, " +
+                "COALESCE(rt.type_name, CAST(r.room_type_id AS CHAR)) AS room_type, r.price_per_night, " +
+                "r.capacity AS max_guests, r.bed_count, r.bathroom_count, r.sort_order " +
+                "FROM rooms r JOIN properties p ON p.property_id = r.property_id " +
+                "LEFT JOIN room_types rt ON rt.id = r.room_type_id " +
+                "WHERE r.room_id = ? AND p.host_id = ? LIMIT 1";
         try (Connection connection = DBContext.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, roomId);
@@ -511,8 +515,8 @@ public class PropertyDAO {
 
     /** Checks whether a room ID exists under another Host's property. */
     public boolean roomBelongsToAnotherHost(int roomId, int ownerId) throws SQLException {
-        return exists("SELECT 1 FROM rooms r JOIN properties p ON p.id = r.property_id " +
-                "WHERE r.id = ? AND p.owner_id <> ? LIMIT 1", roomId, ownerId);
+        return exists("SELECT 1 FROM rooms r JOIN properties p ON p.property_id = r.property_id " +
+                "WHERE r.room_id = ? AND p.host_id <> ? LIMIT 1", roomId, ownerId);
     }
 
     /** Creates a validated owned room and saves its amenities in one transaction. */
@@ -539,9 +543,9 @@ public class PropertyDAO {
                         }
                     }
                 }
-                String sql = "INSERT INTO rooms (property_id, room_name, room_type, " +
-                        "price_per_night, max_guests, bed_count, bathroom_count, sort_order) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                String sql = "INSERT INTO rooms (property_id, room_number, room_name, room_type_id, " +
+                        "price_per_night, capacity, bed_count, bathroom_count, sort_order) " +
+                        "VALUES (?, CONCAT('R-', UUID_SHORT()), ?, COALESCE((SELECT id FROM room_types WHERE type_name = ? LIMIT 1), 1), ?, ?, ?, ?, ?)";
                 try (PreparedStatement statement = connection.prepareStatement(
                         sql, Statement.RETURN_GENERATED_KEYS)) {
                     statement.setInt(1, propertyId);
@@ -582,10 +586,10 @@ public class PropertyDAO {
                     connection.rollback();
                     return false;
                 }
-                String sql = "UPDATE rooms r JOIN properties p ON p.id = r.property_id " +
-                        "SET r.room_name = ?, r.room_type = ?, r.price_per_night = ?, " +
-                        "r.max_guests = ?, r.bed_count = ?, r.bathroom_count = ?, r.sort_order = ? " +
-                        "WHERE r.id = ? AND r.property_id = ? AND p.owner_id = ?";
+                String sql = "UPDATE rooms r JOIN properties p ON p.property_id = r.property_id " +
+                        "SET r.room_name = ?, r.room_type_id = COALESCE((SELECT id FROM room_types WHERE type_name = ? LIMIT 1), r.room_type_id), " +
+                        "r.price_per_night = ?, r.capacity = ?, r.bed_count = ?, r.bathroom_count = ?, r.sort_order = ? " +
+                        "WHERE r.room_id = ? AND r.property_id = ? AND p.host_id = ?";
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     bindRoom(statement, room, 1);
                     statement.setInt(8, roomId);
@@ -617,8 +621,8 @@ public class PropertyDAO {
                     connection.rollback();
                     return false;
                 }
-                String sql = "DELETE r FROM rooms r JOIN properties p ON p.id = r.property_id " +
-                        "WHERE r.id = ? AND r.property_id = ? AND p.owner_id = ?";
+                String sql = "DELETE r FROM rooms r JOIN properties p ON p.property_id = r.property_id " +
+                        "WHERE r.room_id = ? AND r.property_id = ? AND p.host_id = ?";
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setInt(1, roomId);
                     statement.setInt(2, propertyId);
@@ -642,8 +646,8 @@ public class PropertyDAO {
     public String findRoomImagePath(int ownerId, int propertyId, int roomId, int imageId)
             throws SQLException {
         String sql = "SELECT i.stored_name FROM room_images i " +
-                "JOIN rooms r ON r.id = i.room_id JOIN properties p ON p.id = r.property_id " +
-                "WHERE i.id = ? AND r.id = ? AND p.id = ? AND p.owner_id = ? LIMIT 1";
+                "JOIN rooms r ON r.room_id = i.room_id JOIN properties p ON p.property_id = r.property_id " +
+                "WHERE i.id = ? AND r.room_id = ? AND p.property_id = ? AND p.host_id = ? LIMIT 1";
         try (Connection connection = DBContext.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, imageId);
@@ -658,19 +662,19 @@ public class PropertyDAO {
 
     /** Checks whether an image ID belongs to a room under a different Host. */
     public boolean roomImageBelongsToAnotherHost(int imageId, int ownerId) throws SQLException {
-        return exists("SELECT 1 FROM room_images i JOIN rooms r ON r.id = i.room_id " +
-                "JOIN properties p ON p.id = r.property_id " +
-                "WHERE i.id = ? AND p.owner_id <> ? LIMIT 1", imageId, ownerId);
+        return exists("SELECT 1 FROM room_images i JOIN rooms r ON r.room_id = i.room_id " +
+                "JOIN properties p ON p.property_id = r.property_id " +
+                "WHERE i.id = ? AND p.host_id <> ? LIMIT 1", imageId, ownerId);
     }
 
     /** Locks the active approved Host's property within a write transaction. */
     private boolean lockOwnedProperty(Connection connection, int propertyId, int ownerId)
             throws SQLException {
-        String sql = "SELECT p.id FROM properties p JOIN users u ON u.id = p.owner_id " +
-                "JOIN roles r ON r.id = u.role_id WHERE p.id = ? AND p.owner_id = ? " +
-                "AND u.status = 'ACTIVE' AND r.name = 'HOST' " +
+        String sql = "SELECT p.property_id AS id FROM properties p JOIN users u ON u.user_id = p.host_id " +
+                "JOIN roles r ON r.role_id = u.role_id WHERE p.property_id = ? AND p.host_id = ? " +
+                "AND u.status = 'ACTIVE' AND (r.role_name = 'HOST' OR r.role_name = 'ROLE_HOST') " +
                 "AND EXISTS (SELECT 1 FROM host_applications a " +
-                "WHERE a.user_id = u.id AND a.status = 'APPROVED') FOR UPDATE";
+                "WHERE a.user_id = u.user_id AND a.status = 'APPROVED') FOR UPDATE";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, propertyId);
             statement.setInt(2, ownerId);
@@ -683,7 +687,7 @@ public class PropertyDAO {
     /** Recalculates room and guest totals using persisted room rows. */
     private void updatePropertyCapacity(Connection connection, int propertyId)
             throws SQLException {
-        String capacitySql = "SELECT COALESCE(SUM(max_guests), 0) FROM rooms WHERE property_id = ?";
+        String capacitySql = "SELECT COALESCE(SUM(capacity), 0) FROM rooms WHERE property_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(capacitySql)) {
             statement.setInt(1, propertyId);
             try (ResultSet results = statement.executeQuery()) {
@@ -696,8 +700,8 @@ public class PropertyDAO {
         }
         String sql = "UPDATE properties SET " +
                 "room_count = (SELECT COUNT(*) FROM rooms WHERE property_id = ?), " +
-                "max_guests = (SELECT COALESCE(SUM(max_guests), 0) FROM rooms " +
-                "WHERE property_id = ?) WHERE id = ?";
+                "max_guests = (SELECT COALESCE(SUM(capacity), 0) FROM rooms " +
+                "WHERE property_id = ?) WHERE property_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, propertyId);
             statement.setInt(2, propertyId);
@@ -825,9 +829,9 @@ public class PropertyDAO {
         String selectSql = "SELECT id, room_name, room_type, price_per_night, max_guests, " +
                 "bed_count, bathroom_count, sort_order FROM partner_application_rooms " +
                 "WHERE application_id = ? ORDER BY sort_order, id";
-        String insertSql = "INSERT INTO rooms (property_id, room_name, room_type, " +
-                "price_per_night, max_guests, bed_count, bathroom_count, sort_order) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String insertSql = "INSERT INTO rooms (property_id, room_number, room_name, room_type_id, " +
+                "price_per_night, capacity, bed_count, bathroom_count, sort_order) " +
+                "VALUES (?, CONCAT('R-', UUID_SHORT()), ?, COALESCE((SELECT id FROM room_types WHERE type_name = ? LIMIT 1), 1), ?, ?, ?, ?, ?)";
 
         try (PreparedStatement select = connection.prepareStatement(selectSql);
              PreparedStatement insert = connection.prepareStatement(
@@ -869,9 +873,9 @@ public class PropertyDAO {
             throws SQLException {
         String amenitiesSql = "INSERT INTO room_amenities (room_id, amenity_name) " +
                 "SELECT ?, amenity_name FROM partner_application_room_amenities WHERE room_id = ?";
-        String imagesSql = "INSERT INTO room_images " +
-                "(room_id, stored_name, media_type, content_type, sort_order) " +
-                "SELECT ?, stored_name, media_type, content_type, sort_order " +
+        String imagesSql = "INSERT INTO roomimages " +
+                "(room_id, room_type_id, image_url, media_type, content_type, display_order) " +
+                "SELECT ?, COALESCE((SELECT room_type_id FROM rooms WHERE room_id = ?), 1), stored_name, media_type, content_type, sort_order " +
                 "FROM partner_application_room_images WHERE room_id = ?";
         try (PreparedStatement amenities = connection.prepareStatement(amenitiesSql);
              PreparedStatement images = connection.prepareStatement(imagesSql)) {
@@ -879,7 +883,8 @@ public class PropertyDAO {
             amenities.setInt(2, sourceRoomId);
             amenities.executeUpdate();
             images.setInt(1, roomId);
-            images.setInt(2, sourceRoomId);
+            images.setInt(2, roomId);
+            images.setInt(3, sourceRoomId);
             images.executeUpdate();
         }
     }

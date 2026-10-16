@@ -23,7 +23,7 @@ import java.util.Optional;
  *
  * @author admin
  */
-@WebServlet(name = "HostDashboardServlet", urlPatterns = {"/host/dashboard"})
+@WebServlet(name = "HostDashboardServlet")
 public class HostDashboardServlet extends HttpServlet {
 
     private final HostProfileDAO hostProfileDAO

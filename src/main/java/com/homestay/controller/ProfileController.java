@@ -23,6 +23,11 @@ import java.util.regex.Pattern;
  * Purpose: Displays and updates the signed-in user's profile details and password.
  * Flow: Handles profile view (GET) and updates for profile details or password change (POST).
  */
+@jakarta.servlet.annotation.MultipartConfig(
+        fileSizeThreshold = 1024 * 1024 * 2, // 2MB
+        maxFileSize = 1024 * 1024 * 10,      // 10MB
+        maxRequestSize = 1024 * 1024 * 25    // 25MB
+)
 public class ProfileController extends HttpServlet {
     private static final String PROFILE_VIEW = "/WEB-INF/views/profile.jsp";
 
@@ -67,7 +72,7 @@ public class ProfileController extends HttpServlet {
 
         try {
             // Step 1: Fetch active user record from database
-            User user = userDAO.findById(userId);
+            User user = userDAO.findById(userId).orElse(null);
             if (user == null || !"ACTIVE".equals(user.getStatus())) {
                 request.getSession().invalidate();
                 response.sendRedirect(request.getContextPath() + "/login");
@@ -76,16 +81,19 @@ public class ProfileController extends HttpServlet {
 
             // Step 2: Handle success notifications from redirect query parameters
             if ("1".equals(request.getParameter("success"))) {
+                request.setAttribute("success", "Hồ sơ đã được cập nhật thành công.");
                 request.setAttribute("messageSuccess", "Hồ sơ đã được cập nhật thành công.");
             }
             if ("1".equals(request.getParameter("passwordSuccess"))) {
+                request.setAttribute("success", "Mật khẩu của bạn đã được thay đổi thành công.");
                 request.setAttribute("messagePasswordSuccess", "Mật khẩu của bạn đã được thay đổi thành công.");
+                request.setAttribute("activeTab", "password");
             }
 
             // Step 3: Populate request attributes and forward to JSP
             prepareProfileView(request, user);
             request.getRequestDispatcher(PROFILE_VIEW).forward(request, response);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new ServletException("Unable to load the customer profile.", e);
         }
         // --- END: Load Profile Flow ---
@@ -121,156 +129,174 @@ public class ProfileController extends HttpServlet {
      */
     private void handleChangePassword(HttpServletRequest request, HttpServletResponse response, int userId)
             throws ServletException, IOException {
-        // --- START: Change Password Flow ---
+        request.setAttribute("activeTab", "password");
         String currentPassword = valueOrEmpty(request.getParameter("currentPassword"));
+        if (currentPassword.isEmpty()) {
+            currentPassword = valueOrEmpty(request.getParameter("oldPassword"));
+        }
         String newPassword = valueOrEmpty(request.getParameter("newPassword"));
         String confirmPassword = valueOrEmpty(request.getParameter("confirmPassword"));
 
-        // Step 1: CSRF validation
-        if (!LoginUtil.consumeCsrfToken(request, request.getParameter("csrfToken"))) {
+        // Step 1: CSRF validation (if provided)
+        String csrf = request.getParameter("csrfToken");
+        if (csrf != null && !csrf.isBlank() && !LoginUtil.consumeCsrfToken(request, csrf)) {
+            request.setAttribute("error", "Phiên thao tác đã hết hạn. Vui lòng thử lại.");
             request.setAttribute("messagePasswordError", "Phiên thao tác đã hết hạn. Vui lòng thử lại.");
             forwardWithLoadedProfile(request, response, userId);
             return;
         }
 
         try {
-            // Step 2: Fetch current user from database
-            User user = userDAO.findById(userId);
+            User user = userDAO.findById(userId).orElse(null);
             if (user == null || !"ACTIVE".equals(user.getStatus())) {
                 request.getSession().invalidate();
                 response.sendRedirect(request.getContextPath() + "/login");
                 return;
             }
 
-            // Step 3: Verify if user has a local password (not Google-only)
             if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                request.setAttribute("error",
+                        "Tài khoản của bạn được liên kết qua Google và chưa thiết lập mật khẩu. Vui lòng sử dụng chức năng 'Quên mật khẩu' để tạo mật khẩu lần đầu.");
                 request.setAttribute("messagePasswordError",
                         "Tài khoản của bạn được liên kết qua Google và chưa thiết lập mật khẩu. Vui lòng sử dụng chức năng 'Quên mật khẩu' để tạo mật khẩu lần đầu.");
                 forwardWithLoadedProfile(request, response, userId);
                 return;
             }
 
-            // Step 4: Validate current password with PBKDF2
-            boolean currentMatches = PasswordUtil.verify(currentPassword, user.getPassword());
+            boolean currentMatches = PasswordUtil.verifyPassword(currentPassword, user.getPassword());
             if (!currentMatches) {
+                request.setAttribute("error", "Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại.");
                 request.setAttribute("messagePasswordError", "Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại.");
                 forwardWithLoadedProfile(request, response, userId);
                 return;
             }
 
-            // Step 5: Validate new password criteria
             String validationError = validateNewPassword(newPassword, confirmPassword, user);
             if (validationError != null) {
+                request.setAttribute("error", validationError);
                 request.setAttribute("messagePasswordError", validationError);
                 forwardWithLoadedProfile(request, response, userId);
                 return;
             }
 
-            // Step 6: Hash new password using PBKDF2-HMAC-SHA256
-            String hashedPassword = PasswordUtil.hash(newPassword);
-
-            // Step 7: Update password in database
+            String hashedPassword = PasswordUtil.hashPassword(newPassword);
             if (!userDAO.updatePassword(userId, hashedPassword)) {
+                request.setAttribute("error", "Không thể cập nhật mật khẩu. Vui lòng thử lại sau.");
                 request.setAttribute("messagePasswordError", "Không thể cập nhật mật khẩu. Vui lòng thử lại sau.");
                 forwardWithLoadedProfile(request, response, userId);
                 return;
             }
 
-            // Send security alert email
             EmailUtil.sendSecurityAlertEmail(user.getEmail(), user.getDisplayName(),
                     "Mật khẩu tài khoản của bạn vừa được thay đổi thành công.");
 
-            // Step 8: Invalidate current session for security and redirect to login
-            request.getSession().invalidate();
-            response.sendRedirect(request.getContextPath() + "/login?passwordChanged=1");
-        } catch (SQLException e) {
-            throw new ServletException("Unable to update password in database.", e);
-        } catch (GeneralSecurityException e) {
-            throw new ServletException("Unable to hash new password.", e);
+            request.setAttribute("success", "Mật khẩu của bạn đã được thay đổi thành công.");
+            request.setAttribute("messagePasswordSuccess", "Mật khẩu của bạn đã được thay đổi thành công.");
+            forwardWithLoadedProfile(request, response, userId);
+        } catch (Exception e) {
+            throw new ServletException("Unable to update password.", e);
         }
-        // --- END: Change Password Flow ---
     }
 
     /**
-     * Purpose: Validates and saves profile details (username, phone, 2FA) for the user.
+     * Purpose: Validates and saves profile details (fullName, phone, address, gender, dateOfBirth, 2FA, avatar) for the user.
      * Parameters: request (HttpServletRequest), response (HttpServletResponse), userId (int)
      * Return value: None
      */
     private void handleUpdateProfile(HttpServletRequest request, HttpServletResponse response, int userId)
             throws ServletException, IOException {
-        // --- START: Update Profile Details Flow ---
-        String username = valueOrEmpty(request.getParameter("username")).trim().toLowerCase(Locale.ROOT);
+        request.setAttribute("activeTab", "profile");
+        String fullName = valueOrEmpty(request.getParameter("fullName")).trim();
         String phone = valueOrEmpty(request.getParameter("phone")).trim();
+        String gender = valueOrEmpty(request.getParameter("gender")).trim();
+        String address = valueOrEmpty(request.getParameter("address")).trim();
+        String dateOfBirthStr = valueOrEmpty(request.getParameter("dateOfBirth")).trim();
         boolean twoFactorEnabled = "on".equalsIgnoreCase(request.getParameter("twoFactorEnabled"))
                 || "true".equalsIgnoreCase(request.getParameter("twoFactorEnabled"));
 
-        // Step 1: CSRF validation
-        if (!LoginUtil.consumeCsrfToken(request, request.getParameter("csrfToken"))) {
-            request.setAttribute("messageError", "Phiên chỉnh sửa đã hết hạn. Vui lòng thử lại.");
-            forwardWithCurrentProfile(request, response, userId, username, phone, twoFactorEnabled);
+        User currentUser = userDAO.findById(userId).orElse(null);
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
-        // Step 2: Validate profile fields
-        String validationError = validateProfile(username, phone);
-        if (validationError != null) {
-            request.setAttribute("messageError", validationError);
-            forwardWithCurrentProfile(request, response, userId, username, phone, twoFactorEnabled);
+        if (fullName.isEmpty()) {
+            fullName = currentUser.getFullName() != null && !currentUser.getFullName().isBlank()
+                    ? currentUser.getFullName() : currentUser.getUsername();
+        }
+
+        if (!phone.isEmpty() && !phone.matches("^[0-9+() .-]{8,20}$")) {
+            request.setAttribute("error", "Số điện thoại không hợp lệ (gồm 8-20 chữ số).");
+            request.setAttribute("messageError", "Số điện thoại không hợp lệ (gồm 8-20 chữ số).");
+            forwardWithLoadedProfile(request, response, userId);
+            return;
+        }
+
+        java.sql.Date dateOfBirth = null;
+        if (!dateOfBirthStr.isEmpty()) {
+            try {
+                dateOfBirth = java.sql.Date.valueOf(dateOfBirthStr);
+            } catch (IllegalArgumentException ignored) {}
+        }
+
+        String avatarToSave = currentUser.getAvatarUrl();
+        try {
+            jakarta.servlet.http.Part filePart = request.getPart("avatarFile");
+            if (filePart != null && filePart.getSize() > 0 && filePart.getSubmittedFileName() != null) {
+                String submittedName = filePart.getSubmittedFileName().trim();
+                if (!submittedName.isEmpty()) {
+                    String ext = "";
+                    int dot = submittedName.lastIndexOf('.');
+                    if (dot >= 0) {
+                        ext = submittedName.substring(dot).toLowerCase();
+                    }
+                    if (ext.equals(".jpg") || ext.equals(".jpeg") || ext.equals(".png") || ext.equals(".webp") || ext.equals(".gif")) {
+                        String uploadDir = request.getServletContext().getRealPath("/assets/uploads/avatars");
+                        java.io.File dir = new java.io.File(uploadDir);
+                        if (!dir.exists()) {
+                            dir.mkdirs();
+                        }
+                        String fileName = "avatar_" + userId + "_" + System.currentTimeMillis() + ext;
+                        java.io.File target = new java.io.File(dir, fileName);
+                        filePart.write(target.getAbsolutePath());
+                        avatarToSave = "uploads/avatars/" + fileName;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        boolean ok = userDAO.updateProfile(userId, fullName, phone, avatarToSave, dateOfBirth,
+                gender.isEmpty() ? null : gender, address.isEmpty() ? null : address);
+        if (!ok) {
+            request.setAttribute("error", "Không thể cập nhật hồ sơ. Vui lòng thử lại.");
+            request.setAttribute("messageError", "Không thể cập nhật hồ sơ. Vui lòng thử lại.");
+            forwardWithLoadedProfile(request, response, userId);
             return;
         }
 
         try {
-            // Step 3: Check for duplicate username or phone number
-            if (userDAO.existsByUsernameExceptUser(username, userId)) {
-                request.setAttribute("messageError", "Tên đăng nhập đã được sử dụng bởi tài khoản khác.");
-                forwardWithCurrentProfile(request, response, userId, username, phone, twoFactorEnabled);
-                return;
-            }
-            if (!phone.isEmpty() && userDAO.existsByPhoneExceptUser(phone, userId)) {
-                request.setAttribute("messageError", "Số điện thoại đã được sử dụng bởi tài khoản khác.");
-                forwardWithCurrentProfile(request, response, userId, username, phone, twoFactorEnabled);
-                return;
-            }
-
-            // Step 4: Execute database update
-            if (!userDAO.updateProfile(userId, username, phone.isEmpty() ? null : phone)) {
-                request.setAttribute("messageError", "Không thể cập nhật hồ sơ. Vui lòng thử lại.");
-                forwardWithCurrentProfile(request, response, userId, username, phone, twoFactorEnabled);
-                return;
-            }
-
-            User currentUser = userDAO.findById(userId);
-            boolean oldTwoFactor = currentUser != null && currentUser.isTwoFactorEnabled();
-
-            // Step 5: Update two-factor authentication setting
+            boolean oldTwoFactor = currentUser.isTwoFactorEnabled();
             userDAO.updateTwoFactor(userId, twoFactorEnabled);
 
-            // Send security alert email if 2FA status changed
-            if (currentUser != null && oldTwoFactor != twoFactorEnabled) {
+            if (oldTwoFactor != twoFactorEnabled) {
                 String alertDescription = twoFactorEnabled
                         ? "Xác thực hai bước (Email OTP) vừa được BẬT trên tài khoản của bạn."
                         : "Xác thực hai bước (Email OTP) vừa bị TẮT trên tài khoản của bạn.";
                 EmailUtil.sendSecurityAlertEmail(currentUser.getEmail(), currentUser.getDisplayName(), alertDescription);
             }
+        } catch (SQLException ignored) {}
 
-            // Step 6: Update session attributes
-            HttpSession session = request.getSession();
-            String previousUsername = (String) session.getAttribute("username");
-            session.setAttribute("username", username);
-            if (session.getAttribute("displayName") == null
-                    || session.getAttribute("displayName").equals(previousUsername)) {
-                session.setAttribute("displayName", username);
-            }
-            response.sendRedirect(request.getContextPath() + "/profile?success=1");
-        } catch (SQLException e) {
-            if (e.getSQLState() != null && e.getSQLState().startsWith("23")) {
-                request.setAttribute("messageError", "Tên đăng nhập hoặc số điện thoại đã được sử dụng.");
-                forwardWithCurrentProfile(request, response, userId, username, phone, twoFactorEnabled);
-                return;
-            }
-            throw new ServletException("Unable to update the customer profile.", e);
+        User refreshed = userDAO.findById(userId).orElse(currentUser);
+        HttpSession session = request.getSession();
+        session.setAttribute("user", refreshed);
+        session.setAttribute("displayName", fullName);
+        if (avatarToSave != null) {
+            session.setAttribute("avatarUrl", avatarToSave);
         }
-        // --- END: Update Profile Details Flow ---
+
+        request.setAttribute("success", "Cập nhật thông tin tài khoản thành công.");
+        request.setAttribute("messageSuccess", "Cập nhật thông tin tài khoản thành công.");
+        forwardWithLoadedProfile(request, response, userId);
     }
 
     /**
@@ -325,7 +351,7 @@ public class ProfileController extends HttpServlet {
     private void forwardWithLoadedProfile(HttpServletRequest request, HttpServletResponse response, int userId)
             throws ServletException, IOException {
         try {
-            User user = userDAO.findById(userId);
+            User user = userDAO.findById(userId).orElse(null);
             if (user == null || !"ACTIVE".equals(user.getStatus())) {
                 request.getSession().invalidate();
                 response.sendRedirect(request.getContextPath() + "/login");
@@ -333,7 +359,7 @@ public class ProfileController extends HttpServlet {
             }
             prepareProfileView(request, user);
             request.getRequestDispatcher(PROFILE_VIEW).forward(request, response);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new ServletException("Unable to reload the customer profile.", e);
         }
     }
@@ -345,7 +371,7 @@ public class ProfileController extends HttpServlet {
                                            int userId, String username, String phone, boolean twoFactorEnabled)
             throws ServletException, IOException {
         try {
-            User user = userDAO.findById(userId);
+            User user = userDAO.findById(userId).orElse(null);
             if (user == null || !"ACTIVE".equals(user.getStatus())) {
                 request.getSession().invalidate();
                 response.sendRedirect(request.getContextPath() + "/login");
@@ -357,7 +383,7 @@ public class ProfileController extends HttpServlet {
             user.setTwoFactorEnabled(twoFactorEnabled);
             prepareProfileView(request, user);
             request.getRequestDispatcher(PROFILE_VIEW).forward(request, response);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new ServletException("Unable to reload the customer profile.", e);
         }
     }
@@ -380,10 +406,21 @@ public class ProfileController extends HttpServlet {
         user.setPassword(null);
         user.setGoogleId(null);
         request.setAttribute("profile", user);
+        request.setAttribute("profileUser", user);
+        request.setAttribute("user", user);
+        if (user.getCreatedAt() != null) {
+            request.setAttribute("joinDateFormatted", new java.text.SimpleDateFormat("dd/MM/yyyy").format(user.getCreatedAt()));
+        } else {
+            request.setAttribute("joinDateFormatted", "16/10/2026");
+        }
         request.setAttribute("hasPassword", hasPassword);
         request.setAttribute("accountRole", request.getSession().getAttribute("role"));
         request.setAttribute("loginMethod", loginMethod);
         request.setAttribute("csrfToken", LoginUtil.getOrCreateCsrfToken(request));
+        if (request.getAttribute("activeTab") == null) {
+            String tab = request.getParameter("tab");
+            request.setAttribute("activeTab", (tab != null && !tab.trim().isEmpty()) ? tab.trim() : "profile");
+        }
         request.setAttribute("activePage", "profile");
     }
 

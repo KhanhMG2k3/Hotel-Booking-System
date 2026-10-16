@@ -122,10 +122,15 @@ public class GoogleLoginController extends HttpServlet {
 
             // Refresh the account snapshot before publishing authenticated session data.
             LoginUtil.signIn(request, user);
+            if (user.getRole() != null && "ROLE_HOST".equalsIgnoreCase(user.getRole().getName())) {
+                request.getSession().setAttribute("hostUserId", user.getId());
+                request.getSession().setAttribute("hostRole", "ROLE_HOST");
+            }
+            String redirectPath = LoginUtil.getPostLoginRedirectPath(user);
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            response.getWriter().write("{\"success\":true}");
+            response.getWriter().write("{\"success\":true,\"redirectUrl\":\"" + request.getContextPath() + redirectPath + "\"}");
         } catch (GeneralSecurityException | SQLException e) {
             throw new ServletException("Unable to authenticate the Google account.", e);
         }

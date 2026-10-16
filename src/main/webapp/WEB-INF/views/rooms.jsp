@@ -2,66 +2,34 @@
   <%@ taglib prefix="c" uri="jakarta.tags.core" %>
     <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
-<jsp:include page="common/header.jsp">
-  <jsp:param name="pageTitle" value="Sogo Homestay - Danh Sách Phòng & Đặt Phòng" />
-</jsp:include>
+      <jsp:include page="common/header.jsp">
+        <jsp:param name="pageTitle" value="Sogo Homestay - Danh Sách Phòng & Đặt Phòng" />
+      </jsp:include>
 
-<jsp:include page="common/navbar.jsp" />
+      <jsp:include page="common/navbar.jsp" />
 
-<!-- HERO SECTION -->
-<section class="site-hero inner-page overlay hero-rooms" data-stellar-background-ratio="0.5">
-  <div class="container">
-    <div class="row site-hero-inner justify-content-center align-items-center">
-      <div class="col-md-10 text-center" data-aos="fade">
-        <h1 class="heading mb-3">Danh Sách Phòng & Đặt Chỗ</h1>
-        <ul class="custom-breadcrumbs mb-4">
-          <li><a href="${pageContext.request.contextPath}/home">Trang Chủ</a></li>
-          <li>&bullet;</li>
-          <li>Phòng Nghỉ & Đặt Chỗ</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <a class="mouse smoothscroll" href="#room-list">
-    <div class="mouse-icon">
-      <span class="mouse-wheel"></span>
-    </div>
-  </a>
-</section>
-<!-- END HERO SECTION -->
-
-<%-- Room cards with conditional empty-state content. --%>
-<section class="section pb-5" id="room-list">
-      <div class="container">
-        <div class="row justify-content-center text-center mb-5">
-          <div class="col-md-8">
-            <span class="text-primary font-weight-bold text-uppercase letter-spacing-1 d-block mb-2">Hệ thống phòng nghỉ</span>
-            <h2 class="heading" data-aos="fade-up">Chọn Phòng & Khám Phá Không Gian</h2>
-            <p class="text-muted" data-aos="fade-up" data-aos-delay="100">
-              Nhấp vào phòng bất kỳ để xem chi tiết đầy đủ, album ảnh thực tế, tiện nghi và bảng giá bằng VNĐ.
-            </p>
+      <!-- HERO SECTION -->
+      <section class="site-hero inner-page overlay hero-rooms" data-stellar-background-ratio="0.5">
+        <div class="container">
+          <div class="row site-hero-inner justify-content-center align-items-center">
+            <div class="col-md-10 text-center" data-aos="fade">
+              <h1 class="heading mb-3">Danh Sách Phòng & Đặt Chỗ</h1>
+              <ul class="custom-breadcrumbs mb-4">
+                <li><a href="${pageContext.request.contextPath}/home">Trang Chủ</a></li>
+                <li>&bullet;</li>
+                <li>Phòng Nghỉ & Đặt Chỗ</li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        <div class="row">
-          <c:choose>
-            <c:when test="${not empty rooms}">
-              <c:forEach var="room" items="${rooms}">
-                <div class="col-md-6 col-lg-4 mb-5" data-aos="fade-up">
-                  <div class="room border rounded overflow-hidden shadow-sm h-100 d-flex flex-column bg-white">
-                    
-                    <%-- Room image links to the room detail view. --%>
-                    <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}" class="d-block position-relative overflow-hidden">
-                      <img src="${pageContext.request.contextPath}/assets/${not empty room.imageUrl ? room.imageUrl : 'images/img_1.jpg'}" alt="${room.roomName}" class="img-fluid w-100" style="height: 240px; object-fit: cover; transition: transform 0.4s ease;">
-                      <span class="badge badge-primary position-absolute px-3 py-2 font-weight-bold" style="top: 15px; left: 15px; font-size: 0.85rem; border-radius: 4px;">
-                        Mã: ${room.roomNumber}
-                      </span>
-                      <span class="badge badge-dark position-absolute px-2 py-1" style="bottom: 15px; right: 15px; font-size: 0.8rem; background: rgba(0,0,0,0.7);">
-                        <i class="fa fa-camera mr-1"></i> Xem album ảnh
-                      </span>
-                    </a>
->>>>>>> origin/identity_security
+        <a class="mouse smoothscroll" href="#room-list">
+          <div class="mouse-icon">
+            <span class="mouse-wheel"></span>
+          </div>
+        </a>
+      </section>
+      <!-- END HERO SECTION -->
 
       <!-- DANH SÁCH CÁC HẠNG PHÒNG & ĐẶT PHÒNG -->
       <section class="section pb-5" id="room-list">
@@ -77,7 +45,6 @@
             </div>
           </div>
 
-<<<<<<< HEAD
           <!-- BỘ LỌC TÌM KIẾM (SEARCH & FILTERS) -->
           <div class="sogo-filter-card p-4 mb-4" data-aos="fade-up">
             <form action="${pageContext.request.contextPath}/rooms" method="GET" id="searchFilterForm" onsubmit="var p=document.getElementById('pageInput'); if(p) p.value='1';">
@@ -99,36 +66,6 @@
                     </c:forEach>
                   </select>
                 </div>
-=======
-                      <div class="mt-3 pt-3 border-top">
-                        <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
-                          <span><i class="fa fa-users text-primary mr-1"></i> ${room.capacity} Khách</span>
-                          <span><i class="fa fa-arrows-alt text-primary mr-1"></i> ${room.size} m²</span>
-                          <span><i class="fa fa-bed text-primary mr-1"></i> Giường lớn</span>
-                        </div>
-                        
-                        <%-- Nightly room price. --%>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                          <span class="text-muted small">Giá thuê:</span>
-                          <span class="h5 mb-0 text-primary font-weight-bold">
-                            <fmt:formatNumber value="${room.pricePerNight}" pattern="#,###" /> VNĐ <small class="text-muted font-weight-normal">/đêm</small>
-                          </span>
-                        </div>
-
-                        <%-- View details or continue to reservation. --%>
-                        <div class="row no-gutters">
-                          <div class="col-6 pr-1">
-                            <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}" class="btn btn-outline-primary btn-block btn-sm py-2 font-weight-bold">
-                              <i class="fa fa-eye mr-1"></i> Chi Tiết
-                            </a>
-                          </div>
-                          <div class="col-6 pl-1">
-                            <a href="${pageContext.request.contextPath}/reservation?roomId=${room.id}" class="btn btn-primary btn-block btn-sm text-white py-2 font-weight-bold shadow-sm">
-                              <i class="fa fa-calendar-check-o mr-1"></i> Đặt Ngay
-                            </a>
-                          </div>
-                        </div>
->>>>>>> origin/identity_security
 
                 <!-- 3. Loại phòng -->
                 <div class="col-lg-2 col-md-6 mb-3">
@@ -516,7 +453,6 @@
         <span id="wishlistToastText">Đã cập nhật danh sách yêu thích</span>
       </div>
 
-<<<<<<< HEAD
       <script>
         function goToPage(pageNumber) {
           var pageInput = document.getElementById('pageInput');
@@ -530,17 +466,6 @@
             window.location.href = url.toString();
           }
         }
-=======
-    <%-- Booking policies and support information. --%>
-    <section class="section bg-light py-5">
-      <div class="container">
-        <div class="row justify-content-center text-center mb-5">
-          <div class="col-md-8">
-            <span class="text-primary font-weight-bold text-uppercase letter-spacing-1 d-block mb-2">Thông tin lưu ý</span>
-            <h2 class="heading" data-aos="fade-up">Chính Sách & Quy Định Homestay</h2>
-          </div>
-        </div>
->>>>>>> origin/identity_security
 
         function setPriceRange(min, max) {
           var minInput = document.getElementById('minPriceInput');
@@ -578,7 +503,6 @@
           }
           btn.disabled = true;
 
-<<<<<<< HEAD
           var params = new URLSearchParams();
           params.append('roomId', roomId);
 

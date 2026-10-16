@@ -166,7 +166,8 @@ public class LoginController extends HttpServlet {
                 request.getSession().setAttribute("hostRole", "ROLE_HOST");
             }
 
-            response.sendRedirect(request.getContextPath() + "/");
+            String redirectPath = LoginUtil.getPostLoginRedirectPath(user);
+            response.sendRedirect(request.getContextPath() + redirectPath);
         } catch (SQLException e) {
             throw new ServletException("Unable to authenticate the local account.", e);
         } catch (GeneralSecurityException e) {

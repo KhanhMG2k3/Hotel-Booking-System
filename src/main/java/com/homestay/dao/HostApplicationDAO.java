@@ -16,33 +16,36 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/** Persists Host applications and enforces application state and review rules. */
+/**
+ * Persists Host applications and enforces application state and review rules.
+ */
 public class HostApplicationDAO {
-    private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
-    private static final Pattern PHONE_PATTERN =
-            Pattern.compile("^[0-9+() .-]{7,30}$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+() .-]{7,30}$");
 
-    private static final String APPLICATION_COLUMNS =
-            "id, user_id, application_note, status, submitted_at, reviewed_by, reviewed_at, " +
-                    "rejection_reason, applicant_name, applicant_email, applicant_phone, " +
-                    "identification_type, identification_number, property_name, property_type, " +
-                    "property_description, property_address, property_city, property_district, " +
-                    "property_ward, latitude, longitude, room_count, max_guests, " +
-                    "identity_document_url, ownership_document_url, business_document_url, " +
-                    "document_status, supersedes_application_id";
+    private static final String APPLICATION_COLUMNS = "id, user_id, application_note, status, submitted_at, reviewed_by, reviewed_at, "
+            +
+            "rejection_reason, applicant_name, applicant_email, applicant_phone, " +
+            "identification_type, identification_number, property_name, property_type, " +
+            "property_description, property_address, property_city, property_district, " +
+            "property_ward, latitude, longitude, room_count, max_guests, " +
+            "identity_document_url, ownership_document_url, business_document_url, " +
+            "document_status, supersedes_application_id";
 
-    private static final String APPLICATION_FIELDS =
-            "application_note = ?, applicant_name = ?, applicant_email = ?, applicant_phone = ?, " +
-                    "identification_type = ?, identification_number = ?, property_name = ?, " +
-                    "property_type = ?, property_description = ?, property_address = ?, " +
-                    "property_city = ?, property_district = ?, property_ward = ?, latitude = ?, " +
-                    "longitude = ?, room_count = ?, max_guests = ?, identity_document_url = ?, " +
-                    "ownership_document_url = ?, business_document_url = ?, document_status = ?";
+    private static final String APPLICATION_FIELDS = "application_note = ?, applicant_name = ?, applicant_email = ?, applicant_phone = ?, "
+            +
+            "identification_type = ?, identification_number = ?, property_name = ?, " +
+            "property_type = ?, property_description = ?, property_address = ?, " +
+            "property_city = ?, property_district = ?, property_ward = ?, latitude = ?, " +
+            "longitude = ?, room_count = ?, max_guests = ?, identity_document_url = ?, " +
+            "ownership_document_url = ?, business_document_url = ?, document_status = ?";
 
     private final PropertyDAO propertyDAO = new PropertyDAO();
 
-    /** Loads the latest application for a user ID, or returns {@code null} when none exists. */
+    /**
+     * Loads the latest application for a user ID, or returns {@code null} when none
+     * exists.
+     */
     public HostApplication findLatestByUserId(int userId) throws SQLException {
         String sql = "SELECT a.id, a.user_id, a.application_note, a.status, a.submitted_at, " +
                 "a.reviewed_by, a.reviewed_at, a.rejection_reason, a.applicant_name, " +
@@ -53,11 +56,11 @@ public class HostApplicationDAO {
                 "a.ownership_document_url, a.business_document_url, a.document_status, " +
                 "a.supersedes_application_id, " +
                 "COALESCE(NULLIF(reviewer.display_name, ''), reviewer.username) AS reviewer_name " +
-                "FROM host_applications a LEFT JOIN users reviewer ON reviewer.id = a.reviewed_by " +
+                "FROM host_applications a LEFT JOIN users reviewer ON reviewer.user_id = a.reviewed_by " +
                 "WHERE a.user_id = ? ORDER BY a.id DESC LIMIT 1";
 
         try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {
@@ -76,7 +79,7 @@ public class HostApplicationDAO {
                 " FROM host_applications WHERE id = ? LIMIT 1";
 
         try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, applicationId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 return resultSet.next() ? mapApplication(resultSet) : null;
@@ -95,10 +98,10 @@ public class HostApplicationDAO {
                 "a.ownership_document_url, a.business_document_url, a.document_status, " +
                 "a.supersedes_application_id, " +
                 "COALESCE(NULLIF(reviewer.display_name, ''), reviewer.username) AS reviewer_name " +
-                "FROM host_applications a LEFT JOIN users reviewer ON reviewer.id = a.reviewed_by " +
+                "FROM host_applications a LEFT JOIN users reviewer ON reviewer.user_id = a.reviewed_by " +
                 "WHERE a.id = ? LIMIT 1";
         try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, applicationId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {
@@ -111,7 +114,10 @@ public class HostApplicationDAO {
         }
     }
 
-    /** Lists applications matching a status, or all non-draft applications when absent. */
+    /**
+     * Lists applications matching a status, or all non-draft applications when
+     * absent.
+     */
     public List<HostApplication> findApplications(Status status) throws SQLException {
         String sql = "SELECT a.id, a.user_id, a.application_note, a.status, a.submitted_at, " +
                 "a.reviewed_by, a.reviewed_at, a.rejection_reason, a.applicant_name, " +
@@ -122,12 +128,12 @@ public class HostApplicationDAO {
                 "a.ownership_document_url, a.business_document_url, a.document_status, " +
                 "a.supersedes_application_id, " +
                 "COALESCE(NULLIF(reviewer.display_name, ''), reviewer.username) AS reviewer_name " +
-                "FROM host_applications a LEFT JOIN users reviewer ON reviewer.id = a.reviewed_by " +
+                "FROM host_applications a LEFT JOIN users reviewer ON reviewer.user_id = a.reviewed_by " +
                 (status == null ? "WHERE a.status <> 'DRAFT' " : "WHERE a.status = ? ") +
                 "ORDER BY a.id DESC";
         List<HostApplication> applications = new ArrayList<>();
         try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             if (status != null) {
                 statement.setString(1, status.name());
             }
@@ -142,14 +148,16 @@ public class HostApplicationDAO {
         return applications;
     }
 
-    /** Checks whether the active customer identified by {@code userId} may apply. */
+    /**
+     * Checks whether the active customer identified by {@code userId} may apply.
+     */
     public boolean canApply(int userId) throws SQLException {
-        String sql = "SELECT 1 FROM users u JOIN roles r ON r.id = u.role_id " +
-                "WHERE u.id = ? AND u.status = 'ACTIVE' AND r.name = 'CUSTOMER' " +
-                "AND NOT EXISTS (SELECT 1 FROM host_applications a WHERE a.user_id = u.id " +
+        String sql = "SELECT 1 FROM users u JOIN roles r ON r.role_id = u.role_id " +
+                "WHERE u.user_id = ? AND u.status = 'ACTIVE' AND (r.role_name = 'CUSTOMER' OR r.role_name = 'ROLE_CUSTOMER') " +
+                "AND NOT EXISTS (SELECT 1 FROM host_applications a WHERE a.user_id = u.user_id " +
                 "AND a.status IN ('PENDING', 'APPROVED'))";
         try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 return resultSet.next();
@@ -157,17 +165,22 @@ public class HostApplicationDAO {
         }
     }
 
-    /** Saves an eligible customer's draft and returns whether the transaction succeeded. */
+    /**
+     * Saves an eligible customer's draft and returns whether the transaction
+     * succeeded.
+     */
     public boolean saveDraft(HostApplication application) throws SQLException {
         if (!isValidDraft(application)) {
             return false;
         }
 
-        // Keep eligibility, state checks, updates, and copied content in one transaction.
+        // Keep eligibility, state checks, updates, and copied content in one
+        // transaction.
         try (Connection connection = DBContext.getConnection()) {
             connection.setAutoCommit(false);
             try {
-                // Lock the customer row so concurrent submissions cannot create multiple active applications.
+                // Lock the customer row so concurrent submissions cannot create multiple active
+                // applications.
                 if (!lockEligibleCustomer(connection, application.getUserId())) {
                     connection.rollback();
                     return false;
@@ -186,7 +199,7 @@ public class HostApplicationDAO {
                 }
                 if (existing == null && application.getId() > 0
                         || existing != null && existing.status == Status.REJECTED
-                        && application.getId() > 0 && application.getId() != existing.id) {
+                                && application.getId() > 0 && application.getId() != existing.id) {
                     connection.rollback();
                     return false;
                 }
@@ -218,13 +231,17 @@ public class HostApplicationDAO {
         }
     }
 
-    /** Validates and submits the current draft for review; returns whether it was accepted. */
+    /**
+     * Validates and submits the current draft for review; returns whether it was
+     * accepted.
+     */
     public boolean submitApplication(HostApplication application) throws SQLException {
         if (!isValidSubmission(application)) {
             return false;
         }
 
-        // Lock and recheck the draft while calculating capacity to prevent stale submissions.
+        // Lock and recheck the draft while calculating capacity to prevent stale
+        // submissions.
         try (Connection connection = DBContext.getConnection()) {
             connection.setAutoCommit(false);
             try {
@@ -249,7 +266,8 @@ public class HostApplicationDAO {
                     connection.rollback();
                     return false;
                 }
-                // Derive the submitted capacity from persisted draft rooms rather than form input.
+                // Derive the submitted capacity from persisted draft rooms rather than form
+                // input.
                 int roomCount;
                 int maxGuests;
                 try (PreparedStatement statement = connection.prepareStatement(
@@ -282,7 +300,10 @@ public class HostApplicationDAO {
         }
     }
 
-    /** Submits the user's latest draft with a validated note, or returns {@code null}. */
+    /**
+     * Submits the user's latest draft with a validated note, or returns
+     * {@code null}.
+     */
     public HostApplication submit(int userId, String applicationNote) throws SQLException {
         if (applicationNote == null || applicationNote.isBlank()
                 || applicationNote.length() > 1000) {
@@ -304,7 +325,7 @@ public class HostApplicationDAO {
 
     /** Updates one supported document reference on the user's editable draft. */
     public boolean updateDocument(int userId, int applicationId, String documentType,
-                                  String storedPath) throws SQLException {
+            String storedPath) throws SQLException {
         String column = switch (documentType) {
             case "identity" -> "identity_document_url";
             case "ownership" -> "ownership_document_url";
@@ -316,12 +337,12 @@ public class HostApplicationDAO {
             return false;
         }
 
-        String sql = "UPDATE host_applications a JOIN users u ON u.id = a.user_id " +
-                "JOIN roles r ON r.id = u.role_id SET a." + column + " = ?, " +
+        String sql = "UPDATE host_applications a JOIN users u ON u.user_id = a.user_id " +
+                "JOIN roles r ON r.role_id = u.role_id SET a." + column + " = ?, " +
                 "a.document_status = 'PENDING' WHERE a.id = ? AND a.user_id = ? " +
-                "AND a.status = 'DRAFT' AND u.status = 'ACTIVE' AND r.name = 'CUSTOMER'";
+                "AND a.status = 'DRAFT' AND u.status = 'ACTIVE' AND (r.role_name = 'CUSTOMER' OR r.role_name = 'ROLE_CUSTOMER')";
         try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, storedPath);
             statement.setInt(2, applicationId);
             statement.setInt(3, userId);
@@ -341,12 +362,12 @@ public class HostApplicationDAO {
         if (column == null) {
             return false;
         }
-        String sql = "UPDATE host_applications a JOIN users u ON u.id = a.user_id " +
-                "JOIN roles r ON r.id = u.role_id SET a." + column +
+        String sql = "UPDATE host_applications a JOIN users u ON u.user_id = a.user_id " +
+                "JOIN roles r ON r.role_id = u.role_id SET a." + column +
                 " = NULL, a.document_status = 'PENDING' WHERE a.id = ? AND a.user_id = ? " +
-                "AND a.status = 'DRAFT' AND u.status = 'ACTIVE' AND r.name = 'CUSTOMER'";
+                "AND a.status = 'DRAFT' AND u.status = 'ACTIVE' AND (r.role_name = 'CUSTOMER' OR r.role_name = 'ROLE_CUSTOMER')";
         try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, applicationId);
             statement.setInt(2, userId);
             return statement.executeUpdate() == 1;
@@ -366,7 +387,7 @@ public class HostApplicationDAO {
         }
         String sql = "SELECT " + column + " FROM host_applications WHERE id = ? LIMIT 1";
         try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, applicationId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 return resultSet.next() ? resultSet.getString(1) : null;
@@ -374,27 +395,30 @@ public class HostApplicationDAO {
         }
     }
 
-    /** Reviews a pending application and applies the approved or rejected state transition. */
+    /**
+     * Reviews a pending application and applies the approved or rejected state
+     * transition.
+     */
     public boolean review(int applicationId, int adminUserId, Status decision,
-                          String rejectionReason) throws SQLException {
+            String rejectionReason) throws SQLException {
         if (applicationId <= 0 || decision != Status.APPROVED && decision != Status.REJECTED
                 || decision == Status.REJECTED && (rejectionReason == null
-                || rejectionReason.trim().length() < 10 || rejectionReason.trim().length() > 500)) {
+                        || rejectionReason.trim().length() < 10 || rejectionReason.trim().length() > 500)) {
             return false;
         }
 
-        String adminSql = "SELECT r.name, u.status FROM users u " +
-                "JOIN roles r ON r.id = u.role_id WHERE u.id = ? FOR UPDATE";
+        String adminSql = "SELECT r.role_name AS name, u.status FROM users u " +
+                "JOIN roles r ON r.role_id = u.role_id WHERE u.user_id = ? FOR UPDATE";
         String applicationSql = "SELECT user_id, applicant_name, applicant_email, applicant_phone, " +
                 "identification_type, identification_number, property_name, property_type, " +
                 "property_description, property_address, property_city, property_district, property_ward, " +
                 "room_count, max_guests, identity_document_url, ownership_document_url " +
                 "FROM host_applications WHERE id = ? AND status = 'PENDING' FOR UPDATE";
-        String promoteSql = "UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'HOST') " +
-                "WHERE id = ? AND role_id = (SELECT id FROM roles WHERE name = 'CUSTOMER') " +
+        String promoteSql = "UPDATE users SET role_id = (SELECT role_id FROM roles WHERE role_name IN ('HOST', 'ROLE_HOST') LIMIT 1) " +
+                "WHERE user_id = ? AND role_id = (SELECT role_id FROM roles WHERE role_name IN ('CUSTOMER', 'ROLE_CUSTOMER') LIMIT 1) " +
                 "AND status = 'ACTIVE'";
         String addHostRoleSql = "INSERT INTO userroles (user_id, role_id) " +
-                "SELECT ?, id FROM roles WHERE name = 'HOST' " +
+                "SELECT ?, role_id FROM roles WHERE role_name IN ('HOST', 'ROLE_HOST') LIMIT 1 " +
                 "ON DUPLICATE KEY UPDATE role_id = role_id";
         String updateSql = "UPDATE host_applications SET status = ?, reviewed_by = ?, " +
                 "reviewed_at = CURRENT_TIMESTAMP, rejection_reason = ?, document_status = ? " +
@@ -444,9 +468,11 @@ public class HostApplicationDAO {
                     statement.setString(1, decision.name());
                     statement.setInt(2, adminUserId);
                     statement.setString(3, decision == Status.REJECTED
-                            ? rejectionReason.trim() : null);
+                            ? rejectionReason.trim()
+                            : null);
                     statement.setString(4, decision == Status.APPROVED
-                            ? DocumentStatus.VERIFIED.name() : DocumentStatus.REJECTED.name());
+                            ? DocumentStatus.VERIFIED.name()
+                            : DocumentStatus.REJECTED.name());
                     statement.setInt(5, applicationId);
                     if (statement.executeUpdate() != 1) {
                         connection.rollback();
@@ -464,13 +490,13 @@ public class HostApplicationDAO {
     }
 
     private boolean lockEligibleCustomer(Connection connection, int userId) throws SQLException {
-        String sql = "SELECT r.name, u.status " +
-                "FROM users u JOIN roles r ON r.id = u.role_id WHERE u.id = ? FOR UPDATE";
+        String sql = "SELECT r.role_name AS name, u.status " +
+                "FROM users u JOIN roles r ON r.role_id = u.role_id WHERE u.user_id = ? FOR UPDATE";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 return resultSet.next() && "ACTIVE".equals(resultSet.getString("status"))
-                        && "CUSTOMER".equals(resultSet.getString("name"));
+                        && ("CUSTOMER".equals(resultSet.getString("name")) || "ROLE_CUSTOMER".equals(resultSet.getString("name")));
             }
         }
     }
@@ -478,7 +504,7 @@ public class HostApplicationDAO {
     private void loadApplicantSnapshot(Connection connection, HostApplication application)
             throws SQLException {
         String sql = "SELECT COALESCE(NULLIF(display_name, ''), username) AS applicant_name, " +
-                "email, phone FROM users WHERE id = ?";
+                "email, phone FROM users WHERE user_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, application.getUserId());
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -566,7 +592,7 @@ public class HostApplicationDAO {
     }
 
     private void updateApplication(Connection connection, HostApplication application,
-                                   Status status, Timestamp submittedAt) throws SQLException {
+            Status status, Timestamp submittedAt) throws SQLException {
         String sql = "UPDATE host_applications SET " + APPLICATION_FIELDS +
                 ", status = ?, submitted_at = ?, reviewed_by = NULL, reviewed_at = NULL, " +
                 "rejection_reason = NULL WHERE id = ? AND user_id = ? " +
@@ -585,13 +611,13 @@ public class HostApplicationDAO {
     }
 
     private int bindApplicationFields(PreparedStatement statement, HostApplication application,
-                                      int index) throws SQLException {
+            int index) throws SQLException {
         statement.setString(index++, valueOrEmpty(application.getApplicationNote()));
         return bindApplicationDetails(statement, application, index);
     }
 
     private int bindApplicationDetails(PreparedStatement statement, HostApplication application,
-                                       int index) throws SQLException {
+            int index) throws SQLException {
         statement.setString(index++, application.getApplicantName());
         statement.setString(index++, application.getApplicantEmail());
         statement.setString(index++, application.getApplicantPhone());
@@ -612,7 +638,8 @@ public class HostApplicationDAO {
         statement.setString(index++, application.getOwnershipDocumentUrl());
         statement.setString(index++, application.getBusinessDocumentUrl());
         statement.setString(index++, application.getDocumentStatus() == null
-                ? DocumentStatus.PENDING.name() : application.getDocumentStatus().name());
+                ? DocumentStatus.PENDING.name()
+                : application.getDocumentStatus().name());
         return index;
     }
 
@@ -622,7 +649,7 @@ public class HostApplicationDAO {
             statement.setInt(1, adminUserId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 return resultSet.next() && "ACTIVE".equals(resultSet.getString("status"))
-                        && "ADMIN".equals(resultSet.getString("name"));
+                        && ("ADMIN".equals(resultSet.getString("name")) || "ROLE_ADMIN".equals(resultSet.getString("name")));
             }
         }
     }
@@ -735,7 +762,10 @@ public class HostApplicationDAO {
         }
     }
 
-    /** Maps one SQL row into the application model, including nullable columns and enums. */
+    /**
+     * Maps one SQL row into the application model, including nullable columns and
+     * enums.
+     */
     private HostApplication mapApplication(ResultSet resultSet) throws SQLException {
         HostApplication application = new HostApplication();
         application.setId(resultSet.getInt("id"));
@@ -754,7 +784,8 @@ public class HostApplicationDAO {
         application.setApplicantPhone(resultSet.getString("applicant_phone"));
         String identificationType = resultSet.getString("identification_type");
         application.setIdentificationType(identificationType == null
-                ? null : IdentificationType.valueOf(identificationType));
+                ? null
+                : IdentificationType.valueOf(identificationType));
         application.setIdentificationNumber(resultSet.getString("identification_number"));
         application.setPropertyName(resultSet.getString("property_name"));
         application.setPropertyType(resultSet.getString("property_type"));
@@ -776,11 +807,15 @@ public class HostApplicationDAO {
         application.setBusinessDocumentUrl(resultSet.getString("business_document_url"));
         String documentStatus = resultSet.getString("document_status");
         application.setDocumentStatus(documentStatus == null
-                ? null : DocumentStatus.valueOf(documentStatus));
+                ? null
+                : DocumentStatus.valueOf(documentStatus));
         return application;
     }
 
-    /** Holds the locked latest application state needed during transactional updates. */
+    /**
+     * Holds the locked latest application state needed during transactional
+     * updates.
+     */
     private static final class ApplicationState {
         private final int id;
         private final Status status;

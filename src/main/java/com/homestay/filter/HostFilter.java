@@ -1,6 +1,7 @@
 package com.homestay.filter;
 
 import com.homestay.dao.HostProfileDAO;
+import com.homestay.dao.UserDAO;
 import com.homestay.model.HostProfile;
 import com.homestay.model.User;
 import jakarta.servlet.Filter;
@@ -19,6 +20,7 @@ import java.util.Optional;
 public class HostFilter implements Filter {
 
     private final HostProfileDAO hostProfileDAO = new HostProfileDAO();
+    private final UserDAO userDAO = new UserDAO();
 
     @Override
     public void doFilter(
@@ -37,13 +39,22 @@ public class HostFilter implements Filter {
             Object userAttribute = session.getAttribute("user");
             if (userAttribute instanceof User) {
                 user = (User) userAttribute;
+            } else if (session.getAttribute("userId") instanceof Number) {
+                int uid = ((Number) session.getAttribute("userId")).intValue();
+                user = userDAO.findById(uid).orElse(null);
+                if (user != null) {
+                    session.setAttribute("user", user);
+                }
             }
         }
 
         // 1. Phải login và có role ROLE_HOST
         boolean isHost = user != null
                 && user.getRole() != null
-                && "ROLE_HOST".equals(user.getRole().getRoleName());
+                && ("ROLE_HOST".equalsIgnoreCase(user.getRole().getRoleName())
+                    || "HOST".equalsIgnoreCase(user.getRole().getRoleName())
+                    || "ROLE_HOST".equalsIgnoreCase(user.getRole().getName())
+                    || "HOST".equalsIgnoreCase(user.getRole().getName()));
 
         if (!isHost) {
             if (user == null) {
@@ -54,10 +65,18 @@ public class HostFilter implements Filter {
             return;
         }
 
-        // 2. Phải có host_profiles và verification_status = APPROVED
+        // 2. Phải có host_profiles hoặc host_applications và status = APPROVED
         Optional<HostProfile> profileOpt = hostProfileDAO.findByUserId(user.getId());
         boolean isApproved = profileOpt.isPresent()
                 && "APPROVED".equalsIgnoreCase(profileOpt.get().getVerificationStatus());
+
+        if (!isApproved) {
+            try {
+                com.homestay.dao.PropertyDAO propertyDAO = new com.homestay.dao.PropertyDAO();
+                isApproved = propertyDAO.isApprovedHost(user.getId());
+            } catch (Exception ignored) {
+            }
+        }
 
         if (!isApproved) {
             httpResponse.sendRedirect(

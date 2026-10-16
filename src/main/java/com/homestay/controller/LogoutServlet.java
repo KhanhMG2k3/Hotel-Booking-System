@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpSession;
  * Invalidates session, removes authentication cookies, sets no-cache headers,
  * and redirects safely to the home page with a logout notification status.
  */
-@WebServlet(name = "LogoutServlet", urlPatterns = {"/logout"})
+@WebServlet(name = "LogoutServlet")
 public class LogoutServlet extends HttpServlet {
 
     @Override

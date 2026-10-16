@@ -147,7 +147,7 @@
                 return;
               }
 
-              window.location.assign("${pageContext.request.contextPath}/");
+              window.location.assign(result.redirectUrl || "${pageContext.request.contextPath}/");
             } catch (error) {
               errorBox.textContent = "Không thể kết nối để đăng nhập Google. Vui lòng thử lại.";
               errorBox.classList.remove("d-none");

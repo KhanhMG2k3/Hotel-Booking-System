@@ -15,6 +15,15 @@
                         <i class="fa fa-heart"></i>
                         <span class="header-wishlist-badge" id="navbarWishlistBadge">${not empty wishlistCount ? wishlistCount : (not empty sessionScope.wishlistCount ? sessionScope.wishlistCount : 0)}</span>
                     </a>
+                    <!-- CÁC NÚT ĐIỀU HƯỚNG CHÍNH (Hiển thị cho cả khi chưa đăng nhập và đã đăng nhập) -->
+                    <a class="auth-link ${activePage == 'rooms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/rooms">Danh Sách Phòng</a>
+                    <a class="auth-link ${activePage == 'about' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/about">Về Chúng Tôi</a>
+                    <a class="auth-link ${activePage == 'terms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/terms">Điều Khoản</a>
+                    <a class="auth-link ${activePage == 'faq' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/faq">FAQ</a>
+
+                    <!-- Dấu gạch đứng phân cách nhẹ -->
+                    <span class="auth-divider text-white-50 mx-2" style="user-select: none;">|</span>
+
                     <c:choose>
                         <c:when test="${not empty sessionScope.userId}">
                             <c:set var="displayName" value="${not empty sessionScope.displayName ? sessionScope.displayName : sessionScope.userName}" />
@@ -99,6 +108,9 @@
                                         <a href="${pageContext.request.contextPath}/host/dashboard" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-dashboard"></i> Host Dashboard
                                         </a>
+                                        <a href="${pageContext.request.contextPath}/host/vouchers" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-ticket"></i> Quản lý Voucher
+                                        </a>
                                     </c:if>
                                     <c:if test="${isUserAdmin}">
                                         <a href="${pageContext.request.contextPath}/admin/dashboard" class="user-dropdown-item" role="menuitem">
@@ -116,15 +128,6 @@
                             </div>
                         </c:when>
                         <c:otherwise>
-                            <!-- Các nút điều hướng thêm vào trước Đăng nhập / Đăng ký -->
-                            <a class="auth-link ${activePage == 'rooms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/rooms">Danh Sách Phòng</a>
-                            <a class="auth-link ${activePage == 'about' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/about">Về Chúng Tôi</a>
-                            <a class="auth-link ${activePage == 'terms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/terms">Điều Khoản</a>
-                            <a class="auth-link ${activePage == 'faq' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/faq">FAQ</a>
-
-                            <!-- Dấu gạch đứng phân cách nhẹ -->
-                            <span class="text-white-50 mx-2" style="user-select: none;">|</span>
-
                             <!-- Nút Đăng nhập & Đăng ký -->
                             <a class="auth-link" href="${pageContext.request.contextPath}/login">Đăng nhập</a>
                             <a class="auth-link auth-link-primary" href="${pageContext.request.contextPath}/register">Đăng ký</a>
@@ -313,10 +316,17 @@
                                             </li>
                                         </c:if>
                                         <c:if test="${isUserHost}">
-                                            <li class="drawer-nav-item">
+                                            <li class="drawer-nav-item ${activePage == 'host-dashboard' ? 'active' : ''}">
                                                 <a href="${pageContext.request.contextPath}/host/dashboard" class="drawer-nav-link" onclick="closeSiteNavbar()">
                                                     <span class="drawer-nav-icon icon-dashboard"><i class="fa fa-dashboard"></i></span>
                                                     <span class="drawer-nav-text">Host Dashboard</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
+                                            <li class="drawer-nav-item ${activePage == 'host-vouchers' ? 'active' : ''}">
+                                                <a href="${pageContext.request.contextPath}/host/vouchers" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon" style="background:#fef3c7; color:#d97706;"><i class="fa fa-ticket"></i></span>
+                                                    <span class="drawer-nav-text">Quản Lý Voucher</span>
                                                     <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                                 </a>
                                             </li>
@@ -481,6 +491,13 @@
                     toast.style.display = 'none';
                 }
             }, 4500);
+        }
+        // Tự động bật nền solid cho trang không có hero banner để tránh đè giao diện
+        if (!document.querySelector('.site-hero')) {
+            var header = document.querySelector('.site-header');
+            if (header) {
+                header.classList.add('header-solid', 'scrolled');
+            }
         }
     });
 </script>
