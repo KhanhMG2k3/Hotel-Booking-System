@@ -20,7 +20,6 @@
                     <a class="auth-link ${activePage == 'about' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/about">Về Chúng Tôi</a>
                     <a class="auth-link ${activePage == 'terms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/terms">Điều Khoản</a>
                     <a class="auth-link ${activePage == 'faq' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/faq">FAQ</a>
-
                     <!-- Dấu gạch đứng phân cách nhẹ -->
                     <span class="auth-divider text-white-50 mx-2" style="user-select: none;">|</span>
 
