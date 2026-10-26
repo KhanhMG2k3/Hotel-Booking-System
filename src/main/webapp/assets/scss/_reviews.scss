@@ -1,0 +1,115 @@
+// =============================================================================
+// REVIEWS & RATINGS MODULE STYLES (SOGO HOMESTAY)
+// =============================================================================
+
+.hero-review-page {
+  min-height: 280px;
+  background-size: cover;
+  background-position: center;
+}
+
+.review-booking-card {
+  border-left: 4px solid $primary !important;
+  transition: box-shadow 0.25s ease;
+
+  .review-room-thumbnail {
+    height: 110px;
+    object-fit: cover;
+  }
+}
+
+.star-rating-widget {
+  display: inline-flex;
+  gap: 8px;
+  cursor: pointer;
+
+  .star-item {
+    font-size: 32px;
+    color: #dee2e6;
+    transition: color 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.15);
+    }
+
+    &.active {
+      color: #ffba5a; // Primary warm hotel gold
+    }
+  }
+}
+
+.star-description {
+  font-size: 15px;
+  min-height: 22px;
+}
+
+.review-input,
+.review-textarea {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  font-size: 15px;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 0.2rem rgba(255, 186, 90, 0.25);
+  }
+}
+
+.review-textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.btn-submit-review {
+  border-radius: 8px;
+  background-color: $primary;
+  border-color: $primary;
+  letter-spacing: 0.5px;
+  transition: all 0.25s ease;
+
+  &:hover {
+    background-color: darken(#ffba5a, 8%);
+    border-color: darken(#ffba5a, 8%);
+    transform: translateY(-2px);
+  }
+}
+
+// KHỐI HIỂN THỊ REVIEWS TRÊN ROOM-DETAIL
+.room-reviews-container {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid #e9ecef;
+
+  .review-item {
+    padding: 20px 0;
+    border-bottom: 1px solid #f1f3f5;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .reviewer-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .reviewer-fallback {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: $primary;
+      color: $white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .review-stars {
+      color: #ffba5a;
+      font-size: 14px;
+    }
+  }
+}
