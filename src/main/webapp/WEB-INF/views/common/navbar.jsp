@@ -110,6 +110,9 @@
                                         <a href="${pageContext.request.contextPath}/host/vouchers" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-ticket"></i> Quản lý Voucher
                                         </a>
+                                        <a href="${pageContext.request.contextPath}/host/reviews" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-comments-o"></i> Quản lý Đánh giá
+                                        </a>
                                     </c:if>
                                     <c:if test="${isUserAdmin}">
                                         <a href="${pageContext.request.contextPath}/admin/dashboard" class="user-dropdown-item" role="menuitem">

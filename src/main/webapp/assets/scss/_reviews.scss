@@ -113,3 +113,94 @@
     }
   }
 }
+
+/* =============================================================================
+   HOST REVIEWS & PUBLIC REPLY (append to the END of _reviews.scss)
+   ============================================================================= */
+
+.review-text {
+  white-space: pre-line;
+  color: #495057;
+  line-height: 1.7;
+}
+
+.review-stars {
+  color: #ffba5a;
+  font-size: 14px;
+}
+
+.review-reply {
+  margin-top: 12px;
+  padding: 14px 18px;
+  background: #fff8eb;
+  border-left: 3px solid $primary;
+  border-radius: 8px;
+
+  .review-reply-label {
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #b8741a;
+  }
+}
+
+.host-review-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  a {
+    padding: 8px 18px;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    background: $white;
+    color: #495057;
+    font-size: 14px;
+
+    &:hover {
+      border-color: $primary;
+      color: #212529;
+    }
+
+    &.active {
+      border-color: $primary;
+      background: $primary;
+      color: $white;
+      font-weight: bold;
+    }
+  }
+}
+
+.host-review-card {
+  border-left: 4px solid $primary !important;
+
+  .reviewer-fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: $primary;
+    color: $white;
+    font-weight: bold;
+  }
+}
+
+.host-review-paging a {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  margin: 2px;
+  border: 1px solid #dee2e6;
+  border-radius: 50%;
+  background: $white;
+  color: #495057;
+  line-height: 38px;
+
+  &.active {
+    border-color: $primary;
+    background: $primary;
+    color: $white;
+  }
+}

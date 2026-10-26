@@ -273,8 +273,8 @@ public class ReviewDAO extends BaseDAO implements GenericDAO<Review, Integer> {
         double avg = calculateAverageRating(roomId);
         int count = countApprovedReviewsByRoomId(roomId);
         String sql = "UPDATE roomtypes rt "
-                + "JOIN rooms r ON rt.room_type_id = r.type_id OR rt.room_type_id = r.room_type_id "
-                + "SET rt.rating = ?, rt.review_count = ? WHERE r.id = ? OR r.room_id = ?";
+                + "JOIN rooms r ON rt.room_type_id = r.room_type_id "
+                + "SET rt.rating = ?, rt.review_count = ? WHERE r.room_id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -283,7 +283,6 @@ public class ReviewDAO extends BaseDAO implements GenericDAO<Review, Integer> {
             ps.setDouble(1, avg);
             ps.setInt(2, count);
             ps.setInt(3, roomId);
-            ps.setInt(4, roomId);
             ps.executeUpdate();
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Error syncing room rating for room: " + roomId, e);

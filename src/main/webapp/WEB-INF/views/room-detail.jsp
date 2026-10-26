@@ -1,327 +1,378 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-  <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-    <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
-      <jsp:include page="common/header.jsp">
-        <jsp:param name="pageTitle" value="${room.roomName} - Chi Tiết Phòng Sogo Homestay" />
-      </jsp:include>
+<jsp:include page="common/header.jsp">
+    <jsp:param name="pageTitle" value="${room.roomName} - Chi Tiết Phòng Sogo Homestay" />
+</jsp:include>
 
-      <jsp:include page="common/navbar.jsp" />
+<jsp:include page="common/navbar.jsp" />
 
-      <!-- HERO / BREADCRUMBS -->
-      <section class="site-hero inner-page overlay hero-room-detail"
-        data-hero-image="${pageContext.request.contextPath}/assets/${not empty room.imageUrl ? room.imageUrl : 'images/hero_4.jpg'}"
-        data-stellar-background-ratio="0.5">
-        <div class="container">
-          <div class="row site-hero-inner justify-content-center align-items-center">
+<!-- HERO / BREADCRUMBS -->
+<section class="site-hero inner-page overlay hero-room-detail"
+         data-hero-image="${pageContext.request.contextPath}/assets/${not empty room.imageUrl ? room.imageUrl : 'images/hero_4.jpg'}"
+         data-stellar-background-ratio="0.5">
+    <div class="container">
+        <div class="row site-hero-inner justify-content-center align-items-center">
             <div class="col-md-10 text-center" data-aos="fade">
-              <span class="custom-caption text-uppercase text-white d-block mb-3">${room.roomType.typeName} &bull; Mã:
-                ${room.roomNumber}</span>
-              <h1 class="heading mb-3">${room.roomName}</h1>
-              <ul class="custom-breadcrumbs mb-4">
-                <li><a href="${pageContext.request.contextPath}/home">Trang Chủ</a></li>
-                <li>&bullet;</li>
-                <li><a href="${pageContext.request.contextPath}/rooms">Danh Sách Phòng</a></li>
-                <li>&bullet;</li>
-                <li>Chi Tiết Phòng</li>
-              </ul>
+                <span class="custom-caption text-uppercase text-white d-block mb-3">${room.roomType.typeName} &bull; Mã:
+                    ${room.roomNumber}</span>
+                <h1 class="heading mb-3">${room.roomName}</h1>
+                <ul class="custom-breadcrumbs mb-4">
+                    <li><a href="${pageContext.request.contextPath}/home">Trang Chủ</a></li>
+                    <li>&bullet;</li>
+                    <li><a href="${pageContext.request.contextPath}/rooms">Danh Sách Phòng</a></li>
+                    <li>&bullet;</li>
+                    <li>Chi Tiết Phòng</li>
+                </ul>
             </div>
-          </div>
         </div>
+    </div>
 
-        <a class="mouse smoothscroll" href="#room-detail-content">
-          <div class="mouse-icon">
+    <a class="mouse smoothscroll" href="#room-detail-content">
+        <div class="mouse-icon">
             <span class="mouse-wheel"></span>
-          </div>
-        </a>
-      </section>
-      <!-- END HERO -->
+        </div>
+    </a>
+</section>
+<!-- END HERO -->
 
-      <!-- CHI TIẾT PHÒNG & BỘ SƯU TẬP ẢNH -->
-      <section class="section pb-5" id="room-detail-content">
-        <div class="container">
+<!-- CHI TIẾT PHÒNG & BỘ SƯU TẬP ẢNH -->
+<section class="section pb-5" id="room-detail-content">
+    <div class="container">
 
-          <!-- BỘ SƯU TẬP HÌNH ẢNH (PHOTO GALLERY) -->
-          <div class="row mb-5" data-aos="fade-up">
+        <!-- BỘ SƯU TẬP HÌNH ẢNH (PHOTO GALLERY) -->
+        <div class="row mb-5" data-aos="fade-up">
             <div class="col-12">
-              <span class="text-primary font-weight-bold text-uppercase letter-spacing-1 d-block mb-2">Hình ảnh thực
-                tế</span>
-              <h2 class="heading mb-4">Không Gian Phòng & Tiện Nghi</h2>
+                <span class="text-primary font-weight-bold text-uppercase letter-spacing-1 d-block mb-2">Hình ảnh thực
+                    tế</span>
+                <h2 class="heading mb-4">Không Gian Phòng & Tiện Nghi</h2>
             </div>
 
             <div class="col-lg-8 mb-4">
-              <div class="main-image-wrap rounded overflow-hidden shadow position-relative">
-                <a href="${pageContext.request.contextPath}/assets/${room.imageUrl}" data-fancybox="gallery"
-                  data-caption="${room.roomName} - Ảnh Chính">
-                  <img src="${pageContext.request.contextPath}/assets/${room.imageUrl}" alt="${room.roomName}"
-                    class="img-fluid w-100 room-detail-image">
-                </a>
-                <button type="button" 
-                  class="btn-wishlist-toggle ${isWishlisted ? 'active' : ''}" 
-                  id="imageDetailWishlistBtn"
-                  title="${isWishlisted ? 'Bỏ lưu phòng yêu thích' : 'Lưu vào danh sách yêu thích'}"
-                  onclick="toggleDetailWishlist(${room.id})">
-                  <i id="imageDetailWishlistIcon" class="fa ${isWishlisted ? 'fa-heart text-danger' : 'fa-heart-o'}"></i>
-                </button>
-              </div>
+                <div class="main-image-wrap rounded overflow-hidden shadow position-relative">
+                    <a href="${pageContext.request.contextPath}/assets/${room.imageUrl}" data-fancybox="gallery"
+                       data-caption="${room.roomName} - Ảnh Chính">
+                        <img src="${pageContext.request.contextPath}/assets/${room.imageUrl}" alt="${room.roomName}"
+                             class="img-fluid w-100 room-detail-image">
+                    </a>
+                    <button type="button" 
+                            class="btn-wishlist-toggle ${isWishlisted ? 'active' : ''}" 
+                            id="imageDetailWishlistBtn"
+                            title="${isWishlisted ? 'Bỏ lưu phòng yêu thích' : 'Lưu vào danh sách yêu thích'}"
+                            onclick="toggleDetailWishlist(${room.id})">
+                        <i id="imageDetailWishlistIcon" class="fa ${isWishlisted ? 'fa-heart text-danger' : 'fa-heart-o'}"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="col-lg-4">
-              <div class="row">
-                <c:forEach var="img" items="${room.images}" varStatus="status">
-                  <c:if test="${status.index < 4}">
-                    <div class="col-6 mb-3">
-                      <div class="thumbnail-wrap rounded overflow-hidden shadow-sm">
-                        <a href="${pageContext.request.contextPath}/assets/${img}" data-fancybox="gallery"
-                          data-caption="${room.roomName} - Ảnh ${status.index + 1}">
-                          <img src="${pageContext.request.contextPath}/assets/${img}" alt="Thumbnail"
-                            class="img-fluid w-100 h-100">
-                        </a>
-                      </div>
+                <div class="row">
+                    <c:forEach var="img" items="${room.images}" varStatus="status">
+                        <c:if test="${status.index < 4}">
+                            <div class="col-6 mb-3">
+                                <div class="thumbnail-wrap rounded overflow-hidden shadow-sm">
+                                    <a href="${pageContext.request.contextPath}/assets/${img}" data-fancybox="gallery"
+                                       data-caption="${room.roomName} - Ảnh ${status.index + 1}">
+                                        <img src="${pageContext.request.contextPath}/assets/${img}" alt="Thumbnail"
+                                             class="img-fluid w-100 h-100">
+                                    </a>
+                                </div>
+                            </div>
+                        </c:if>
+                    </c:forEach>
+                    <div class="col-12 mt-2 text-right">
+                        <small class="text-muted"><i class="fa fa-search-plus"></i> Nhấp vào ảnh để phóng to và xem toàn bộ
+                            album</small>
                     </div>
-                  </c:if>
-                </c:forEach>
-                <div class="col-12 mt-2 text-right">
-                  <small class="text-muted"><i class="fa fa-search-plus"></i> Nhấp vào ảnh để phóng to và xem toàn bộ
-                    album</small>
                 </div>
-              </div>
             </div>
-          </div>
+        </div>
 
-          <!-- THÔNG SỐ & MÔ TẢ CHI TIẾT -->
-          <div class="row">
+        <!-- THÔNG SỐ & MÔ TẢ CHI TIẾT -->
+        <div class="row">
 
             <!-- CỘT TRÁI: THÔNG TIN CHI TIẾT -->
             <div class="col-lg-8" data-aos="fade-up">
 
-              <!-- THÔNG SỐ CƠ BẢN -->
-              <div class="bg-light p-4 rounded mb-5 border">
-                <div class="row text-center">
-                  <div class="col-md-3 col-6 mb-3 mb-md-0 border-right">
-                    <span class="d-block text-muted small"><i class="fa fa-users text-primary"></i> Sức chứa</span>
-                    <strong class="h5 text-dark">${room.capacity} Khách</strong>
-                  </div>
-                  <div class="col-md-3 col-6 mb-3 mb-md-0 border-right">
-                    <span class="d-block text-muted small"><i class="fa fa-arrows-alt text-primary"></i> Diện
-                      tích</span>
-                    <strong class="h5 text-dark">${room.size} m²</strong>
-                  </div>
-                  <div class="col-md-3 col-6 border-right">
-                    <span class="d-block text-muted small"><i class="fa fa-bed text-primary"></i> Loại giường</span>
-                    <strong class="h6 text-dark">${not empty room.bedType ? room.bedType : 'Giường đôi King'}</strong>
-                  </div>
-                  <div class="col-md-3 col-6">
-                    <span class="d-block text-muted small"><i class="fa fa-tag text-primary"></i> Mã phòng</span>
-                    <strong class="h5 text-primary">${room.roomNumber}</strong>
-                  </div>
-                </div>
-              </div>
-
-              <!-- GIỚI THIỆU KHÔNG GIAN -->
-              <div class="mb-5">
-                <h3 class="h4 font-weight-bold text-dark mb-3">Mô Tả Không Gian Phòng</h3>
-                <p class="text-muted lead room-description">${room.description}</p>
-                <p class="text-muted room-description">
-                  Phòng được thiết kế theo phong cách hiện đại kết hợp các chất liệu mộc mạc tự nhiên, tận dụng tối đa
-                  ánh sáng tự nhiên từ cửa sổ và ban công lớn. Không gian được trang bị nệm cao cấp giúp bạn có giấc ngủ
-                  sâu và thư thái sau những giờ phút khám phá cảnh đẹp.
-                </p>
-              </div>
-
-              <!-- DANH SÁCH TIỆN NGHI -->
-              <div class="mb-5">
-                <h3 class="h4 font-weight-bold text-dark mb-4">Tiện Nghi & Dịch Vụ Đi Kèm</h3>
-                <div class="row">
-                  <c:forEach var="amenity" items="${room.amenities}">
-                    <div class="col-md-6 mb-3">
-                      <div class="d-flex align-items-center">
-                        <span class="fa fa-check-circle text-success mr-3 h5 mb-0"></span>
-                        <span class="text-dark font-weight-500">${amenity}</span>
-                      </div>
+                <!-- THÔNG SỐ CƠ BẢN -->
+                <div class="bg-light p-4 rounded mb-5 border">
+                    <div class="row text-center">
+                        <div class="col-md-3 col-6 mb-3 mb-md-0 border-right">
+                            <span class="d-block text-muted small"><i class="fa fa-users text-primary"></i> Sức chứa</span>
+                            <strong class="h5 text-dark">${room.capacity} Khách</strong>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3 mb-md-0 border-right">
+                            <span class="d-block text-muted small"><i class="fa fa-arrows-alt text-primary"></i> Diện
+                                tích</span>
+                            <strong class="h5 text-dark">${room.size} m²</strong>
+                        </div>
+                        <div class="col-md-3 col-6 border-right">
+                            <span class="d-block text-muted small"><i class="fa fa-bed text-primary"></i> Loại giường</span>
+                            <strong class="h6 text-dark">${not empty room.bedType ? room.bedType : 'Giường đôi King'}</strong>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <span class="d-block text-muted small"><i class="fa fa-tag text-primary"></i> Mã phòng</span>
+                            <strong class="h5 text-primary">${room.roomNumber}</strong>
+                        </div>
                     </div>
-                  </c:forEach>
                 </div>
-              </div>
 
-              <!-- NỘI QUY & CHÍNH SÁCH -->
-              <div class="p-4 rounded border bg-white mb-5">
-                <h4 class="h5 font-weight-bold text-dark mb-3"><i class="fa fa-info-circle text-primary mr-2"></i> Quy
-                  Định & Nội Quy Lưu Trú</h4>
-                <ul class="text-muted small pl-3 mb-0 room-amenities">
-                  <li><strong>Giờ nhận phòng:</strong> 14:00 | <strong>Giờ trả phòng:</strong> 12:00 trưa hôm sau.</li>
-                  <li>Không hút thuốc lá trong phòng ngủ (có khu vực hút thuốc riêng ngoài ban công/sân vườn).</li>
-                  <li>Vui lòng giữ trật tự và không mở nhạc lớn sau 22:00 để đảm bảo không gian yên tĩnh cho các phòng
-                    xung quanh.</li>
-                  <li>Hủy phòng miễn phí trước 48 giờ tính từ ngày nhận phòng.</li>
-                </ul>
-              </div>
+                <!-- GIỚI THIỆU KHÔNG GIAN -->
+                <div class="mb-5">
+                    <h3 class="h4 font-weight-bold text-dark mb-3">Mô Tả Không Gian Phòng</h3>
+                    <p class="text-muted lead room-description">${room.description}</p>
+                    <p class="text-muted room-description">
+                        Phòng được thiết kế theo phong cách hiện đại kết hợp các chất liệu mộc mạc tự nhiên, tận dụng tối đa
+                        ánh sáng tự nhiên từ cửa sổ và ban công lớn. Không gian được trang bị nệm cao cấp giúp bạn có giấc ngủ
+                        sâu và thư thái sau những giờ phút khám phá cảnh đẹp.
+                    </p>
+                </div>
+
+                <!-- DANH SÁCH TIỆN NGHI -->
+                <div class="mb-5">
+                    <h3 class="h4 font-weight-bold text-dark mb-4">Tiện Nghi & Dịch Vụ Đi Kèm</h3>
+                    <div class="row">
+                        <c:forEach var="amenity" items="${room.amenities}">
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="fa fa-check-circle text-success mr-3 h5 mb-0"></span>
+                                    <span class="text-dark font-weight-500">${amenity}</span>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
+
+                <!-- NỘI QUY & CHÍNH SÁCH -->
+                <div class="p-4 rounded border bg-white mb-5">
+                    <h4 class="h5 font-weight-bold text-dark mb-3"><i class="fa fa-info-circle text-primary mr-2"></i> Quy
+                        Định & Nội Quy Lưu Trú</h4>
+                    <ul class="text-muted small pl-3 mb-0 room-amenities">
+                        <li><strong>Giờ nhận phòng:</strong> 14:00 | <strong>Giờ trả phòng:</strong> 12:00 trưa hôm sau.</li>
+                        <li>Không hút thuốc lá trong phòng ngủ (có khu vực hút thuốc riêng ngoài ban công/sân vườn).</li>
+                        <li>Vui lòng giữ trật tự và không mở nhạc lớn sau 22:00 để đảm bảo không gian yên tĩnh cho các phòng
+                            xung quanh.</li>
+                        <li>Hủy phòng miễn phí trước 48 giờ tính từ ngày nhận phòng.</li>
+                    </ul>
+                    <!-- ĐÁNH GIÁ CỦA KHÁCH & PHẢN HỒI CỦA CHỦ NHÀ -->
+                    <!-- Dán ngay SAU khối "NỘI QUY & CHÍNH SÁCH" (thẻ </div> kết thúc khối đó), TRƯỚC thẻ </div> đóng cột trái col-lg-8 -->
+                    <div class="room-reviews-container" id="reviews">
+                        <h3 class="h4 font-weight-bold text-dark mb-1">Đánh Giá Từ Khách Hàng</h3>
+                        <p class="text-muted small mb-3">${reviewTotal} đánh giá</p>
+
+                        <c:if test="${empty reviews}">
+                            <p class="text-muted">Chưa có đánh giá nào cho phòng này.</p>
+                        </c:if>
+
+                        <c:forEach var="rev" items="${reviews}">
+                            <div class="review-item">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="reviewer-fallback mr-3"><c:out value="${rev.reviewerInitial}" /></span>
+                                    <div>
+                                        <strong class="text-dark"><c:out value="${rev.userDisplayName}" /></strong>
+                                        <div class="review-stars">
+                                            <c:forEach begin="1" end="5" var="i">
+                                                <i class="fa ${i <= rev.rating ? 'fa-star' : 'fa-star-o'}"></i>
+                                            </c:forEach>
+                                            <span class="text-muted small ml-2">${rev.formattedDate}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h5 class="font-weight-bold text-dark"><c:out value="${rev.title}" /></h5>
+                                <p class="review-text mb-2"><c:out value="${rev.comment}" /></p>
+
+                                <!-- Host's public reply (shown only when the Host has answered) -->
+                                <c:if test="${not empty rev.reply}">
+                                    <div class="review-reply">
+                                        <div class="review-reply-label">
+                                            <i class="fa fa-reply mr-1"></i> Phản hồi từ Chủ nhà
+                                            <span class="text-muted small ml-2">${rev.reply.formattedDate}</span>
+                                        </div>
+                                        <p class="review-text mb-0"><c:out value="${rev.reply.replyContent}" /></p>
+                                    </div>
+                                </c:if>
+                            </div>
+                        </c:forEach>
+                    </div>                  
+                </div>
 
             </div>
 
             <!-- CỘT PHẢI: KHUNG ĐẶT PHÒNG STICKY -->
             <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
-              <div class="card border-0 shadow-lg p-4 rounded sticky-top" style="top: 100px;">
-                <span class="text-uppercase letter-spacing-1 text-muted small font-weight-bold">Giá ưu đãi trực
-                  tuyến</span>
-                <div class="my-3">
-                  <span class="h2 font-weight-bold text-primary">
-                    ${room.formattedPrice}
-                  </span>
-                  <span class="text-muted font-weight-bold"> VNĐ / đêm</span>
+                <div class="card border-0 shadow-lg p-4 rounded sticky-top" style="top: 100px;">
+                    <span class="text-uppercase letter-spacing-1 text-muted small font-weight-bold">Giá ưu đãi trực
+                        tuyến</span>
+                    <div class="my-3">
+                        <span class="h2 font-weight-bold text-primary">
+                            ${room.formattedPrice}
+                        </span>
+                        <span class="text-muted font-weight-bold"> VNĐ / đêm</span>
+                    </div>
+                    <p class="text-muted small mb-4">Đã bao gồm thuế, phí dịch vụ và bữa sáng tự chọn tiêu chuẩn.</p>
+
+                    <div class="border-top pt-3 mb-4">
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Trạng thái:</span>
+                            <span class="badge badge-success px-2 py-1">${room.status == 'AVAILABLE' ? 'Còn trống' :
+                                                                          room.status}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Hạng phòng:</span>
+                            <strong class="text-dark">${room.roomType.typeName}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-muted">Phù hợp:</span>
+                            <strong class="text-dark">Tối đa ${room.capacity} người lớn</strong>
+                        </div>
+                    </div>
+
+                    <a href="${pageContext.request.contextPath}/reservation?roomId=${room.id}"
+                       class="btn btn-primary btn-block text-white font-weight-bold py-3 shadow mb-2">
+                        <i class="fa fa-calendar-check-o mr-2"></i> Tiến Hành Đặt Phòng
+                    </a>
+
+                    <!-- NÚT WISHLIST -->
+                    <button type="button" id="btnDetailWishlist"
+                            class="btn btn-block py-2 mb-3 font-weight-bold ${isWishlisted ? 'btn-danger text-white' : 'btn-outline-danger'}"
+                            onclick="toggleDetailWishlist(${room.id})"
+                            style="border-radius: 8px; transition: all 0.25s ease;">
+                        <i id="detailWishlistIcon" class="fa ${isWishlisted ? 'fa-heart' : 'fa-heart-o'} mr-2"></i>
+                        <span id="detailWishlistText">${isWishlisted ? 'Đã Lưu Vào Yêu Thích' : 'Lưu Vào Danh Sách Yêu Thích'}</span>
+                    </button>
+
+                    <div class="text-center">
+                        <p class="text-muted small mb-1">Cần hỗ trợ tư vấn nhanh?</p>
+                        <a href="tel:0901234567" class="text-dark font-weight-bold"><i
+                                class="fa fa-phone text-primary mr-1"></i> Hotline: 090 123 4567</a>
+                    </div>
                 </div>
-                <p class="text-muted small mb-4">Đã bao gồm thuế, phí dịch vụ và bữa sáng tự chọn tiêu chuẩn.</p>
-
-                <div class="border-top pt-3 mb-4">
-                  <div class="d-flex justify-content-between mb-2 small">
-                    <span class="text-muted">Trạng thái:</span>
-                    <span class="badge badge-success px-2 py-1">${room.status == 'AVAILABLE' ? 'Còn trống' :
-                      room.status}</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-2 small">
-                    <span class="text-muted">Hạng phòng:</span>
-                    <strong class="text-dark">${room.roomType.typeName}</strong>
-                  </div>
-                  <div class="d-flex justify-content-between small">
-                    <span class="text-muted">Phù hợp:</span>
-                    <strong class="text-dark">Tối đa ${room.capacity} người lớn</strong>
-                  </div>
-                </div>
-
-                <a href="${pageContext.request.contextPath}/reservation?roomId=${room.id}"
-                  class="btn btn-primary btn-block text-white font-weight-bold py-3 shadow mb-2">
-                  <i class="fa fa-calendar-check-o mr-2"></i> Tiến Hành Đặt Phòng
-                </a>
-
-                <!-- NÚT WISHLIST -->
-                <button type="button" id="btnDetailWishlist"
-                  class="btn btn-block py-2 mb-3 font-weight-bold ${isWishlisted ? 'btn-danger text-white' : 'btn-outline-danger'}"
-                  onclick="toggleDetailWishlist(${room.id})"
-                  style="border-radius: 8px; transition: all 0.25s ease;">
-                  <i id="detailWishlistIcon" class="fa ${isWishlisted ? 'fa-heart' : 'fa-heart-o'} mr-2"></i>
-                  <span id="detailWishlistText">${isWishlisted ? 'Đã Lưu Vào Yêu Thích' : 'Lưu Vào Danh Sách Yêu Thích'}</span>
-                </button>
-
-                <div class="text-center">
-                  <p class="text-muted small mb-1">Cần hỗ trợ tư vấn nhanh?</p>
-                  <a href="tel:0901234567" class="text-dark font-weight-bold"><i
-                      class="fa fa-phone text-primary mr-1"></i> Hotline: 090 123 4567</a>
-                </div>
-              </div>
             </div>
 
-          </div>
-
         </div>
-      </section>
 
-      <!-- TOAST THÔNG BÁO WISHLIST -->
-      <div id="wishlistToast" class="sogo-wishlist-toast">
-        <i class="fa fa-check-circle text-success mr-2" id="wishlistToastIcon"></i>
-        <span id="wishlistToastText">Đã cập nhật danh sách yêu thích</span>
-      </div>
+    </div>
+</section>
 
-      <script>
-        function showDetailToast(message, isSuccess) {
-          var toast = document.getElementById('wishlistToast');
-          var toastText = document.getElementById('wishlistToastText');
-          var toastIcon = document.getElementById('wishlistToastIcon');
-          if (!toast) return;
-          toastText.textContent = message;
-          if (isSuccess) {
+<!-- TOAST THÔNG BÁO WISHLIST -->
+<div id="wishlistToast" class="sogo-wishlist-toast">
+    <i class="fa fa-check-circle text-success mr-2" id="wishlistToastIcon"></i>
+    <span id="wishlistToastText">Đã cập nhật danh sách yêu thích</span>
+</div>
+
+<script>
+    function showDetailToast(message, isSuccess) {
+        var toast = document.getElementById('wishlistToast');
+        var toastText = document.getElementById('wishlistToastText');
+        var toastIcon = document.getElementById('wishlistToastIcon');
+        if (!toast)
+            return;
+        toastText.textContent = message;
+        if (isSuccess) {
             toastIcon.className = 'fa fa-check-circle text-success mr-2';
-          } else {
+        } else {
             toastIcon.className = 'fa fa-info-circle text-warning mr-2';
-          }
-          toast.style.display = 'flex';
-          clearTimeout(window._detailWishlistTimer);
-          window._detailWishlistTimer = setTimeout(function() {
-            toast.style.display = 'none';
-          }, 3200);
         }
+        toast.style.display = 'flex';
+        clearTimeout(window._detailWishlistTimer);
+        window._detailWishlistTimer = setTimeout(function () {
+            toast.style.display = 'none';
+        }, 3200);
+    }
 
-        function toggleDetailWishlist(roomId) {
-          var btnCard = document.getElementById('btnDetailWishlist');
-          var textCard = document.getElementById('detailWishlistText');
-          var iconCard = document.getElementById('detailWishlistIcon');
-          var btnImg = document.getElementById('imageDetailWishlistBtn');
-          var iconImg = document.getElementById('imageDetailWishlistIcon');
+    function toggleDetailWishlist(roomId) {
+        var btnCard = document.getElementById('btnDetailWishlist');
+        var textCard = document.getElementById('detailWishlistText');
+        var iconCard = document.getElementById('detailWishlistIcon');
+        var btnImg = document.getElementById('imageDetailWishlistBtn');
+        var iconImg = document.getElementById('imageDetailWishlistIcon');
 
-          if (btnCard) btnCard.disabled = true;
-          if (btnImg) btnImg.disabled = true;
+        if (btnCard)
+            btnCard.disabled = true;
+        if (btnImg)
+            btnImg.disabled = true;
 
-          var params = new URLSearchParams();
-          params.append('roomId', roomId);
+        var params = new URLSearchParams();
+        params.append('roomId', roomId);
 
-          fetch('${pageContext.request.contextPath}/api/wishlist/toggle', {
+        fetch('${pageContext.request.contextPath}/api/wishlist/toggle', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-              'X-Requested-With': 'XMLHttpRequest'
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
             },
             body: params.toString()
-          })
-          .then(function(res) { return res.json(); })
-          .then(function(data) {
-            if (btnCard) btnCard.disabled = false;
-            if (btnImg) btnImg.disabled = false;
+        })
+                .then(function (res) {
+                    return res.json();
+                })
+                .then(function (data) {
+                    if (btnCard)
+                        btnCard.disabled = false;
+                    if (btnImg)
+                        btnImg.disabled = false;
 
-            if (data.requireLogin) {
-              showDetailToast(data.message || 'Vui lòng đăng nhập để lưu phòng yêu thích!', false);
-              setTimeout(function() {
-                window.location.href = '${pageContext.request.contextPath}/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
-              }, 1200);
-              return;
-            }
+                    if (data.requireLogin) {
+                        showDetailToast(data.message || 'Vui lòng đăng nhập để lưu phòng yêu thích!', false);
+                        setTimeout(function () {
+                            window.location.href = '${pageContext.request.contextPath}/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                        }, 1200);
+                        return;
+                    }
 
-            if (data.success) {
-              var isAdded = (data.action === 'added');
+                    if (data.success) {
+                        var isAdded = (data.action === 'added');
 
-              if (btnCard && textCard && iconCard) {
-                if (isAdded) {
-                  btnCard.className = 'btn btn-block py-2 mb-3 font-weight-bold btn-danger text-white';
-                  iconCard.className = 'fa fa-heart mr-2';
-                  textCard.textContent = 'Đã Lưu Vào Yêu Thích';
-                } else {
-                  btnCard.className = 'btn btn-block py-2 mb-3 font-weight-bold btn-outline-danger';
-                  iconCard.className = 'fa fa-heart-o mr-2';
-                  textCard.textContent = 'Lưu Vào Danh Sách Yêu Thích';
-                }
-              }
+                        if (btnCard && textCard && iconCard) {
+                            if (isAdded) {
+                                btnCard.className = 'btn btn-block py-2 mb-3 font-weight-bold btn-danger text-white';
+                                iconCard.className = 'fa fa-heart mr-2';
+                                textCard.textContent = 'Đã Lưu Vào Yêu Thích';
+                            } else {
+                                btnCard.className = 'btn btn-block py-2 mb-3 font-weight-bold btn-outline-danger';
+                                iconCard.className = 'fa fa-heart-o mr-2';
+                                textCard.textContent = 'Lưu Vào Danh Sách Yêu Thích';
+                            }
+                        }
 
-              if (btnImg && iconImg) {
-                btnImg.classList.add('bounce');
-                setTimeout(function() { btnImg.classList.remove('bounce'); }, 450);
-                if (isAdded) {
-                  btnImg.classList.add('active');
-                  iconImg.className = 'fa fa-heart text-danger';
-                  btnImg.setAttribute('title', 'Bỏ lưu phòng yêu thích');
-                } else {
-                  btnImg.classList.remove('active');
-                  iconImg.className = 'fa fa-heart-o';
-                  btnImg.setAttribute('title', 'Lưu vào danh sách yêu thích');
-                }
-              }
+                        if (btnImg && iconImg) {
+                            btnImg.classList.add('bounce');
+                            setTimeout(function () {
+                                btnImg.classList.remove('bounce');
+                            }, 450);
+                            if (isAdded) {
+                                btnImg.classList.add('active');
+                                iconImg.className = 'fa fa-heart text-danger';
+                                btnImg.setAttribute('title', 'Bỏ lưu phòng yêu thích');
+                            } else {
+                                btnImg.classList.remove('active');
+                                iconImg.className = 'fa fa-heart-o';
+                                btnImg.setAttribute('title', 'Lưu vào danh sách yêu thích');
+                            }
+                        }
 
-              // Update badges
-              var badges = document.querySelectorAll('#navbarWishlistBadge, .header-wishlist-badge');
-              badges.forEach(function(b) {
-                b.textContent = data.wishlistCount || 0;
-                b.style.display = 'inline-block';
-              });
+                        // Update badges
+                        var badges = document.querySelectorAll('#navbarWishlistBadge, .header-wishlist-badge');
+                        badges.forEach(function (b) {
+                            b.textContent = data.wishlistCount || 0;
+                            b.style.display = 'inline-block';
+                        });
 
-              showDetailToast(data.message, true);
-            } else {
-              showDetailToast(data.message || 'Đã xảy ra lỗi!', false);
-            }
-          })
-          .catch(function(err) {
-            if (btnCard) btnCard.disabled = false;
-            if (btnImg) btnImg.disabled = false;
-            console.error(err);
-            showDetailToast('Không thể kết nối đến máy chủ!', false);
-          });
-        }
-      </script>
+                        showDetailToast(data.message, true);
+                    } else {
+                        showDetailToast(data.message || 'Đã xảy ra lỗi!', false);
+                    }
+                })
+                .catch(function (err) {
+                    if (btnCard)
+                        btnCard.disabled = false;
+                    if (btnImg)
+                        btnImg.disabled = false;
+                    console.error(err);
+                    showDetailToast('Không thể kết nối đến máy chủ!', false);
+                });
+    }
+</script>
 
-      <jsp:include page="common/footer.jsp" />
+<jsp:include page="common/footer.jsp" />

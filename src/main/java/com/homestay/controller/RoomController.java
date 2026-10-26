@@ -3,6 +3,9 @@ package com.homestay.controller;
 import com.homestay.dao.RoomDAO;
 import com.homestay.dao.WishlistDAO;
 import com.homestay.model.Room;
+import com.homestay.dao.ReviewDAO;
+import com.homestay.dao.ReviewReplyDAO;
+import com.homestay.model.Review;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -23,12 +26,16 @@ public class RoomController extends HttpServlet {
 
     private RoomDAO roomDAO;
     private WishlistDAO wishlistDAO;
+    private ReviewDAO reviewDAO;
+    private ReviewReplyDAO replyDAO;
 
     @Override
     public void init() throws ServletException {
         super.init();
         this.roomDAO = new RoomDAO();
         this.wishlistDAO = new WishlistDAO();
+        this.reviewDAO = new ReviewDAO();
+        this.replyDAO = new ReviewReplyDAO();
     }
 
     @Override
@@ -54,22 +61,34 @@ public class RoomController extends HttpServlet {
 
         Integer typeId = null;
         if (typeIdStr != null && !typeIdStr.trim().isEmpty()) {
-            try { typeId = Integer.parseInt(typeIdStr.trim()); } catch (NumberFormatException ignored) {}
+            try {
+                typeId = Integer.parseInt(typeIdStr.trim());
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         Integer capacity = null;
         if (capacityStr != null && !capacityStr.trim().isEmpty()) {
-            try { capacity = Integer.parseInt(capacityStr.trim()); } catch (NumberFormatException ignored) {}
+            try {
+                capacity = Integer.parseInt(capacityStr.trim());
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         java.math.BigDecimal minPrice = null;
         if (minPriceStr != null && !minPriceStr.trim().isEmpty()) {
-            try { minPrice = new java.math.BigDecimal(minPriceStr.trim()); } catch (Exception ignored) {}
+            try {
+                minPrice = new java.math.BigDecimal(minPriceStr.trim());
+            } catch (Exception ignored) {
+            }
         }
 
         java.math.BigDecimal maxPrice = null;
         if (maxPriceStr != null && !maxPriceStr.trim().isEmpty()) {
-            try { maxPrice = new java.math.BigDecimal(maxPriceStr.trim()); } catch (Exception ignored) {}
+            try {
+                maxPrice = new java.math.BigDecimal(maxPriceStr.trim());
+            } catch (Exception ignored) {
+            }
         }
 
         String ratingParam = request.getParameter("rating");
@@ -86,7 +105,8 @@ public class RoomController extends HttpServlet {
                 try {
                     minRating = Double.parseDouble(parts[0].trim());
                     maxRating = Double.parseDouble(parts[1].trim());
-                } catch (NumberFormatException ignored) {}
+                } catch (NumberFormatException ignored) {
+                }
             } else {
                 try {
                     double val = Double.parseDouble(ratingParam);
@@ -108,14 +128,18 @@ public class RoomController extends HttpServlet {
                     } else {
                         minRating = val;
                     }
-                } catch (NumberFormatException ignored) {}
+                } catch (NumberFormatException ignored) {
+                }
             }
         }
 
         String provinceIdStr = request.getParameter("provinceId");
         Integer provinceId = null;
         if (provinceIdStr != null && !provinceIdStr.trim().isEmpty()) {
-            try { provinceId = Integer.parseInt(provinceIdStr.trim()); } catch (NumberFormatException ignored) {}
+            try {
+                provinceId = Integer.parseInt(provinceIdStr.trim());
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         // Phân trang danh sách phòng: 6 phòng trên 1 trang
@@ -128,7 +152,8 @@ public class RoomController extends HttpServlet {
                 if (currentPage < 1) {
                     currentPage = 1;
                 }
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         int totalRoomsFound = roomDAO.countRooms(keyword, minPrice, maxPrice, capacity, typeId, provinceId, minRating, maxRating);
@@ -181,7 +206,12 @@ public class RoomController extends HttpServlet {
                 Optional<Room> roomOpt = roomDAO.findById(id);
                 if (roomOpt.isPresent()) {
                     request.setAttribute("room", roomOpt.get());
-                    request.setAttribute("activePage", "rooms");
+                    List<Review> reviews = reviewDAO.findApprovedReviewsByRoomId(id, 0, 10);
+                    replyDAO.attachReplies(reviews);
+                    request.setAttribute("reviews", reviews);
+                    request.setAttribute("reviewTotal", reviewDAO.countApprovedReviewsByRoomId(id));
+
+                      request.setAttribute("activePage", "rooms");
 
                     HttpSession session = request.getSession(false);
                     Integer userId = (session != null) ? (Integer) session.getAttribute("userId") : null;
