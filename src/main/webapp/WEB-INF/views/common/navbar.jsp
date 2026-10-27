@@ -15,6 +15,50 @@
                         <i class="fa fa-heart"></i>
                         <span class="header-wishlist-badge" id="navbarWishlistBadge">${not empty wishlistCount ? wishlistCount : (not empty sessionScope.wishlistCount ? sessionScope.wishlistCount : 0)}</span>
                     </a>
+
+                    <!-- NÚT THÔNG BÁO TRÊN HEADER (IN-APP NOTIFICATIONS) -->
+                    <c:if test="${not empty sessionScope.userId}">
+                        <div class="header-notification-wrapper" id="headerNotificationWrapper" style="position: relative; display: inline-block; margin-right: 15px;">
+                            <!-- Nút chuông dạng tròn đồng bộ với nút Wishlist -->
+                            <a href="javascript:void(0);" class="header-notification-link" id="headerNotificationToggle" title="Thông báo của bạn"
+                               style="position: relative; display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: rgba(255, 255, 255, 0.95); color: #f59e0b; font-size: 1.15rem; text-decoration: none; transition: all 0.25s ease; box-shadow: 0 3px 10px rgba(0,0,0,0.15);">
+                                <i class="fa fa-bell"></i>
+                                <span class="header-notification-badge" id="navbarNotificationBadge" 
+                                      style="display: none; position: absolute; top: -3px; right: -3px; background: #dc3545; color: #fff; border-radius: 50%; font-size: 0.68rem; font-weight: 700; min-width: 18px; height: 18px; text-align: center; line-height: 18px; padding: 0 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.25); border: 2px solid #fff;">
+                                    0
+                                </span>
+                            </a>
+
+                            <!-- POPUP DROPDOWN TOP 5 THÔNG BÁO -->
+                            <div class="notification-header-dropdown shadow-lg" id="notificationHeaderDropdown" 
+                                 style="display: none; position: absolute; right: -80px; top: 52px; width: 360px; max-width: 90vw; background: #fff; border-radius: 14px; z-index: 99999; border: 1px solid rgba(0,0,0,0.08); overflow: hidden; box-shadow: 0 12px 35px rgba(0,0,0,0.18);">
+
+                                <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+                                    <span class="font-weight-bold text-dark" style="font-size: 0.95rem;">
+                                        <i class="fa fa-bell text-warning mr-1"></i> Thông báo
+                                    </span>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-primary" id="btnHeaderMarkAllRead" style="font-size: 0.8rem; text-decoration: none;">
+                                        Đánh dấu đã đọc
+                                    </button>
+                                </div>
+
+                                <!-- Danh sách 5 thông báo nạp động qua AJAX -->
+                                <div id="headerNotificationList" style="max-height: 380px; overflow-y: auto;">
+                                    <div class="text-center py-4 text-muted small">
+                                        <i class="fa fa-spinner fa-spin mr-1"></i> Đang tải thông báo...
+                                    </div>
+                                </div>
+
+                                <!-- Footer dẫn sang trang đầy đủ -->
+                                <div class="p-2 text-center border-top bg-light">
+                                    <a href="${pageContext.request.contextPath}/notifications" class="small text-primary font-weight-bold" style="text-decoration: none;">
+                                        Xem tất cả thông báo <i class="fa fa-arrow-right ml-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </c:if>
+                    
                     <!-- CÁC NÚT ĐIỀU HƯỚNG CHÍNH (Hiển thị cho cả khi chưa đăng nhập và đã đăng nhập) -->
                     <a class="auth-link ${activePage == 'rooms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/rooms">Danh Sách Phòng</a>
                     <a class="auth-link ${activePage == 'about' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/about">Về Chúng Tôi</a>
@@ -95,9 +139,15 @@
                                     <a href="${pageContext.request.contextPath}/my-bookings" class="user-dropdown-item" role="menuitem">
                                         <i class="fa fa-calendar-check-o"></i> Lịch sử đặt phòng
                                     </a>
+
+                                    <a href="${pageContext.request.contextPath}/notifications" class="user-dropdown-item" role="menuitem">
+                                        <i class="fa fa-bell text-warning"></i> Thông báo của tôi
+                                    </a>
+                                        
                                     <a href="${pageContext.request.contextPath}/wishlist" class="user-dropdown-item" role="menuitem">
                                         <i class="fa fa-heart text-danger"></i> Danh sách yêu thích
                                     </a>
+                                        
                                     <c:if test="${!isUserAdmin && !isUserHost}">
                                         <a href="${pageContext.request.contextPath}/become-host" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-home"></i> Trở thành Host
@@ -463,43 +513,124 @@
         }
     });
     document.addEventListener('DOMContentLoaded', function () {
-        var menuContainer = document.getElementById('userMenuContainer');
-        var toggle = document.getElementById('userMenuToggle');
-        var dropdown = document.getElementById('userDropdown');
-        if (toggle && dropdown && menuContainer) {
-            toggle.addEventListener('click', function (e) {
-                e.stopPropagation();
-                var isOpen = dropdown.classList.toggle('show');
-                menuContainer.classList.toggle('open', isOpen);
-                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-            });
-            document.addEventListener('click', function (e) {
-                if (!menuContainer.contains(e.target)) {
-                    dropdown.classList.remove('show');
-                    menuContainer.classList.remove('open');
-                    toggle.setAttribute('aria-expanded', 'false');
-                }
-            });
-        }
-        // Tự động ẩn toast logout sau 4.5s
-        var toast = document.getElementById('logoutSuccessToast');
-        if (toast) {
-            setTimeout(function () {
-                if (typeof $ !== 'undefined') {
-                    $(toast).fadeOut(400, function () {
-                        $(this).remove();
-                    });
-                } else {
-                    toast.style.display = 'none';
-                }
-            }, 4500);
-        }
-        // Tự động bật nền solid cho trang không có hero banner để tránh đè giao diện
-        if (!document.querySelector('.site-hero')) {
-            var header = document.querySelector('.site-header');
-            if (header) {
-                header.classList.add('header-solid', 'scrolled');
+        // ================= XỬ LÝ NÚT CHUÔNG THÔNG BÁO (NOTIFICATION) =================
+        var notifToggle = document.getElementById('headerNotificationToggle');
+        var notifDropdown = document.getElementById('notificationHeaderDropdown');
+        var notifBadge = document.getElementById('navbarNotificationBadge');
+        var notifList = document.getElementById('headerNotificationList');
+        var markAllBtn = document.getElementById('btnHeaderMarkAllRead');
+
+        if (notifToggle && notifDropdown) {
+            // 1. Tự động lấy số lượng chưa đọc khi tải trang
+            function fetchUnreadBadge() {
+                fetch('${pageContext.request.contextPath}/api/notifications/count')
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data.success && data.loggedIn) {
+                            if (data.unreadCount > 0) {
+                                notifBadge.textContent = data.unreadCount > 99 ? '99+' : data.unreadCount;
+                                notifBadge.style.display = 'inline-block';
+                            } else {
+                                notifBadge.style.display = 'none';
+                            }
+                        }
+                    })
+                    .catch(function(err) { console.warn('Lỗi lấy unread count:', err); });
             }
+
+            // 2. Tải 5 thông báo mới nhất khi mở dropdown
+            function loadRecentNotifs() {
+                notifList.innerHTML = '<div class="text-center py-4 text-muted small"><i class="fa fa-spinner fa-spin mr-1"></i> Đang tải...</div>';
+                fetch('${pageContext.request.contextPath}/api/notifications/recent')
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (!data.success || !data.notifications || data.notifications.length === 0) {
+                            notifList.innerHTML = '<div class="text-center py-4 text-muted small"><i class="fa fa-bell-slash-o d-block mb-2" style="font-size:1.8rem;"></i>Không có thông báo mới</div>';
+                            return;
+                        }
+                        if (data.unreadCount > 0) {
+                            notifBadge.textContent = data.unreadCount;
+                            notifBadge.style.display = 'inline-block';
+                        } else {
+                            notifBadge.style.display = 'none';
+                        }
+
+                        var html = '';
+                        data.notifications.forEach(function(item) {
+                            var unreadStyle = !item.isRead ? 'background: #f4f8ff; font-weight: 500;' : 'background: #fff;';
+                            html += '<div class="p-3 border-bottom dropdown-notif-item" style="cursor:pointer; transition:background 0.2s; ' + unreadStyle + '" ' +
+                                    'onclick="onDropdownNotifClick(' + item.id + ', \'' + (item.targetUrl || '') + '\', ' + item.isRead + ');">' +
+                                    '<div class="d-flex align-items-start">' +
+                                    '<i class="' + item.iconClass + ' mr-2 mt-1" style="font-size:1.1rem;"></i>' +
+                                    '<div class="flex-grow-1">' +
+                                    '<div class="text-dark small font-weight-bold mb-1">' + item.title + '</div>' +
+                                    '<div class="text-muted" style="font-size: 0.78rem; line-height: 1.35; max-height: 2.7em; overflow: hidden;">' + item.message + '</div>' +
+                                    '<div class="text-muted mt-1" style="font-size: 0.72rem;"><i class="fa fa-clock-o mr-1"></i>' + item.timeAgo + '</div>' +
+                                    '</div>' +
+                                    (!item.isRead ? '<span class="ml-2" style="width:8px;height:8px;background:#0d6efd;border-radius:50%;display:inline-block;"></span>' : '') +
+                                    '</div>' +
+                                    '</div>';
+                        });
+                        notifList.innerHTML = html;
+                    })
+                    .catch(function(err) {
+                        notifList.innerHTML = '<div class="text-center py-3 text-danger small">Lỗi tải thông báo</div>';
+                    });
+            }
+
+            // 3. Sự kiện bấm vào nút chuông để bật/tắt Dropdown
+            notifToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var isHidden = (notifDropdown.style.display === 'none' || notifDropdown.style.display === '');
+                notifDropdown.style.display = isHidden ? 'block' : 'none';
+                if (isHidden) {
+                    loadRecentNotifs();
+                }
+            });
+
+            // 4. Bấm ra ngoài màn hình thì tự đóng dropdown
+            document.addEventListener('click', function(e) {
+                var wrapper = document.getElementById('headerNotificationWrapper');
+                if (wrapper && !wrapper.contains(e.target)) {
+                    notifDropdown.style.display = 'none';
+                }
+            });
+
+            // 5. Bấm nút "Đánh dấu đã đọc" trong dropdown
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    fetch('${pageContext.request.contextPath}/api/notifications/mark-all-read', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                        body: 'ajax=true'
+                    }).then(function() {
+                        notifBadge.style.display = 'none';
+                        loadRecentNotifs();
+                    });
+                });
+            }
+
+            // 6. Hàm click vào 1 thông báo
+            window.onDropdownNotifClick = function(id, targetUrl, isRead) {
+                if (!isRead) {
+                    fetch('${pageContext.request.contextPath}/api/notifications/mark-read', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'id=' + encodeURIComponent(id)
+                    }).then(function() { fetchUnreadBadge(); });
+                }
+                if (targetUrl && targetUrl !== '') {
+                    var fullUrl = targetUrl;
+                    if (!fullUrl.startsWith('http') && !fullUrl.startsWith('${pageContext.request.contextPath}')) {
+                        fullUrl = '${pageContext.request.contextPath}' + (fullUrl.startsWith('/') ? '' : '/') + fullUrl;
+                    }
+                    window.location.href = fullUrl;
+                }
+            };
+
+            // Chạy kiểm tra unread badge ngay khi tải trang
+            fetchUnreadBadge();
         }
     });
 </script>

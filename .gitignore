@@ -12,3 +12,4 @@ nb-configuration.xml
 /nbproject/
 src/main/webapp/assets/uploads/**
 !src/main/webapp/assets/uploads/**/.gitkeep
+database/
