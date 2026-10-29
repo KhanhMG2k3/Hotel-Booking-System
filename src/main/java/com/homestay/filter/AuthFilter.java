@@ -22,9 +22,8 @@ import java.io.IOException;
         "/become-host/*",
         "/profile",
         "/profile/*",
-        "/booking",
-        "/booking/*"
-        // Sau này muốn bảo vệ thêm URL nào thì chỉ cần thêm vào đây
+        "/my-bookings",
+        "/my-bookings/*"
 })
 public class AuthFilter implements Filter {
 

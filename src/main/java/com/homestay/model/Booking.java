@@ -41,6 +41,8 @@ public class Booking implements Serializable {
     // Presentation attributes
     private String roomName;
     private String propertyName;
+    private String roomImageUrl;
+    private java.util.List<BookingRoomItem> bookingRooms = new java.util.ArrayList<>();
 
     public Booking() {
     }
@@ -127,6 +129,18 @@ public class Booking implements Serializable {
 
     public void setCustomerPhone(String customerPhone) {
         this.customerPhone = customerPhone;
+    }
+
+    public String getEmail() {
+        return customerEmail;
+    }
+
+    public String getName() {
+        return customerName;
+    }
+
+    public String getPhone() {
+        return customerPhone;
     }
 
     public int getRoomId() {
@@ -251,6 +265,50 @@ public class Booking implements Serializable {
 
     public void setPropertyName(String propertyName) {
         this.propertyName = propertyName;
+    }
+
+    public java.util.List<BookingRoomItem> getBookingRooms() {
+        return bookingRooms;
+    }
+
+    public void setBookingRooms(java.util.List<BookingRoomItem> bookingRooms) {
+        this.bookingRooms = bookingRooms != null ? bookingRooms : new java.util.ArrayList<>();
+    }
+
+    public String getRoomImageUrl() {
+        return roomImageUrl != null && !roomImageUrl.isEmpty() ? roomImageUrl : "images/img_1.jpg";
+    }
+
+    public void setRoomImageUrl(String roomImageUrl) {
+        this.roomImageUrl = roomImageUrl;
+    }
+
+    public int getNumberOfNights() {
+        if (checkInDate != null && checkOutDate != null) {
+            long diff = checkOutDate.getTime() - checkInDate.getTime();
+            return (int) Math.max(1, diff / (1000 * 60 * 60 * 24));
+        }
+        return 1;
+    }
+
+    public String getFormattedCheckInDate() {
+        if (checkInDate == null) return "";
+        return new java.text.SimpleDateFormat("dd/MM/yyyy").format(checkInDate);
+    }
+
+    public String getFormattedCheckOutDate() {
+        if (checkOutDate == null) return "";
+        return new java.text.SimpleDateFormat("dd/MM/yyyy").format(checkOutDate);
+    }
+
+    public String getFormattedCreatedAt() {
+        if (createdAt == null) return "";
+        return new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(createdAt);
+    }
+
+    public String getFormattedTotalPrice() {
+        if (totalPrice == null) return "0";
+        return java.text.NumberFormat.getNumberInstance(new java.util.Locale("vi", "VN")).format(totalPrice);
     }
 
     @Override

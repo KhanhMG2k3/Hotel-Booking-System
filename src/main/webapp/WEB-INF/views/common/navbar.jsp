@@ -21,6 +21,25 @@
                     <a class="auth-link ${activePage == 'terms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/terms">Điều Khoản</a>
                     <a class="auth-link ${activePage == 'faq' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/faq">FAQ</a>
 
+                    <!-- NÚT GẠT CHUYỂN ĐỔI LIGHT / DARK MODE (DESKTOP) -->
+                    <div class="theme-toggle-wrapper" title="Chuyển đổi giao diện Sáng / Tối">
+                        <button type="button" class="theme-toggle-btn" id="desktopThemeToggleBtn" role="switch" aria-checked="false" aria-label="Chuyển đổi giao diện sáng/tối">
+                            <span class="theme-toggle-track">
+                                <span class="theme-toggle-icon icon-sun" title="Chế độ Sáng">
+                                    <i class="fa fa-sun-o"></i>
+                                </span>
+                                <span class="theme-toggle-icon icon-moon" title="Chế độ Tối">
+                                    <i class="fa fa-moon-o"></i>
+                                </span>
+                                <span class="theme-toggle-thumb">
+                                    <span class="thumb-icon-sun"><i class="fa fa-sun-o"></i></span>
+                                    <span class="thumb-icon-moon"><i class="fa fa-moon-o"></i></span>
+                                </span>
+                            </span>
+                            <span class="theme-toggle-label d-none d-xl-inline">Sáng</span>
+                        </button>
+                    </div>
+
                     <!-- Dấu gạch đứng phân cách nhẹ -->
                     <span class="auth-divider text-white-50 mx-2" style="user-select: none;">|</span>
 
@@ -161,6 +180,29 @@
                         </div>
                         <!-- Thân Drawer cuộn mượt mà -->
                         <div class="drawer-body">
+                            <!-- Chuyển đổi Giao diện Sáng / Tối trong Drawer -->
+                            <div class="drawer-theme-switch-row">
+                                <div class="drawer-theme-info">
+                                    <i class="fa fa-adjust text-warning mr-1" style="font-size: 16px;"></i>
+                                    <div>
+                                        <div class="drawer-theme-title">Giao diện</div>
+                                        <div class="drawer-theme-status" id="drawerThemeStatus">Chế độ Sáng</div>
+                                    </div>
+                                </div>
+                                <div class="theme-toggle-wrapper">
+                                    <button type="button" class="theme-toggle-btn" id="mobileThemeToggleBtn" role="switch" aria-checked="false" aria-label="Chuyển đổi giao diện sáng/tối">
+                                        <span class="theme-toggle-track">
+                                            <span class="theme-toggle-icon icon-sun"><i class="fa fa-sun-o"></i></span>
+                                            <span class="theme-toggle-icon icon-moon"><i class="fa fa-moon-o"></i></span>
+                                            <span class="theme-toggle-thumb">
+                                                <span class="thumb-icon-sun"><i class="fa fa-sun-o"></i></span>
+                                                <span class="thumb-icon-moon"><i class="fa fa-moon-o"></i></span>
+                                            </span>
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+
                             <!-- Thẻ tóm tắt thông tin người dùng (Đã đăng nhập vs Khách) -->
                             <c:choose>
                                 <c:when test="${not empty sessionScope.userId}">
@@ -252,7 +294,7 @@
                                     </li>
                                     <li class="drawer-nav-item ${activePage == 'wishlist' ? 'active' : ''}">
                                         <a href="${pageContext.request.contextPath}/wishlist" class="drawer-nav-link" onclick="closeSiteNavbar()">
-                                            <span class="drawer-nav-icon" style="background:#fff1f2; color:#f43f5e;"><i class="fa fa-heart"></i></span>
+                                            <span class="drawer-nav-icon icon-wishlist"><i class="fa fa-heart"></i></span>
                                             <span class="drawer-nav-text">Danh Sách Yêu Thích</span>
                                             <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                         </a>

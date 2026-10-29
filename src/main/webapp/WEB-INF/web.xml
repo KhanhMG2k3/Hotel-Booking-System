@@ -120,6 +120,16 @@
         <url-pattern>/logout</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>MyBookingsController</servlet-name>
+        <servlet-class>com.homestay.controller.MyBookingsController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>MyBookingsController</servlet-name>
+        <url-pattern>/my-bookings</url-pattern>
+        <url-pattern>/my-bookings/*</url-pattern>
+    </servlet-mapping>
+
     <!-- Map Host and administrator pages and APIs to their controllers. -->
     <servlet>
         <servlet-name>HostApplicationController</servlet-name>
