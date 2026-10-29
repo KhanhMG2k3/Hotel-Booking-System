@@ -171,8 +171,13 @@
         object-fit: cover !important;
         object-position: center !important;
         border-radius: 50% !important;
-        display: block !important;
+        display: block;
         margin: 0 !important;
+    }
+
+    .fitflow-avatar-box img[style*="display:none"],
+    .fitflow-avatar-box img[style*="display: none"] {
+        display: none !important;
     }
 
     .fitflow-avatar-fallback {
@@ -181,12 +186,20 @@
         border-radius: 50% !important;
         background: linear-gradient(135deg, #ffba5a 0%, #e67e22 100%) !important;
         color: #ffffff !important;
-        font-size: 2.5rem !important;
+        font-size: 2.75rem !important;
         font-weight: 700 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         line-height: 1 !important;
+        text-transform: uppercase !important;
+        user-select: none !important;
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    .fitflow-avatar-fallback[style*="display:none"],
+    .fitflow-avatar-fallback[style*="display: none"] {
+        display: none !important;
     }
 
     .fitflow-avatar-overlay {
@@ -422,12 +435,249 @@
     .fitflow-pass-toggle:hover {
         color: #374151 !important;
     }
+
+    /* Box meta: Tham gia & Trạng thái */
+    .fitflow-meta-box {
+        background: #F9FAFB !important;
+        border: 1px solid #E5E7EB !important;
+        border-radius: 10px !important;
+        padding: 10px 14px !important;
+        color: #6B7280 !important;
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
+    }
+    .fitflow-meta-box .fitflow-meta-label {
+        color: #6B7280 !important;
+        font-weight: 500 !important;
+    }
+    .fitflow-meta-box .fitflow-meta-value {
+        color: #1F2937 !important;
+        font-weight: 600 !important;
+    }
+
+    /* Ô input chỉ đọc / vô hiệu hóa (Email) */
+    .fitflow-input-readonly,
+    .fitflow-input:disabled,
+    .fitflow-input[readonly] {
+        background-color: #F9FAFB !important;
+        border-color: #E5E7EB !important;
+        color: #6B7280 !important;
+        -webkit-text-fill-color: #6B7280 !important;
+        cursor: not-allowed !important;
+        opacity: 0.95 !important;
+    }
+
+    /* Hộp hướng dẫn mật khẩu */
+    .fitflow-password-help {
+        background: #FFF9E6 !important;
+        border-left: 4px solid #EAA32B !important;
+    }
+    .fitflow-password-help .fitflow-help-title {
+        color: #1F2937 !important;
+    }
+    .fitflow-password-help .fitflow-help-list {
+        color: #6B7280 !important;
+    }
+
+    /* Thẻ thông báo tài khoản Google */
+    .fitflow-google-card {
+        background: #F9FAFB !important;
+        border: 1px solid #E5E7EB !important;
+    }
+    .fitflow-google-circle {
+        color: #f1f5f9 !important;
+    }
+    .fitflow-google-title {
+        color: #1F2937 !important;
+    }
+    .fitflow-google-desc {
+        color: #6B7280 !important;
+        max-width: 480px;
+        margin: 0 auto;
+        line-height: 1.8;
+    }
+    .fitflow-google-badge {
+        background: #ffffff !important;
+        border-color: #E5E7EB !important;
+    }
+    .fitflow-google-badge-text {
+        color: #1F2937 !important;
+    }
+
+    /* Dark Mode scoped overrides for Profile */
+    [data-theme="dark"] .fitflow-card {
+        background: #162032 !important;
+        border: 1px solid #243247 !important;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5) !important;
+        color: #f1f5f9 !important;
+    }
+    [data-theme="dark"] .fitflow-title {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .fitflow-subtitle {
+        color: #94a3b8 !important;
+    }
+    [data-theme="dark"] .fitflow-user-name {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .fitflow-label {
+        color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .fitflow-input {
+        background-color: #111827 !important;
+        border-color: #334155 !important;
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] select.fitflow-input {
+        background-color: #111827 !important;
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .fitflow-input:focus {
+        border-color: #fbbf24 !important;
+        box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.25) !important;
+    }
+    [data-theme="dark"] .fitflow-nav-btn {
+        background: #111827 !important;
+        border-color: #334155 !important;
+        color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .fitflow-nav-btn:hover {
+        background: #1c2a42 !important;
+        color: #f8fafc !important;
+        border-color: #334155 !important;
+    }
+    [data-theme="dark"] .fitflow-nav-btn.active {
+        background: rgba(251, 191, 36, 0.15) !important;
+        border-color: #f59e0b !important;
+        color: #fbbf24 !important;
+    }
+    [data-theme="dark"] .fitflow-card .border {
+        border-color: #243247 !important;
+    }
+    [data-theme="dark"] .fitflow-back-btn {
+        background: rgba(22, 32, 50, 0.92) !important;
+        border-color: #334155 !important;
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .fitflow-back-btn:hover {
+        background: #162032 !important;
+        color: #fbbf24 !important;
+    }
+    [data-theme="dark"] .fitflow-pass-toggle {
+        color: #94a3b8 !important;
+    }
+    [data-theme="dark"] .fitflow-pass-toggle:hover {
+        color: #fbbf24 !important;
+    }
+
+    /* Dark mode: Box Tham gia / Trạng thái */
+    [data-theme="dark"] .fitflow-meta-box {
+        background: #111827 !important;
+        border-color: #243247 !important;
+        color: #94a3b8 !important;
+    }
+    [data-theme="dark"] .fitflow-meta-box .fitflow-meta-label {
+        color: #94a3b8 !important;
+    }
+    [data-theme="dark"] .fitflow-meta-box .fitflow-meta-value {
+        color: #f8fafc !important;
+    }
+
+    /* Dark mode: Input readonly / disabled (Email) */
+    [data-theme="dark"] .fitflow-input-readonly,
+    [data-theme="dark"] .fitflow-input:disabled,
+    [data-theme="dark"] .fitflow-input[readonly] {
+        background-color: #0b1322 !important;
+        border-color: #243247 !important;
+        color: #94a3b8 !important;
+        -webkit-text-fill-color: #94a3b8 !important;
+        cursor: not-allowed !important;
+        opacity: 0.95 !important;
+    }
+
+    /* Dark mode: Hướng dẫn mật khẩu */
+    [data-theme="dark"] .fitflow-password-help {
+        background: rgba(234, 163, 43, 0.12) !important;
+        border-left: 4px solid #f59e0b !important;
+    }
+    [data-theme="dark"] .fitflow-password-help .fitflow-help-title {
+        color: #fbbf24 !important;
+    }
+    [data-theme="dark"] .fitflow-password-help .fitflow-help-list {
+        color: #cbd5e1 !important;
+    }
+
+    /* Dark mode: Google Card */
+    [data-theme="dark"] .fitflow-google-card {
+        background: #111827 !important;
+        border-color: #243247 !important;
+    }
+    [data-theme="dark"] .fitflow-google-circle {
+        color: #1e293b !important;
+    }
+    [data-theme="dark"] .fitflow-google-title {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .fitflow-google-desc {
+        color: #94a3b8 !important;
+    }
+    [data-theme="dark"] .fitflow-google-badge {
+        background: #0d1526 !important;
+        border-color: #243247 !important;
+    }
+    [data-theme="dark"] .fitflow-google-badge-text {
+        color: #cbd5e1 !important;
+    }
+
+    /* Dark mode: Vai trò */
+    [data-theme="dark"] .fitflow-role-host {
+        background: rgba(59, 130, 246, 0.18) !important;
+        border-color: rgba(59, 130, 246, 0.4) !important;
+        color: #93c5fd !important;
+    }
+    [data-theme="dark"] .fitflow-role-customer {
+        background: rgba(245, 158, 11, 0.18) !important;
+        border-color: rgba(245, 158, 11, 0.4) !important;
+        color: #fbbf24 !important;
+    }
+    [data-theme="dark"] .fitflow-role-admin {
+        background: rgba(239, 68, 68, 0.18) !important;
+        border-color: rgba(239, 68, 68, 0.4) !important;
+        color: #fca5a5 !important;
+    }
+
+    /* Dark mode: Switch & Date */
+    [data-theme="dark"] .custom-control-label {
+        color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .form-text.text-muted {
+        color: #94a3b8 !important;
+    }
+    [data-theme="dark"] input[type="date"].fitflow-input {
+        color-scheme: dark;
+    }
 </style>
 
 <!-- Nút quay lại trang chủ dạng mũi tên nhỏ ở góc trái màn hình -->
 <a href="${pageContext.request.contextPath}/home" class="fitflow-back-btn" title="Về trang chính">
     <i class="fa fa-arrow-left"></i>
 </a>
+
+<!-- Nút gạt chuyển đổi theme nổi ở góc phải màn hình trang Profile -->
+<div class="fitflow-theme-btn-wrap" style="position: fixed; top: 24px; right: 24px; z-index: 9999;">
+    <div class="theme-toggle-wrapper" title="Chuyển đổi giao diện Sáng / Tối">
+        <button type="button" class="theme-toggle-btn" id="profileThemeToggleBtn" role="switch" aria-checked="false" aria-label="Chuyển đổi giao diện sáng/tối">
+            <span class="theme-toggle-track">
+                <span class="theme-toggle-icon icon-sun" title="Chế độ Sáng"><i class="fa fa-sun-o"></i></span>
+                <span class="theme-toggle-icon icon-moon" title="Chế độ Tối"><i class="fa fa-moon-o"></i></span>
+                <span class="theme-toggle-thumb">
+                    <span class="thumb-icon-sun"><i class="fa fa-sun-o"></i></span>
+                    <span class="thumb-icon-moon"><i class="fa fa-moon-o"></i></span>
+                </span>
+            </span>
+            <span class="theme-toggle-label d-none d-sm-inline">Sáng</span>
+        </button>
+    </div>
+</div>
 
 <!-- MAIN CONTENT SECTION: Giao diện chuẩn xác 100% theo ảnh mẫu -->
 <section class="fitflow-wrapper">
@@ -439,14 +689,27 @@
             <div class="col-lg-4 col-md-5 mb-4">
                 <div class="fitflow-card text-center">
                     
-                    <!-- Avatar tròn 104px: di chuột vào hiện biểu tượng camera, click vào cho phép upload file từ thiết bị -->
-                    <div class="fitflow-avatar-box" onclick="document.getElementById('avatarFileInput').click();" title="Nhấn để đổi ảnh đại diện từ thiết bị" style="width: 104px; height: 104px; min-width: 104px; min-height: 104px; max-width: 104px; max-height: 104px; margin: 0 auto 16px; border-radius: 50%; overflow: hidden; cursor: pointer; border: 3px solid #ffba5a; position: relative; background: #ffffff;">
-                        <img src="${userAvatarSrc}" alt="Avatar" id="sidebarAvatarImg"
-                             style="width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 50%; display: block; margin: 0; ${empty userAvatarSrc ? 'display:none;' : ''}"
-                             onerror="this.style.display='none'; document.getElementById('sidebarAvatarFallback').style.display='flex';">
-                        <div id="sidebarAvatarFallback" class="fitflow-avatar-fallback" style="width: 100%; height: 100%; border-radius: 50%; ${not empty userAvatarSrc ? 'display:none;' : ''}">
-                            ${fn:toUpperCase(fn:substring(u.fullName, 0, 1))}
-                        </div>
+                    <!-- Avatar tròn 104px: hiển thị ảnh đại diện hoặc chữ cái đầu của tên đăng nhập khi chưa cài avatar mới -->
+                    <div class="fitflow-avatar-box" onclick="document.getElementById('avatarFileInput').click();" title="Nhấn để đổi ảnh đại diện từ thiết bị" style="width: 104px; height: 104px; min-width: 104px; min-height: 104px; max-width: 104px; max-height: 104px; margin: 0 auto 16px; border-radius: 50%; overflow: hidden; cursor: pointer; border: 3px solid #ffba5a; position: relative; background: #f3f4f6;">
+                        <c:set var="userInitial" value="${not empty u.username ? fn:toUpperCase(fn:substring(u.username, 0, 1)) : (not empty u.fullName ? fn:toUpperCase(fn:substring(u.fullName, 0, 1)) : 'U')}" />
+                        <c:choose>
+                            <c:when test="${not empty userAvatarSrc}">
+                                <img src="${userAvatarSrc}" alt="Avatar" id="sidebarAvatarImg"
+                                     style="width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 50%; display: block; margin: 0;"
+                                     onerror="this.style.display='none'; document.getElementById('sidebarAvatarFallback').style.display='flex';">
+                                <div id="sidebarAvatarFallback" class="fitflow-avatar-fallback" style="display: none;">
+                                    ${userInitial}
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <img src="" alt="Avatar" id="sidebarAvatarImg"
+                                     style="width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 50%; display: none; margin: 0;"
+                                     onerror="this.style.display='none'; document.getElementById('sidebarAvatarFallback').style.display='flex';">
+                                <div id="sidebarAvatarFallback" class="fitflow-avatar-fallback" style="display: flex;">
+                                    ${userInitial}
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                         <!-- Lớp phủ icon camera khi hover -->
                         <div class="fitflow-avatar-overlay">
                             <i class="fa fa-camera"></i>
@@ -483,10 +746,10 @@
                     </div>
 
                     <!-- Ngày tham gia & Trạng thái tài khoản (Giữ lại theo yêu cầu) -->
-                    <div class="p-2 mb-4 rounded text-left small text-muted" style="background:#F9FAFB; border:1px solid #E5E7EB;">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span><i class="fa fa-calendar-check-o mr-1 text-warning"></i> Tham gia:</span>
-                            <strong class="text-dark">
+                    <div class="fitflow-meta-box mb-4 text-left small">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fitflow-meta-label"><i class="fa fa-calendar-check-o mr-1 text-warning"></i> Tham gia:</span>
+                            <strong class="fitflow-meta-value">
                                 <c:choose>
                                     <c:when test="${not empty joinDateFormatted}">
                                         ${joinDateFormatted}
@@ -498,8 +761,8 @@
                                 </c:choose>
                             </strong>
                         </div>
-                        <div class="d-flex justify-content-between">
-                            <span><i class="fa fa-shield mr-1 text-success"></i> Trạng thái:</span>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fitflow-meta-label"><i class="fa fa-shield mr-1 text-success"></i> Trạng thái:</span>
                             <span class="badge badge-success px-2 py-1">${not empty u.status ? (u.status == 'ACTIVE' ? 'Hoạt động' : u.status) : 'Hoạt động'}</span>
                         </div>
                     </div>
@@ -598,7 +861,7 @@
                                 <!-- 3. Email (Readonly) -->
                                 <div class="form-group mb-3">
                                     <label class="fitflow-label">Email</label>
-                                    <input type="email" class="fitflow-input" style="background-color: #F9FAFB !important; cursor: not-allowed;"
+                                    <input type="email" class="fitflow-input fitflow-input-readonly"
                                            value="<c:out value='${u.email}' />" readonly disabled>
                                 </div>
 
@@ -669,11 +932,11 @@
                                 <%-- TRƯỜNG HỢP 1: Tài khoản thường (Email + Mật khẩu local) --%>
                                 <c:when test="${not empty u.password}">
                                     
-                                    <div class="p-3 mb-4 rounded" style="background:#FFF9E6; border-left:4px solid #EAA32B;">
-                                        <h6 class="font-weight-bold text-dark mb-1 small">
+                                    <div class="fitflow-password-help p-3 mb-4 rounded">
+                                        <h6 class="font-weight-bold mb-1 small fitflow-help-title">
                                             <i class="fa fa-info-circle text-warning mr-1"></i> Hướng dẫn mật khẩu an toàn
                                         </h6>
-                                        <ul class="text-muted small mb-0 pl-3">
+                                        <ul class="small mb-0 pl-3 fitflow-help-list">
                                             <li>Mật khẩu mới phải có tối thiểu <strong>8 ký tự</strong>.</li>
                                             <li>Nên kết hợp chữ cái viết hoa, chữ thường, chữ số và ký tự đặc biệt.</li>
                                         </ul>
@@ -729,21 +992,21 @@
 
                                 <%-- TRƯỜNG HỢP 2: Tài khoản đăng nhập qua Google --%>
                                 <c:otherwise>
-                                    <div class="text-center py-5 rounded" style="background:#F9FAFB; border:1px solid #E5E7EB;">
+                                    <div class="fitflow-google-card text-center py-5 rounded">
                                         <div class="mb-3">
                                             <span class="fa-stack fa-2x">
-                                                <i class="fa fa-circle fa-stack-2x text-light"></i>
+                                                <i class="fa fa-circle fa-stack-2x fitflow-google-circle"></i>
                                                 <i class="fa fa-google fa-stack-1x text-danger"></i>
                                             </span>
                                         </div>
-                                        <h5 class="font-weight-bold text-dark mb-2">Tài Khoản Đăng Nhập Bằng Google</h5>
-                                        <p class="text-muted small mb-4" style="max-width: 480px; margin: 0 auto; line-height: 1.8;">
+                                        <h5 class="font-weight-bold fitflow-google-title mb-2">Tài Khoản Đăng Nhập Bằng Google</h5>
+                                        <p class="fitflow-google-desc small mb-4">
                                             Tài khoản của bạn được liên kết trực tiếp với dịch vụ định danh Google (<strong><c:out value="${u.email}" /></strong>). 
                                             Mật khẩu được quản lý an toàn bởi Google Account, không cần thay đổi mật khẩu trên Sogo Homestay.
                                         </p>
-                                        <div class="d-inline-flex align-items-center px-3 py-2 rounded border bg-white shadow-sm">
+                                        <div class="d-inline-flex align-items-center px-3 py-2 rounded border fitflow-google-badge shadow-sm">
                                             <i class="fa fa-shield text-success mr-2"></i>
-                                            <span class="small font-weight-bold text-dark">Bảo vệ 2 lớp bởi Google Security</span>
+                                            <span class="small font-weight-bold fitflow-google-badge-text">Bảo vệ 2 lớp bởi Google Security</span>
                                         </div>
                                     </div>
                                 </c:otherwise>

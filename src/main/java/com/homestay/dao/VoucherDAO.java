@@ -140,6 +140,34 @@ public class VoucherDAO extends BaseDAO
     }
 
     /**
+     * Find a voucher by its unique coupon code.
+     */
+    public Optional<Voucher> findByCode(String code) {
+        if (code == null || code.trim().isEmpty()) {
+            return Optional.empty();
+        }
+
+        String sql = "SELECT * FROM vouchers WHERE UPPER(TRIM(code)) = UPPER(?) AND status = 'ACTIVE' LIMIT 1";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, code.trim());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToVoucher(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding voucher by code: " + code, e);
+        }
+
+        return Optional.empty();
+    }
+
+    /**
      * Create a new voucher.
      * hostId must be assigned by the Controller from session.
      */

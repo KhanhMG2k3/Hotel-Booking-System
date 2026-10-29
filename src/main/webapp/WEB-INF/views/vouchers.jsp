@@ -2,123 +2,68 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Quản lý voucher - Sogo Homestay</title>
+<jsp:include page="common/header.jsp">
+    <jsp:param name="pageTitle" value="Quản lý voucher - Sogo Homestay" />
+</jsp:include>
 
-    <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/assets/css/bootstrap.min.css">
-    <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/assets/css/style.css">
-
-    <style>
-        /* Header cố định nền trắng sắc nét cho trang Quản lý Voucher */
-        .site-header {
-            background: #ffffff !important;
-            padding: 14px 0 !important;
-            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08) !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            z-index: 1030 !important;
-        }
-        .site-header .site-logo a {
-            color: #1a1a1a !important;
-        }
-        .site-header .site-menu-toggle span {
-            background: #1a1a1a !important;
-        }
-        .site-header .user-name {
-            color: #1a1a1a !important;
-        }
-        .site-header .user-caret {
-            color: #1a1a1a !important;
-        }
-        .site-header .auth-link:not(.auth-link-primary) {
-            color: #202b32 !important;
-        }
-        .site-header .auth-link:not(.auth-link-primary):hover {
-            color: #f59e0b !important;
-        }
-        .site-header .auth-divider {
-            color: rgba(32, 43, 50, 0.3) !important;
-        }
-        .site-header .user-menu-toggle {
-            background: #f8f9fa !important;
-            border-color: #e9ecef !important;
-        }
-        .site-header .user-menu-toggle:hover {
-            background: #eef2f7 !important;
-            border-color: #f59e0b !important;
-        }
-        .site-header .header-wishlist-link {
-            color: #202b32 !important;
-        }
-
-        .voucher-page {
-            min-height: 75vh;
-            padding-top: 125px !important;
-            padding-bottom: 60px;
-            background: #f7f8fa;
-        }
-
-        .voucher-panel, .stat-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,.05);
-        }
-
-        .voucher-label {
-            color: #6c757d;
-            font-size: 14px;
-        }
-
-        .voucher-code {
-            font-weight: 700;
-            letter-spacing: .5px;
-        }
-
-        .status-active {
-            color: #146c43;
-            background: #d1e7dd;
-        }
-
-        .status-inactive {
-            color: #842029;
-            background: #f8d7da;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-
-        .form-panel {
-            scroll-margin-top: 20px;
-        }
-
-        .action-forms {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .action-forms form {
-            margin: 0;
-        }
-    </style>
-</head>
-
-<body>
-<jsp:include page="common/header.jsp" />
 <jsp:include page="common/navbar.jsp" />
+
+<style>
+    .voucher-page {
+        min-height: 75vh;
+        padding-top: 125px !important;
+        padding-bottom: 60px;
+        background: #f7f8fa;
+    }
+
+    .voucher-panel, .stat-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.05);
+    }
+
+    .voucher-label {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .voucher-code {
+        font-weight: 700;
+        letter-spacing: .5px;
+    }
+
+    .status-active {
+        color: #146c43;
+        background: #d1e7dd;
+    }
+
+    .status-inactive {
+        color: #842029;
+        background: #f8d7da;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+    }
+
+    .form-panel {
+        scroll-margin-top: 20px;
+    }
+
+    .action-forms {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .action-forms form {
+        margin: 0;
+    }
+</style>
 
 <main class="voucher-page">
     <div class="container">
@@ -427,5 +372,5 @@
         </section>
     </div>
 </main>
-</body>
-</html>
+
+<jsp:include page="common/footer.jsp" />

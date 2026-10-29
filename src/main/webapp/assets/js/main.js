@@ -164,16 +164,6 @@
 
   // Date and time pickers
   var dateAndTime = function () {
-    if ($.fn.datepicker) {
-      $('#m_date').datepicker({
-        'format': 'm/d/yyyy',
-        'autoclose': true
-      });
-      $('#checkin_date, #checkout_date').datepicker({
-        'format': 'd MM, yyyy',
-        'autoclose': true
-      });
-    }
     if ($.fn.timepicker) {
       $('#m_time').timepicker();
     }

@@ -59,8 +59,9 @@
     <script src="${pageContext.request.contextPath}/assets/js/jquery.stellar.min.js"></script>
     <script src="${pageContext.request.contextPath}/assets/js/jquery.fancybox.min.js"></script>
     <script src="${pageContext.request.contextPath}/assets/js/aos.js"></script>
-    <script src="${pageContext.request.contextPath}/assets/js/bootstrap-datepicker.js"></script> 
     <script src="${pageContext.request.contextPath}/assets/js/jquery.timepicker.min.js"></script> 
-    <script src="${pageContext.request.contextPath}/assets/js/main.js?v=20261011-eye-fix"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/main.js?v=20261027-native-only-v3"></script>
+    <!-- Theme Toggle Controller -->
+    <script src="${pageContext.request.contextPath}/assets/js/theme-toggle.js?v=20261027-3"></script>
   </body>
 </html>

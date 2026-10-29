@@ -275,7 +275,7 @@
             }
 
             if (data.success) {
-              var isAdded = (data.action === 'added');
+              var isAdded = (data.action === 'added' || data.isWishlisted === true);
 
               if (btnCard && textCard && iconCard) {
                 if (isAdded) {
@@ -303,10 +303,11 @@
                 }
               }
 
-              // Update badges
+              // Update badges immediately
+              var newCount = (typeof data.wishlistCount !== 'undefined') ? data.wishlistCount : ((typeof data.count !== 'undefined') ? data.count : 0);
               var badges = document.querySelectorAll('#navbarWishlistBadge, .header-wishlist-badge');
               badges.forEach(function(b) {
-                b.textContent = data.wishlistCount || 0;
+                b.textContent = newCount;
                 b.style.display = 'inline-block';
               });
 

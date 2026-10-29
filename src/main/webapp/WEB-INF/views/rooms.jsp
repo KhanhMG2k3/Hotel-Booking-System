@@ -501,7 +501,12 @@
             e.preventDefault();
             e.stopPropagation();
           }
+          if (!btn) return;
           btn.disabled = true;
+
+          // Hiệu ứng nảy (bounce animation) ngay khi bấm
+          btn.classList.add('bounce');
+          setTimeout(function() { btn.classList.remove('bounce'); }, 450);
 
           var params = new URLSearchParams();
           params.append('roomId', roomId);
@@ -527,23 +532,27 @@
 
             if (data.success) {
               var icon = btn.querySelector('i');
-              btn.classList.add('bounce');
-              setTimeout(function() { btn.classList.remove('bounce'); }, 450);
+              var isAdded = (data.action === 'added' || data.isWishlisted === true);
 
-              if (data.action === 'added') {
+              if (isAdded) {
                 btn.classList.add('active');
-                if (icon) icon.className = 'fa fa-heart text-danger';
+                if (icon) {
+                  icon.className = 'fa fa-heart text-danger';
+                }
                 btn.setAttribute('title', 'Bỏ lưu phòng yêu thích');
               } else {
                 btn.classList.remove('active');
-                if (icon) icon.className = 'fa fa-heart-o';
+                if (icon) {
+                  icon.className = 'fa fa-heart-o';
+                }
                 btn.setAttribute('title', 'Lưu vào danh sách yêu thích');
               }
 
-              // Cập nhật số đếm badge ở navbar
+              // Cập nhật tức thì số đếm badge ở navbar
+              var newCount = (typeof data.wishlistCount !== 'undefined') ? data.wishlistCount : ((typeof data.count !== 'undefined') ? data.count : 0);
               var badges = document.querySelectorAll('#navbarWishlistBadge, .header-wishlist-badge');
               badges.forEach(function(b) {
-                b.textContent = data.wishlistCount || 0;
+                b.textContent = newCount;
                 b.style.display = 'inline-block';
               });
 
