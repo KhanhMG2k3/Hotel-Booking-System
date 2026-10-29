@@ -3,7 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
 package com.homestay.controller;
-
+import com.homestay.dao.NotificationDAO; // <-- THÊM DÒNG NÀY
+import com.homestay.dao.ReviewDAO;       // <-- THÊM DÒNG NÀY
 import com.homestay.dao.ReviewReplyDAO;
 import com.homestay.model.Review;
 import com.homestay.model.ReviewReply;
@@ -37,11 +38,14 @@ public class HostReviewController extends HttpServlet {
             ReviewReplyDAO.FILTER_ALL, ReviewReplyDAO.FILTER_UNREPLIED,
             ReviewReplyDAO.FILTER_REPLIED, ReviewReplyDAO.FILTER_LOW);
     private ReviewReplyDAO replyDAO;
-
+    private NotificationDAO notificationDAO; // <-- THÊM DÒNG NÀY
+    private ReviewDAO reviewDAO;             // <-- THÊM DÒNG NÀY
     @Override
     public void init() throws ServletException {
         super.init();
         this.replyDAO = new ReviewReplyDAO();
+        this.notificationDAO = new NotificationDAO(); // <-- THÊM DÒNG NÀY
+        this.reviewDAO = new ReviewDAO();             // <-- THÊM DÒNG NÀY
     }
 
     /**
@@ -130,6 +134,24 @@ public class HostReviewController extends HttpServlet {
         reply.setReplyContent(content);
         if (replyDAO.insert(reply)) {
             session.setAttribute("hostReviewMsg", "Đã gửi phản hồi công khai thành công.");
+
+            // ================= TỰ ĐỘNG BẮN THÔNG BÁO CHO KHÁCH HÀNG =================
+            try {
+                java.util.Optional<Review> revOpt = reviewDAO.findById(reviewId);
+                if (revOpt.isPresent()) {
+                    Review rev = revOpt.get();
+                    String notifTitle = "Chủ nhà đã phản hồi đánh giá của bạn";
+                    String preview = content.length() > 60 ? content.substring(0, 57) + "..." : content;
+                    String notifMsg = "Host vừa phản hồi đánh giá của bạn: \"" + preview + "\". Nhấn để xem chi tiết!";
+                    String targetUrl = "/room-detail?id=" + rev.getRoomId() + "#reviews";
+                    // Gửi thông báo đến tài khoản của Khách hàng đã viết đánh giá
+                    notificationDAO.createNotification(rev.getUserId(), notifTitle, notifMsg, "REVIEW", targetUrl);
+                }
+            } catch (Exception ex) {
+                // Log lỗi nếu có, không làm gián đoạn luồng phản hồi của Host
+            }
+            // =======================================================================
+
         } else {
             session.setAttribute("hostReviewErr", "Không thể lưu phản hồi. Vui lòng thử lại.");
         }

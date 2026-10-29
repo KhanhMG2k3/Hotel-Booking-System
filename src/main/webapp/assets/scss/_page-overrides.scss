@@ -1,0 +1,295 @@
+// Page-specific presentation styles kept outside JSP markup.
+
+.hero-home,
+.hero-reservation,
+.hero-rooms,
+.hero-about {
+    background-image: url('../images/hero_4.jpg');
+}
+
+.hero-room-detail {
+    background-image: url('../images/hero_4.jpg');
+}
+
+.room-card-image {
+    height    : 240px;
+    object-fit: cover;
+    transition: transform .4s ease;
+}
+
+.room-code-badge {
+    top          : 15px;
+    left         : 15px;
+    border-radius: 4px;
+    font-size    : .85rem;
+}
+
+.room-gallery-badge {
+    right     : 15px;
+    bottom    : 15px;
+    background: rgba(0, 0, 0, .7);
+    font-size : .8rem;
+}
+
+.room-detail-image {
+    height    : 480px;
+    object-fit: cover;
+}
+
+.thumbnail-wrap {
+    height: 110px;
+}
+
+.thumbnail-wrap img {
+    object-fit: cover;
+    transition: transform .3s ease;
+}
+
+.room-description,
+.room-amenities {
+    line-height: 1.8;
+}
+
+.room-amenities {
+    line-height: 1.9;
+}
+
+// =============================================================================
+// About Us Page & Shared Story Section Responsive Layout
+// =============================================================================
+
+// Step 1: Style the Admin/Host edit toolbar so it wraps or stacks cleanly on narrow viewports
+// without colliding with the fixed site header.
+.about-admin-bar {
+    position       : relative;
+    z-index        : 1031;
+    display        : flex;
+    flex-wrap      : wrap;
+    align-items    : center;
+    justify-content: space-between;
+    gap            : 8px 16px;
+    padding        : 10px 20px;
+
+    .about-admin-bar-text {
+        flex         : 1 1 240px;
+        min-width    : 0;
+        overflow-wrap: break-word;
+    }
+
+    .about-admin-bar-btn {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    @include media-breakpoint-down(xs) {
+        padding       : 10px 14px;
+        flex-direction: column;
+        align-items   : stretch;
+        text-align    : center;
+
+        .about-admin-bar-text {
+            flex: 0 0 auto;
+        }
+
+        .about-admin-bar-btn {
+            width      : 100%;
+            white-space: normal;
+        }
+    }
+}
+
+// Step 2: Keep main and secondary (.img-absolute) story images strictly inside the layout container
+// across desktop, tablet, and mobile viewports (applies to #about-story on About & Home pages).
+#about-story {
+    .about-story-media,
+    .position-relative {
+        padding-right : 56px;
+        padding-bottom: 56px;
+
+        > img {
+            display   : block;
+            width     : 100%;
+            height    : auto;
+            object-fit: cover;
+        }
+
+        .img-absolute {
+            position : absolute;
+            right    : 0;
+            bottom   : 0;
+            margin   : 0;
+            z-index  : 2;
+            max-width: clamp(150px, 18vw, 225px);
+
+            img {
+                display      : block;
+                width        : 100%;
+                max-width    : 100%;
+                aspect-ratio : 1 / 1;
+                object-fit   : cover;
+                border-radius: 50%;
+                border       : 8px solid #f2f4fb;
+            }
+        }
+
+        @include media-breakpoint-down(md) {
+            padding-right : 20px;
+            padding-bottom: 36px;
+
+            .img-absolute {
+                max-width: 165px;
+            }
+        }
+
+        @include media-breakpoint-down(xs) {
+            padding-right : 0;
+            padding-bottom: 0;
+
+            .img-absolute {
+                position : relative;
+                right    : auto;
+                bottom   : auto;
+                width    : 118px;
+                max-width: 42%;
+                margin   : -46px 12px 0 auto;
+
+                img {
+                    border-width: 6px;
+                }
+            }
+        }
+    }
+}
+
+// Step 3: Format dynamic About Us intro text and intentional CTA button wrapping.
+.about-intro-content {
+    white-space  : pre-line;
+    line-height  : 1.8;
+    overflow-wrap: break-word;
+    word-wrap    : break-word;
+}
+
+.about-cta-group {
+    display    : flex;
+    flex-wrap  : wrap;
+    align-items: center;
+    gap        : 12px 16px;
+    margin     : 0;
+
+    .about-cta-or {
+        font-family: 'Playfair Display', times, serif;
+        font-style : italic;
+        color      : #6c757d;
+    }
+
+    .about-cta-link {
+        display      : inline-block;
+        overflow-wrap: break-word;
+    }
+
+    @include media-breakpoint-down(xs) {
+        justify-content: center;
+
+        .btn {
+            width     : 100%;
+            text-align: center;
+        }
+
+        .about-cta-or,
+        .about-cta-link {
+            text-align: center;
+        }
+    }
+}
+
+// Step 4: Normalize commitment card layout, uniform circular icon sizing, and long-word wrapping.
+.commit-card-box {
+    display       : flex;
+    flex-direction: column;
+    align-items   : center;
+    overflow-wrap : break-word;
+    word-wrap     : break-word;
+
+    h4,
+    p {
+        max-width    : 100%;
+        overflow-wrap: break-word;
+        word-wrap    : break-word;
+    }
+
+    .commit-card-desc {
+        line-height: 1.7;
+    }
+
+    &:hover .commit-card-icon-wrap {
+        transform : scale(1.08);
+        background: rgba(245, 158, 11, 0.22);
+    }
+}
+
+.commit-card-icon-wrap {
+    width          : 68px;
+    height         : 68px;
+    margin         : 0 auto 1.25rem auto;
+    display        : inline-flex;
+    align-items    : center;
+    justify-content: center;
+    flex-shrink    : 0;
+    border-radius  : 50%;
+    background     : rgba(245, 158, 11, 0.12);
+    transition     : transform 0.3s ease, background 0.3s ease;
+
+    .fa {
+        font-size  : 32px !important;
+        line-height: 1 !important;
+        color      : #f59e0b !important;
+    }
+
+    [class^="ion-"],
+    [class*=" ion-"] {
+        font-size  : 36px !important;
+        line-height: 1 !important;
+        color      : #f59e0b !important;
+    }
+}
+
+// Step 5: Style responsive team member cards with proportional portrait aspect ratio and safe wrapping.
+.about-team-card {
+    overflow-wrap: break-word;
+    word-wrap    : break-word;
+
+    .about-team-avatar-wrap {
+        width       : 100%;
+        aspect-ratio: 4 / 4.3;
+        max-height  : 360px;
+        overflow    : hidden;
+        background  : #222;
+    }
+
+    .about-team-avatar {
+        display        : block;
+        width          : 100%;
+        height         : 100%;
+        object-fit     : cover;
+        object-position: top center;
+    }
+
+    .card-body {
+        h4,
+        p {
+            overflow-wrap: break-word;
+            word-wrap    : break-word;
+        }
+    }
+}
+
+// Step 6: Keep home hero buttons spaced cleanly when wrapping on narrow mobile screens.
+.hero-home .site-hero-inner p .btn {
+    margin-bottom: 0.5rem;
+
+    @include media-breakpoint-down(xs) {
+        width        : 100%;
+        margin-right : 0 !important;
+        margin-bottom: 0.65rem;
+    }
+}

@@ -1,6 +1,7 @@
 package com.homestay.controller;
 
 import com.homestay.dao.BookingDAO;
+import com.homestay.dao.NotificationDAO;
 import com.homestay.dao.ReviewDAO;
 import com.homestay.dao.RoomDAO;
 import com.homestay.model.Booking;
@@ -26,6 +27,7 @@ public class ReviewController extends HttpServlet {
     private ReviewDAO reviewDAO;
     private BookingDAO bookingDAO;
     private RoomDAO roomDAO;
+    private NotificationDAO notificationDAO; // <-- THÊM KHAI BÁO NÀY
 
     @Override
     public void init() throws ServletException {
@@ -33,6 +35,7 @@ public class ReviewController extends HttpServlet {
         this.reviewDAO = new ReviewDAO();
         this.bookingDAO = new BookingDAO();
         this.roomDAO = new RoomDAO();
+        this.notificationDAO = new NotificationDAO();
     }
 
     @Override
@@ -161,6 +164,22 @@ public class ReviewController extends HttpServlet {
         if (success) {
             // Synchronize room average rating
             reviewDAO.syncRoomRatingAndCount(booking.getRoomId());
+            // ================= TỰ ĐỘNG TẠO THÔNG BÁO CHO HOST =================
+            try {
+                int hostId = 3; // Host sở hữu homestay
+                String reviewerName = (session.getAttribute("displayName") != null)
+                        ? (String) session.getAttribute("displayName")
+                        : (booking.getCustomerName() != null ? booking.getCustomerName() : "Khách hàng");
+
+                String notifTitle = "Khách hàng " + reviewerName + " vừa gửi đánh giá " + rating + " sao";
+                String notifMsg = reviewerName + " vừa đánh giá phòng: \"" + title + "\". Hãy kiểm tra và gửi phản hồi!";
+                String targetUrl = "/host/reviews?filter=unreplied";
+                // Bắn thông báo mới vào database cho Host
+                notificationDAO.createNotification(hostId, notifTitle, notifMsg, "REVIEW", targetUrl);
+            } catch (Exception ex) {
+                // Log lỗi nếu có, không làm gián đoạn luồng chính
+            }
+            // ===================================================================
             session.setAttribute("successMessage", "Cảm ơn bạn! Đánh giá của bạn đã được ghi nhận thành công.");
             response.sendRedirect(request.getContextPath() + "/room-detail?id=" + booking.getRoomId() + "#reviews");
         } else {

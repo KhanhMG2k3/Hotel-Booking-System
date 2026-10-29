@@ -1,10 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
-<c:set var="uRoleName" value="${not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : (not empty sessionScope.role ? sessionScope.role : '')}" />
-<c:set var="uRoleId" value="${sessionScope.roleId}" />
-<c:set var="isUserAdmin" value="${uRoleId == 1 || uRoleId == 5 || uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN' || not empty sessionScope.userId}" />
+<%-- Step 1: Resolve Admin or Host role for Terms Management entry points --%>
+<c:set var="uRoleName" value="${fn:toUpperCase(not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : (not empty sessionScope.role ? sessionScope.role : ''))}" />
+<c:set var="uRoleId" value="${not empty sessionScope.roleId ? sessionScope.roleId : sessionScope.user.roleId}" />
+<c:set var="isUserAdmin" value="${isAdmin || uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN' || uRoleName == 'ADMINISTRATOR' || (empty uRoleName && (uRoleId == 1 || uRoleId == 5))}" />
+<c:set var="isUserHost" value="${isHost || uRoleName == 'HOST' || uRoleName == 'ROLE_HOST' || uRoleName == 'HOTEL_OWNER' || (empty uRoleName && uRoleId == 3)}" />
+<c:set var="canEditTerms" value="${canManageTerms || isUserAdmin || isUserHost}" />
 
 <jsp:include page="common/header.jsp">
   <jsp:param name="pageTitle" value="${pageTitle != null ? pageTitle : 'Điều Khoản & Chính Sách | Sogo Homestay'}" />
@@ -50,10 +54,15 @@
                 </c:forEach>
               </ul>
 
-              <!-- NÚT QUẢN LÝ DÀNH CHO ADMIN -->
-              <c:if test="${isUserAdmin}">
+              <%-- Step 2: Display Terms Management action box for both Admin and Host --%>
+              <c:if test="${canEditTerms}">
                 <div class="mt-4 p-3 bg-light rounded text-center border border-warning" style="background-color: #fffdf5 !important;">
-                  <span class="badge badge-warning text-dark font-weight-bold mb-2">Quyền Quản Trị Viên</span>
+                  <span class="badge badge-warning text-dark font-weight-bold mb-2">
+                    <c:choose>
+                      <c:when test="${isUserAdmin}">Quyền Quản Trị Viên</c:when>
+                      <c:otherwise>Quyền Chủ Homestay (Host)</c:otherwise>
+                    </c:choose>
+                  </span>
                   <a href="${pageContext.request.contextPath}/admin/terms" class="btn btn-sm btn-warning btn-block font-weight-bold text-dark shadow-sm">
                     <i class="fa fa-pencil-square-o mr-1"></i> Quản Lý Điều Khoản (CRUD)
                   </a>
@@ -78,7 +87,7 @@
                     <span class="fa fa-clock-o mr-1"></span> Cập nhật lần cuối: ${setting.lastUpdated}
                   </small>
                 </div>
-                <c:if test="${isUserAdmin}">
+                <c:if test="${canEditTerms}">
                   <a href="${pageContext.request.contextPath}/admin/terms" class="btn btn-outline-warning text-dark font-weight-bold mt-2 mt-md-0 shadow-sm" style="border-width: 2px;">
                     <i class="fa fa-pencil mr-1 text-warning"></i> Chỉnh Sửa Điều Khoản
                   </a>

@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <jsp:include page="../common/header.jsp">
-  <jsp:param name="pageTitle" value="Quản Lý Điều Khoản - Admin Sogo Homestay" />
+  <jsp:param name="pageTitle" value="Quản Lý Điều Khoản - Sogo Homestay" />
 </jsp:include>
 
 <jsp:include page="../common/navbar.jsp" />

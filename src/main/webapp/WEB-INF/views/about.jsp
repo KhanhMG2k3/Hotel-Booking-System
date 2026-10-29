@@ -16,23 +16,27 @@
 <jsp:include page="common/navbar.jsp" />
 
     <!-- THANH CÔNG CỤ CHỈ HIỂN THỊ VỚI ADMIN VÀ HOST -->
-    <c:set var="uRoleId" value="${sessionScope.roleId}" />
-    <c:set var="uRoleName" value="${not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : ''}" />
-    <c:set var="canEditAbout" value="${uRoleId == 1 || uRoleId == 3 || uRoleId == 5 || uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN' || uRoleName == 'HOST' || uRoleName == 'ROLE_HOST'}" />
+    <c:set var="uRoleId" value="${not empty sessionScope.roleId ? sessionScope.roleId : sessionScope.user.roleId}" />
+    <c:set var="uRoleName" value="${not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : (not empty sessionScope.role ? sessionScope.role : '')}" />
+    <c:set var="isUserAdmin" value="${uRoleId == 1 || uRoleId == 5 || uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN'}" />
+    <c:set var="isUserHost" value="${uRoleId == 3 || fn:contains(uRoleName, 'HOST') || uRoleName == 'HOTEL_OWNER'}" />
+    <c:set var="canEditAbout" value="${isUserAdmin || isUserHost}" />
 
+    <%-- Step 1: Render responsive Admin/Host edit toolbar that wraps or stacks cleanly on narrow screens. --%>
     <c:if test="${canEditAbout}">
-      <div class="bg-dark text-white py-2 px-4 d-flex justify-content-between align-items-center shadow-sm" style="position: relative; z-index: 9999;">
-        <span class="small">
-          <i class="fa fa-shield text-warning mr-1"></i> Chế độ xem: Bạn đang đăng nhập với quyền <strong>Quản trị viên / Host</strong>.
+      <div class="bg-dark text-white shadow-sm about-admin-bar">
+        <span class="small about-admin-bar-text">
+          <i class="fa fa-pencil-square-o text-warning mr-1"></i> Chế độ chỉnh sửa: Bạn đang đăng nhập với quyền 
+          <strong><c:choose><c:when test="${isUserAdmin}">Quản trị viên (Admin)</c:when><c:otherwise>Chủ Homestay (Host)</c:otherwise></c:choose></strong>.
         </span>
-        <a href="${pageContext.request.contextPath}/admin/about/edit" class="btn btn-sm btn-warning text-dark font-weight-bold py-1 px-3 shadow">
+        <a href="${pageContext.request.contextPath}/admin/about/edit" class="btn btn-sm btn-warning text-dark font-weight-bold py-1 px-3 shadow about-admin-bar-btn">
           <i class="fa fa-pencil mr-1"></i> Chỉnh Sửa Nội Dung About Us
         </a>
       </div>
     </c:if>
-
+    <%-- Step 2: Inner-page hero banner with adaptive height and header-aware top spacing. --%>
     <!-- BANNER HERO -->
-    <section class="site-hero inner-page overlay" style="background-image: url(${pageContext.request.contextPath}/assets/images/hero_4.jpg)" data-stellar-background-ratio="0.5">
+    <section class="site-hero inner-page overlay hero-about" data-stellar-background-ratio="0.5">
       <div class="container">
         <div class="row site-hero-inner justify-content-center align-items-center">
           <div class="col-md-10 text-center" data-aos="fade">
@@ -52,42 +56,44 @@
       </a>
     </section>
 
+    <%-- Step 3: Homestay story section — two columns on large screens, single logical reading-order column on mobile/tablet. --%>
     <!-- PHẦN 1: CÂU CHUYỆN HOMESTAY -->
     <section class="py-5 bg-light" id="about-story">
       <div class="container">
-        <div class="row align-items-center">
-          <div class="col-md-12 col-lg-7 ml-auto order-lg-2 position-relative mb-5" data-aos="fade-up">
-            <figure class="img-absolute">
-              <img src="${pageContext.request.contextPath}/assets/images/food-1.jpg" alt="Ẩm thực homestay" class="img-fluid rounded shadow">
-            </figure>
-            <img src="${pageContext.request.contextPath}/assets/images/img_1.jpg" alt="Không gian Sogo Homestay" class="img-fluid rounded shadow-sm">
-          </div>
-          <div class="col-md-12 col-lg-4 order-lg-1" data-aos="fade-up">
+        <div class="row align-items-center justify-content-between">
+          <div class="col-12 col-lg-5 mb-5 mb-lg-0" data-aos="fade-up">
             <!-- 1. TIÊU ĐỀ LỜI CHÀO ĐỘNG -->
             <h2 class="heading mb-4 font-weight-bold">
               <c:out value="${not empty about.title ? about.title : 'Chào mừng đến với Sogo Homestay'}"/>
             </h2>
 
             <!-- 2. ĐOẠN VĂN GIỚI THIỆU ĐỘNG -->
-            <div class="mb-4 text-secondary leading-relaxed" style="white-space: pre-line; line-height: 1.8;">
+            <div class="mb-4 text-secondary leading-relaxed about-intro-content">
               <c:out value="${about.introContent}"/>
             </div>
 
             <!-- 3. NÚT BẤM VỚI TÊN ĐỘNG -->
-            <p>
-              <a href="${pageContext.request.contextPath}/rooms" class="btn btn-primary text-white py-2 px-4 mr-3">
+            <div class="about-cta-group">
+              <a href="${pageContext.request.contextPath}/rooms" class="btn btn-primary text-white py-2 px-4">
                 <c:out value="${not empty about.btnExploreText ? about.btnExploreText : 'Khám Phá Phòng'}"/>
               </a>
-              <span class="mr-3 font-family-serif"><em>hoặc</em></span>
-              <a href="${pageContext.request.contextPath}/reservation" class="text-uppercase letter-spacing-1 font-weight-bold text-primary">
+              <span class="about-cta-or">hoặc</span>
+              <a href="${pageContext.request.contextPath}/reservation" class="text-uppercase letter-spacing-1 font-weight-bold text-primary about-cta-link">
                 <c:out value="${not empty about.btnBookText ? about.btnBookText : 'Đặt Phòng Ngay'}"/>
               </a>
-            </p>
+            </div>
+          </div>
+          <div class="col-12 col-lg-6 ml-lg-auto position-relative about-story-media" data-aos="fade-up">
+            <figure class="img-absolute">
+              <img src="${pageContext.request.contextPath}/assets/images/food-1.jpg" alt="Ẩm thực homestay" class="img-fluid rounded shadow">
+            </figure>
+            <img src="${pageContext.request.contextPath}/assets/images/img_1.jpg" alt="Không gian Sogo Homestay" class="img-fluid rounded shadow-sm">
           </div>
         </div>
       </div>
     </section>
 
+    <%-- Step 4: Dynamic commitment cards with uniform circular icon sizing defined in SCSS. --%>
     <!-- PHẦN 2: CAM KẾT CỦA CHÚNG TÔI (CÁC THẺ LÝ DO ĐỘNG) -->
     <section class="section">
       <div class="container">
@@ -101,11 +107,14 @@
         </div>
         <div class="row justify-content-center">
           <c:forEach var="card" items="${about.commitCards}" varStatus="loop">
-            <div class="col-md-6 col-lg-3 text-center mb-4" data-aos="fade-up" data-aos-delay="${(loop.index + 1) * 100}">
-              <div class="p-4 border rounded bg-white shadow-sm h-100">
-                <span class="${not empty card.icon ? card.icon : 'ion-ios-home'} h1 text-primary mb-3 d-block"></span>
+            <div class="col-12 col-md-6 col-lg-4 text-center mb-4" data-aos="fade-up" data-aos-delay="${(loop.index + 1) * 100}">
+              <div class="p-4 border rounded bg-white shadow-sm h-100 commit-card-box">
+                <!-- Khung tròn chuẩn hóa kích thước icon -->
+                <div class="commit-card-icon-wrap">
+                  <i class="${not empty card.icon ? card.icon : 'fa fa-home'}"></i>
+                </div>
                 <h4 class="h5 font-weight-bold mb-3"><c:out value="${card.title}"/></h4>
-                <p class="text-muted small mb-0"><c:out value="${card.description}"/></p>
+                <p class="text-muted small mb-0 commit-card-desc"><c:out value="${card.description}"/></p>
               </div>
             </div>
           </c:forEach>
@@ -149,16 +158,17 @@
             </c:if>
             <c:set var="memberRoleText" value="${not empty member.role.description ? member.role.description : (not empty member.role.roleName ? member.role.roleName : 'Quản Lý Homestay')}" />
 
-            <div class="col-md-6 col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="${(mLoop.index + 1) * 100}">
-              <div class="card border-0 shadow-sm rounded overflow-hidden h-100 text-center bg-white">
-                <div style="height: 360px; overflow: hidden; background: #222;">
+            <%-- Step 5: Responsive team member card with aspect-ratio portrait frame and text wrapping. --%>
+            <div class="col-12 col-sm-6 col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="${(mLoop.index + 1) * 100}">
+              <div class="card border-0 shadow-sm rounded overflow-hidden h-100 text-center bg-white about-team-card">
+                <div class="about-team-avatar-wrap">
                   <img src="${memberAvatar}" 
                        alt="<c:out value='${member.fullName}'/>" 
-                       style="width: 100%; height: 100%; object-fit: cover;"
+                       class="about-team-avatar"
                        onerror="this.src='${pageContext.request.contextPath}${defaultImg}';">
                 </div>
                 <div class="card-body py-4 px-3">
-                  <h4 class="font-weight-bold mb-1"><c:out value="${member.fullName}"/></h4>
+                  <h4 class="h5 font-weight-bold mb-1"><c:out value="${member.fullName}"/></h4>
                   <p class="text-primary font-weight-bold mb-0"><c:out value="${memberRoleText}"/></p>
                 </div>
               </div>

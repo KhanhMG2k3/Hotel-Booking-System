@@ -81,25 +81,32 @@
 <div class="container-fluid" style="background-color: #121212; min-height: 100vh; padding-top: 100px; padding-bottom: 80px;">
   <div class="container">
 
-    <!-- KIỂM TRA ĐIỀU KIỆN ADMIN ĐỂ HIỆN NÚT BUTTON QUẢN LÝ FAQ -->
-    <c:set var="uRole" value="${not empty sessionScope.role ? sessionScope.role : (not empty sessionScope.user.role.name ? sessionScope.user.role.name : sessionScope.user.role.roleName)}" />
+    <%-- Step 1: Check Admin or Host privileges to display the FAQ Management toolbar --%>
+    <c:set var="uRole" value="${fn:toUpperCase(not empty sessionScope.role ? sessionScope.role : (not empty sessionScope.user.role.name ? sessionScope.user.role.name : (not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : '')))}" />
     <c:set var="uRoleId" value="${not empty sessionScope.roleId ? sessionScope.roleId : sessionScope.user.roleId}" />
-    <c:set var="isRoleAdmin" value="${uRoleId == 1 || uRoleId == 5 || fn:toLowerCase(uRole) == 'admin' || fn:toLowerCase(uRole) == 'role_admin' || fn:toLowerCase(uRole) == 'administrator'}" />
-    <c:set var="showAdminButton" value="${isAdmin || isRoleAdmin || sessionScope.displayName == 'Administrator'}" />
+    <c:set var="isRoleAdmin" value="${isAdmin || uRole == 'ADMIN' || uRole == 'ROLE_ADMIN' || uRole == 'ADMINISTRATOR' || (empty uRole && (uRoleId == 1 || uRoleId == 5))}" />
+    <c:set var="isRoleHost" value="${isHost || uRole == 'HOST' || uRole == 'ROLE_HOST' || uRole == 'HOTEL_OWNER' || (empty uRole && uRoleId == 3)}" />
+    <c:set var="showManageButton" value="${canManageFaq || isRoleAdmin || isRoleHost}" />
 
-    <!-- NÚT BUTTON DÀNH CHO ADMIN SAU KHI ĐÃ VÀO XEM TRANG FAQ -->
-    <c:if test="${showAdminButton}">
+    <%-- Step 2: Render FAQ Management banner and shortcut button for Admin and Host --%>
+    <c:if test="${showManageButton}">
       <div class="row justify-content-center mb-4">
         <div class="col-md-9">
-          <div class="admin-manage-bar d-flex justify-content-between align-items-center shadow-sm">
-            <div class="text-white">
+          <div class="admin-manage-bar d-flex justify-content-between align-items-center flex-wrap shadow-sm">
+            <div class="text-white my-1">
               <span class="badge badge-warning px-2 py-1 mr-2 text-dark font-weight-bold">
-                <i class="fa fa-shield"></i> Chế độ Xem Admin
+                <c:choose>
+                  <c:when test="${isRoleAdmin}">
+                    <i class="fa fa-shield"></i> Chế độ Xem Admin
+                  </c:when>
+                  <c:otherwise>
+                    <i class="fa fa-home"></i> Chế độ Xem Host
+                  </c:otherwise>
+                </c:choose>
               </span>
               <span class="text-white-50 small">Bạn đang xem giao diện FAQ của khách. Nhấn nút bên cạnh để vào phần quản lý thêm, sửa, xóa FAQ.</span>
             </div>
-            <!-- BUTTON CHUYỂN SANG TRANG QUẢN TRỊ FAQ -->
-            <a href="${pageContext.request.contextPath}/admin/faqs" class="btn btn-warning font-weight-bold px-3 py-2 shadow-sm text-dark ml-3" style="white-space: nowrap;">
+            <a href="${pageContext.request.contextPath}/admin/faqs" class="btn btn-warning font-weight-bold px-3 py-2 shadow-sm text-dark my-1" style="white-space: nowrap;">
               <i class="fa fa-cogs mr-1"></i> Quản Lý FAQ
             </a>
           </div>

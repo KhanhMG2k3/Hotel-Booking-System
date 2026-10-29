@@ -15,11 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-/**
- *
- * @author admin
- */
-@WebServlet(name = "EditAboutController", urlPatterns = {"/admin/about/edit"})
+@WebServlet(name = "EditAboutController", urlPatterns = {"/admin/about/edit", "/host/about/edit", "/about/edit"})
 public class EditAboutController extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -59,6 +55,7 @@ public class EditAboutController extends HttpServlet {
         a.setBtnBookText(request.getParameter("btnBookText"));
         a.setCommitTitle(request.getParameter("commitTitle"));
         a.setTeamTitle(request.getParameter("teamTitle"));
+
         // 1. Nhận danh sách các thẻ lý do động (Icon + Tiêu đề phụ + Nội dung)
         String[] cardIcons = request.getParameterValues("cardIcon");
         String[] cardTitles = request.getParameterValues("cardTitle");
@@ -75,6 +72,7 @@ public class EditAboutController extends HttpServlet {
             }
         }
         a.setCommitCards(cards);
+
         // 2. Nhận danh sách ID nhân sự được chọn từ Dropdown
         String[] teamUserIdParams = request.getParameterValues("teamUserIds");
         List<Integer> teamUserIds = new ArrayList<>();
@@ -90,6 +88,7 @@ public class EditAboutController extends HttpServlet {
             }
         }
         a.setTeamUserIds(teamUserIds);
+
         boolean updated = aboutUsDAO.updateAboutUs(a);
         if (updated) {
             response.sendRedirect(request.getContextPath() + "/admin/about/edit?success=true");
@@ -101,21 +100,39 @@ public class EditAboutController extends HttpServlet {
     private User checkPermission(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || !(session.getAttribute("userId") instanceof Number)) {
+        if (session == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return null;
         }
-        int userId = ((Number) session.getAttribute("userId")).intValue();
+
+        Integer userId = null;
+        if (session.getAttribute("userId") instanceof Number) {
+            userId = ((Number) session.getAttribute("userId")).intValue();
+        } else if (session.getAttribute("user") instanceof User) {
+            userId = ((User) session.getAttribute("user")).getId();
+        }
+
+        if (userId == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return null;
+        }
+
         User user = userDAO.findById(userId).orElse(null);
-        if (user == null || !"ACTIVE".equals(user.getStatus())) {
+        if (user == null || !"ACTIVE".equalsIgnoreCase(user.getStatus())) {
             session.invalidate();
             response.sendRedirect(request.getContextPath() + "/login");
             return null;
         }
-        int roleId = user.getRoleId();
-        String roleName = user.getRole() != null ? user.getRole().getName() : "";
-        boolean isAdmin = (roleId == 1 || roleId == 5 || "ADMIN".equalsIgnoreCase(roleName) || "ROLE_ADMIN".equalsIgnoreCase(roleName));
-        boolean isHost = (roleId == 3 || roleName.toUpperCase().contains("HOST") || "HOTEL_OWNER".equalsIgnoreCase(roleName));
+
+        // Xác định quyền theo TÊN role (sau khi đã có biến user)
+        String roleName = "";
+        if (user.getRole() != null && user.getRole().getRoleName() != null) {
+            roleName = user.getRole().getRoleName().trim().toUpperCase(java.util.Locale.ROOT);
+        }
+        boolean isAdmin = "ROLE_ADMIN".equals(roleName) || "ADMIN".equals(roleName);
+        boolean isHost = "ROLE_HOST".equals(roleName) || "HOST".equals(roleName)
+                || "HOTEL_OWNER".equals(roleName);
+
         if (!isAdmin && !isHost) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền chỉnh sửa trang này.");
             return null;

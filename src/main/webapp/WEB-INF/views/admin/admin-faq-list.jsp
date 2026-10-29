@@ -2,8 +2,10 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <jsp:include page="../common/header.jsp">
-  <jsp:param name="pageTitle" value="Quản Trị FAQ - Sogo Homestay" />
+  <jsp:param name="pageTitle" value="Quản Lý FAQ - Sogo Homestay" />
 </jsp:include>
+
+<jsp:include page="../common/navbar.jsp" />
 
 <div class="container py-5 my-4">
   <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">

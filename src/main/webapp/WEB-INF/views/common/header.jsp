@@ -23,8 +23,8 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/fonts/fontawesome/css/font-awesome.min.css">
 
     <!-- Theme Style -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css?v=20261011-eye-fix">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/_custom.css?v=3.3">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css?v=20261029-responsive">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/_custom.css?v=20261029-responsive">
 
     <style>
       .password-input-wrap {
