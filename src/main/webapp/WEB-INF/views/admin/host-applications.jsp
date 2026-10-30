@@ -13,10 +13,17 @@
 <main id="host-applications-admin" class="section admin-host-applications"
       data-api-base="${pageContext.request.contextPath}/api/admin/partner-applications">
   <div class="container">
-    <header class="text-center mb-5">
-      <span class="text-primary font-weight-bold text-uppercase letter-spacing-1">Administration</span>
-      <h1 class="heading mt-2">Host Applications</h1>
-      <p class="text-muted mb-0">Review applications submitted by Customers.</p>
+    <header class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+      <div>
+        <span class="text-primary font-weight-bold text-uppercase letter-spacing-1">Hệ Thống Quản Trị</span>
+        <h1 class="heading mt-2 mb-1" style="font-size: 1.85rem;">Kiểm Tra & Duyệt Hồ Sơ Host</h1>
+        <p class="text-muted mb-0">Kiểm tra thông tin chi tiết, hình ảnh, tài liệu CCCD/pháp lý và phòng của khách hàng gửi lên.</p>
+      </div>
+      <div class="mt-2 mt-md-0">
+        <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-outline-primary font-weight-bold" style="border-radius: 8px; padding: 0.5rem 1rem;">
+          <i class="fa fa-dashboard mr-1"></i> Về Trang Quản Trị
+        </a>
+      </div>
     </header>
 
     <div id="admin-host-alert" class="alert d-none" role="alert" aria-live="polite"></div>
@@ -83,24 +90,31 @@
     <%-- Review selected application details and choose an approval outcome. --%>
     <section id="host-application-detail" class="card border-0 shadow-sm mt-4 d-none">
       <div class="card-body p-4 p-md-5">
-        <div class="d-flex flex-wrap align-items-start justify-content-between mb-4">
+        <div class="d-flex flex-wrap align-items-start justify-content-between mb-4 pb-3 border-bottom">
           <div>
-            <span class="admin-host-kicker">Application details</span>
-            <h2 id="host-detail-title" class="h3 mt-2 mb-0"></h2>
+            <span class="admin-host-kicker">Chi tiết hồ sơ đối tác</span>
+            <h2 id="host-detail-title" class="h3 mt-1 mb-0 font-weight-bold text-dark"></h2>
           </div>
-          <button id="host-detail-close" class="btn btn-outline-secondary" type="button">Back to list</button>
+          <div class="d-flex align-items-center gap-2">
+            <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-outline-primary font-weight-bold mr-2" style="border-radius: 6px; padding: 0.4rem 0.9rem;">
+              <i class="fa fa-arrow-left mr-1"></i> Về Trang Quản Trị
+            </a>
+            <button id="host-detail-close" class="btn btn-outline-secondary font-weight-bold" type="button" style="border-radius: 6px; padding: 0.4rem 0.9rem;">
+              <i class="fa fa-list mr-1"></i> Danh sách tất cả đơn
+            </button>
+          </div>
         </div>
         <div id="host-detail-loading" class="text-center py-4 d-none" role="status">
           <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
           <span class="ml-2">Loading application details...</span>
         </div>
         <div id="host-detail-content"></div>
-        <div class="d-flex flex-wrap admin-host-actions mt-4">
-          <button id="host-detail-approve" class="btn btn-primary d-none" type="button">
-            Approve Host
+        <div class="d-flex flex-wrap admin-host-actions mt-4 align-items-center pt-3 border-top">
+          <button id="host-detail-approve" class="btn btn-success font-weight-bold d-none" type="button" style="border-radius: 8px; padding: 0.55rem 1.4rem; font-size: 1rem;">
+            <i class="fa fa-check mr-1"></i> Duyệt Đơn & Cấp Quyền Host
           </button>
-          <button id="host-detail-reject" class="btn btn-outline-danger d-none" type="button">
-            Reject
+          <button id="host-detail-reject" class="btn btn-outline-danger font-weight-bold d-none" type="button" style="border-radius: 8px; padding: 0.55rem 1.4rem; font-size: 1rem;">
+            <i class="fa fa-times mr-1"></i> Từ Chối Đơn
           </button>
         </div>
       </div>

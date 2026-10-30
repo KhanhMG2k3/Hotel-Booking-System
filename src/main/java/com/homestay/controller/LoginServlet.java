@@ -126,6 +126,7 @@ public class LoginServlet extends HttpServlet {
         session.setAttribute("roleId", user.getRoleId());
         session.setAttribute("avatar", user.getAvatarUrl());
         session.setAttribute("user", user);
+        com.homestay.util.LoginUtil.getOrCreateLogoutCsrfToken(request);
 
         // phan quyen admin & host & customer
         String roleName = "";

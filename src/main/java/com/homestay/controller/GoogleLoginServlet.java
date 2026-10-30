@@ -108,6 +108,7 @@ public class GoogleLoginServlet extends HttpServlet {
             session.setAttribute("roleId", user.getRoleId());
             session.setAttribute("avatar", user.getAvatarUrl());
             session.setAttribute("user", user);
+            com.homestay.util.LoginUtil.getOrCreateLogoutCsrfToken(request);
 
             String roleName = "";
             if (user.getRole() != null && user.getRole().getRoleName() != null) {

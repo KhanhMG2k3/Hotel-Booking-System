@@ -411,7 +411,7 @@ public class PropertyDAO {
     public int createFromApprovedApplication(Connection connection, int applicationId)
             throws SQLException {
         String insertPropertySql = "INSERT INTO properties " +
-                "(owner_id, application_id, property_name, property_type, description, address, " +
+                "(host_id, application_id, property_name, property_type, description, address, " +
                 "city, district, ward, latitude, longitude, room_count, max_guests, status) " +
                 "SELECT a.user_id, a.id, a.property_name, a.property_type, a.property_description, " +
                 "a.property_address, a.property_city, a.property_district, a.property_ward, " +

@@ -51,7 +51,13 @@ public class AdminHostApplicationsController extends HttpServlet {
             }
             
             // Step 4: Verify Admin role permissions
-            if (admin.getRole() == null || !"ADMIN".equals(admin.getRole().getName())) {
+            String roleName = admin.getRole() != null ? admin.getRole().getName() : "";
+            int roleId = admin.getRole() != null ? admin.getRole().getId() : admin.getRoleId();
+            boolean isAdmin = "ADMIN".equalsIgnoreCase(roleName)
+                    || "ROLE_ADMIN".equalsIgnoreCase(roleName)
+                    || roleId == 1 || roleId == 5;
+
+            if (!isAdmin) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN);
                 return;
             }

@@ -11,8 +11,9 @@
 <jsp:include page="common/navbar.jsp" />
 
 <style>
-  /* Header cố định nền trắng sắc nét cho Host Dashboard - tránh đè giao diện */
-  .site-header {
+  /* Header ở Light Mode cho Host Dashboard */
+  html:not([data-theme="dark"]) .site-header,
+  body:not([data-theme="dark"]) .site-header {
     background: #ffffff !important;
     padding: 14px 0 !important;
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08) !important;
@@ -22,37 +23,99 @@
     width: 100% !important;
     z-index: 1030 !important;
   }
-  .site-header .site-logo a {
+  html:not([data-theme="dark"]) .site-header .site-logo a {
     color: #1a1a1a !important;
   }
-  .site-header .site-menu-toggle span {
+  html:not([data-theme="dark"]) .site-header .site-menu-toggle span {
     background: #1a1a1a !important;
   }
-  .site-header .user-name {
+  html:not([data-theme="dark"]) .site-header .user-name {
     color: #1a1a1a !important;
   }
-  .site-header .user-caret {
+  html:not([data-theme="dark"]) .site-header .user-caret {
     color: #1a1a1a !important;
   }
-  .site-header .auth-link:not(.auth-link-primary) {
+  html:not([data-theme="dark"]) .site-header .auth-link:not(.auth-link-primary) {
     color: #202b32 !important;
   }
-  .site-header .auth-link:not(.auth-link-primary):hover {
+  html:not([data-theme="dark"]) .site-header .auth-link:not(.auth-link-primary):hover {
     color: #f59e0b !important;
   }
-  .site-header .auth-divider {
+  html:not([data-theme="dark"]) .site-header .auth-divider {
     color: rgba(32, 43, 50, 0.3) !important;
   }
-  .site-header .user-menu-toggle {
+  html:not([data-theme="dark"]) .site-header .user-menu-toggle {
     background: #f8f9fa !important;
     border-color: #e9ecef !important;
   }
-  .site-header .user-menu-toggle:hover {
+  html:not([data-theme="dark"]) .site-header .user-menu-toggle:hover {
     background: #eef2f7 !important;
     border-color: #f59e0b !important;
   }
-  .site-header .header-wishlist-link {
+  html:not([data-theme="dark"]) .site-header .header-wishlist-link {
     color: #202b32 !important;
+  }
+
+  /* Header ở Dark Mode (Night Mode) cho Host Dashboard */
+  [data-theme="dark"] .site-header {
+    background: #0f172a !important;
+    border-bottom: 1px solid #334155 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 1030 !important;
+  }
+  [data-theme="dark"] .site-header .site-logo a {
+    color: #f8fafc !important;
+  }
+  [data-theme="dark"] .site-header .site-menu-toggle span {
+    background: #f8fafc !important;
+  }
+  [data-theme="dark"] .site-header .auth-link:not(.auth-link-primary) {
+    color: #cbd5e1 !important;
+  }
+  [data-theme="dark"] .site-header .auth-link:not(.auth-link-primary):hover {
+    color: #f59e0b !important;
+  }
+  [data-theme="dark"] .site-header .auth-divider {
+    color: #334155 !important;
+  }
+  [data-theme="dark"] .site-header .user-menu-toggle {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  }
+  [data-theme="dark"] .site-header .user-menu-toggle:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: #f59e0b !important;
+  }
+  [data-theme="dark"] .site-header .user-name {
+    color: #f8fafc !important;
+  }
+  [data-theme="dark"] .site-header .user-caret {
+    color: #94a3b8 !important;
+  }
+  [data-theme="dark"] .site-header .header-wishlist-link {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #f43f5e !important;
+  }
+
+  /* Host Dashboard Dark Mode Container & Cards */
+  [data-theme="dark"] .host-dashboard-wrapper {
+    background-color: var(--bg-body, #0b1120) !important;
+  }
+  [data-theme="dark"] .stat-card,
+  [data-theme="dark"] .chart-card,
+  [data-theme="dark"] .property-box {
+    background: var(--bg-card, #1e293b) !important;
+    border: 1px solid var(--border-color, #334155) !important;
+  }
+  [data-theme="dark"] .stat-value {
+    color: var(--text-heading, #f8fafc) !important;
+  }
+  [data-theme="dark"] .stat-label {
+    color: var(--text-muted, #94a3b8) !important;
   }
 
   .host-dashboard-wrapper {

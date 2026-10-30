@@ -52,7 +52,15 @@ public class ProfileServlet extends HttpServlet {
 
         String tab = request.getParameter("tab");
         request.setAttribute("activeTab", (tab != null && !tab.trim().isEmpty()) ? tab.trim() : "profile");
-        request.setAttribute("profileUser", userOpt.get());
+        User profileUser = userOpt.get();
+        boolean hasPassword = profileUser.getPassword() != null && !profileUser.getPassword().isEmpty();
+        boolean hasGoogle = (profileUser.getGoogleId() != null && !profileUser.getGoogleId().trim().isEmpty())
+                || "google".equalsIgnoreCase(profileUser.getAuthProvider());
+        boolean isGoogleAccount = hasGoogle && !hasPassword;
+
+        request.setAttribute("profileUser", profileUser);
+        request.setAttribute("hasPassword", hasPassword);
+        request.setAttribute("isGoogleAccount", isGoogleAccount);
         request.getRequestDispatcher("/WEB-INF/views/profile.jsp").forward(request, response);
     }
 

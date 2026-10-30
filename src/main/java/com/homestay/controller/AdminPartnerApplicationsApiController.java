@@ -192,7 +192,12 @@ public class AdminPartnerApplicationsApiController extends HttpServlet {
                     "The account is unavailable. Please sign in again.");
             return null;
         }
-        if (user.getRole() == null || (!"ADMIN".equals(user.getRole().getName()) && !"ROLE_ADMIN".equals(user.getRole().getName()))) {
+        String roleName = user.getRole() != null ? user.getRole().getName() : "";
+        int roleId = user.getRole() != null ? user.getRole().getId() : user.getRoleId();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(roleName)
+                || "ROLE_ADMIN".equalsIgnoreCase(roleName)
+                || roleId == 1 || roleId == 5;
+        if (!isAdmin) {
             writeError(response, HttpServletResponse.SC_FORBIDDEN,
                     "Administrator access is required.");
             return null;

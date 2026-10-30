@@ -490,6 +490,14 @@ public class PartnerApplicationApiController extends HttpServlet {
                 throw new IllegalArgumentException("Invalid identification type.");
             }
         }
+        if (application.getIdentificationType() == IdentificationType.NATIONAL_ID
+                && application.getIdentificationNumber() != null
+                && !application.getIdentificationNumber().isBlank()) {
+            String cccdError = com.homestay.util.CccdValidator.getValidationError(application.getIdentificationNumber());
+            if (cccdError != null) {
+                throw new IllegalArgumentException(cccdError);
+            }
+        }
         if (hasParameter(request, "latitude")) {
             application.setLatitude(parseDouble(request.getParameter("latitude"), "latitude"));
         }

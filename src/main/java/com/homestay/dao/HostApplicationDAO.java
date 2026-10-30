@@ -415,11 +415,11 @@ public class HostApplicationDAO {
                 "room_count, max_guests, identity_document_url, ownership_document_url " +
                 "FROM host_applications WHERE id = ? AND status = 'PENDING' FOR UPDATE";
         String promoteSql = "UPDATE users SET role_id = (SELECT role_id FROM roles WHERE role_name IN ('HOST', 'ROLE_HOST') LIMIT 1) " +
-                "WHERE user_id = ? AND role_id = (SELECT role_id FROM roles WHERE role_name IN ('CUSTOMER', 'ROLE_CUSTOMER') LIMIT 1) " +
-                "AND status = 'ACTIVE'";
-        String addHostRoleSql = "INSERT INTO userroles (user_id, role_id) " +
-                "SELECT ?, role_id FROM roles WHERE role_name IN ('HOST', 'ROLE_HOST') LIMIT 1 " +
-                "ON DUPLICATE KEY UPDATE role_id = role_id";
+                "WHERE user_id = ? AND status = 'ACTIVE'";
+        String removeCustomerRoleSql = "DELETE FROM userroles WHERE user_id = ? " +
+                "AND role_id IN (SELECT role_id FROM roles WHERE role_name IN ('CUSTOMER', 'ROLE_CUSTOMER'))";
+        String addHostRoleSql = "INSERT IGNORE INTO userroles (user_id, role_id) " +
+                "SELECT ?, role_id FROM roles WHERE role_name IN ('HOST', 'ROLE_HOST') LIMIT 1";
         String updateSql = "UPDATE host_applications SET status = ?, reviewed_by = ?, " +
                 "reviewed_at = CURRENT_TIMESTAMP, rejection_reason = ?, document_status = ? " +
                 "WHERE id = ? AND status = 'PENDING'";
@@ -456,6 +456,10 @@ public class HostApplicationDAO {
                             connection.rollback();
                             return false;
                         }
+                    }
+                    try (PreparedStatement cleanStatement = connection.prepareStatement(removeCustomerRoleSql)) {
+                        cleanStatement.setInt(1, applicantId);
+                        cleanStatement.executeUpdate();
                     }
                     try (PreparedStatement roleStatement = connection.prepareStatement(addHostRoleSql)) {
                         roleStatement.setInt(1, applicantId);
@@ -495,8 +499,8 @@ public class HostApplicationDAO {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() && "ACTIVE".equals(resultSet.getString("status"))
-                        && ("CUSTOMER".equals(resultSet.getString("name")) || "ROLE_CUSTOMER".equals(resultSet.getString("name")));
+                return resultSet.next() && "ACTIVE".equalsIgnoreCase(resultSet.getString("status"))
+                        && ("CUSTOMER".equalsIgnoreCase(resultSet.getString("name")) || "ROLE_CUSTOMER".equalsIgnoreCase(resultSet.getString("name")));
             }
         }
     }
@@ -648,8 +652,8 @@ public class HostApplicationDAO {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, adminUserId);
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() && "ACTIVE".equals(resultSet.getString("status"))
-                        && ("ADMIN".equals(resultSet.getString("name")) || "ROLE_ADMIN".equals(resultSet.getString("name")));
+                return resultSet.next() && "ACTIVE".equalsIgnoreCase(resultSet.getString("status"))
+                        && ("ADMIN".equalsIgnoreCase(resultSet.getString("name")) || "ROLE_ADMIN".equalsIgnoreCase(resultSet.getString("name")));
             }
         }
     }
@@ -680,6 +684,8 @@ public class HostApplicationDAO {
         return isValidDraft(application)
                 && application.getIdentificationType() != null
                 && hasText(application.getIdentificationNumber())
+                && (application.getIdentificationType() != IdentificationType.NATIONAL_ID
+                        || com.homestay.util.CccdValidator.isValidCccd(application.getIdentificationNumber()))
                 && hasText(application.getPropertyName())
                 && hasText(application.getPropertyType())
                 && hasText(application.getPropertyDescription())

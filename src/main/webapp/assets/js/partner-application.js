@@ -728,6 +728,130 @@
     }
   }
 
+  // Danh mục 63 mã tỉnh/thành phố trực thuộc TW hợp lệ theo quy chuẩn CCCD Bộ Công an
+  const CCCD_PROVINCES = {
+    '001': 'Hà Nội', '002': 'Hà Giang', '004': 'Cao Bằng', '006': 'Bắc Kạn', '008': 'Tuyên Quang',
+    '010': 'Lào Cai', '011': 'Điện Biên', '012': 'Lai Châu', '014': 'Sơn La', '015': 'Yên Bái',
+    '017': 'Hòa Bình', '019': 'Thái Nguyên', '020': 'Lạng Sơn', '022': 'Quảng Ninh', '024': 'Bắc Giang',
+    '025': 'Phú Thọ', '026': 'Vĩnh Phúc', '027': 'Bắc Ninh', '030': 'Hải Dương', '031': 'Hải Phòng',
+    '033': 'Hưng Yên', '034': 'Thái Bình', '035': 'Hà Nam', '036': 'Nam Định', '037': 'Ninh Bình',
+    '038': 'Thanh Hóa', '040': 'Nghệ An', '042': 'Hà Tĩnh', '044': 'Quảng Bình', '045': 'Quảng Trị',
+    '046': 'Thừa Thiên Huế', '048': 'Đà Nẵng', '049': 'Quảng Nam', '051': 'Quảng Ngãi', '052': 'Bình Định',
+    '054': 'Phú Yên', '056': 'Khánh Hòa', '058': 'Ninh Thuận', '060': 'Bình Thuận', '062': 'Kon Tum',
+    '064': 'Gia Lai', '066': 'Đắk Lắk', '067': 'Đắk Nông', '068': 'Lâm Đồng', '070': 'Bình Phước',
+    '072': 'Tây Ninh', '074': 'Bình Dương', '075': 'Đồng Nai', '077': 'Bà Rịa - Vũng Tàu',
+    '079': 'TP. Hồ Chí Minh', '080': 'Long An', '082': 'Tiền Giang', '083': 'Bến Tre', '084': 'Trà Vinh',
+    '086': 'Vĩnh Long', '087': 'Đồng Tháp', '089': 'An Giang', '091': 'Kiên Giang', '092': 'Cần Thơ',
+    '093': 'Hậu Giang', '094': 'Sóc Trăng', '095': 'Bạc Liêu', '096': 'Cà Mau'
+  };
+
+  /**
+   * Validates Vietnamese National ID (CCCD 12 digits).
+   * @param {string} cccd - The CCCD string to validate.
+   * @returns {{ valid: boolean, error?: string, info?: string }}
+   */
+  function validateCccd(cccd) {
+    if (!cccd || !cccd.trim()) {
+      return { valid: false, error: 'Vui lòng nhập số CCCD.' };
+    }
+    const clean = cccd.trim();
+    if (!/^\d+$/.test(clean)) {
+      return { valid: false, error: 'Số CCCD chỉ được chứa các chữ số (0-9).' };
+    }
+    if (clean.length !== 12) {
+      return { valid: false, error: 'Số CCCD phải bao gồm đúng 12 chữ số (hiện tại: ' + clean.length + '/12).' };
+    }
+    const provinceCode = clean.substring(0, 3);
+    const provinceName = CCCD_PROVINCES[provinceCode];
+    if (!provinceName) {
+      return { valid: false, error: 'Mã tỉnh/thành phố (' + provinceCode + ') không hợp lệ trên hệ thống CCCD Việt Nam.' };
+    }
+    const genderDigit = clean.charCodeAt(3) - 48;
+    if (genderDigit < 0 || genderDigit > 9) {
+      return { valid: false, error: 'Ký tự giới tính/thế kỷ sinh không hợp lệ.' };
+    }
+    const gender = (genderDigit % 2 === 0) ? 'Nam' : 'Nữ';
+    const centuryBase = 1900 + Math.floor(genderDigit / 2) * 100;
+    const birthYear = centuryBase + parseInt(clean.substring(4, 6), 10);
+    const randomSuffix = clean.substring(6);
+    if (randomSuffix === '000000') {
+      return { valid: false, error: 'Dãy 6 số định danh ngẫu nhiên không hợp lệ.' };
+    }
+    return {
+      valid: true,
+      info: 'CCCD hợp lệ • Cấp tại: ' + provinceName + ' • ' + gender + ', sinh năm ' + birthYear
+    };
+  }
+
+  /**
+   * Updates real-time feedback UI for National ID / Passport input field.
+   */
+  function updateIdentificationValidationUI() {
+    const numInput = document.getElementById('identification-number');
+    const typeSelect = document.getElementById('identification-type');
+    const feedbackEl = document.getElementById('identification-feedback');
+    if (!numInput || !typeSelect || !feedbackEl) return;
+
+    const type = typeSelect.value;
+    const value = (numInput.value || '').trim();
+
+    // Dynamically adjust input restrictions based on type
+    if (type === 'NATIONAL_ID') {
+      numInput.setAttribute('maxlength', '12');
+      numInput.setAttribute('inputmode', 'numeric');
+      numInput.setAttribute('placeholder', 'Nhập đúng 12 chữ số CCCD (VD: 001204000006)');
+    } else if (type === 'PASSPORT') {
+      numInput.setAttribute('maxlength', '20');
+      numInput.setAttribute('inputmode', 'text');
+      numInput.setAttribute('placeholder', 'Nhập số hộ chiếu (VD: B1234567)');
+    } else {
+      numInput.setAttribute('maxlength', '50');
+      numInput.removeAttribute('inputmode');
+      numInput.setAttribute('placeholder', 'Số CCCD (12 chữ số) hoặc số hộ chiếu');
+    }
+
+    if (!value) {
+      feedbackEl.className = 'small mt-1 d-none font-weight-500';
+      feedbackEl.textContent = '';
+      numInput.classList.remove('is-valid', 'is-invalid');
+      return;
+    }
+
+    if (type === 'NATIONAL_ID') {
+      feedbackEl.classList.remove('d-none');
+      const res = validateCccd(value);
+      if (res.valid) {
+        feedbackEl.className = 'small mt-1 text-success font-weight-bold';
+        feedbackEl.innerHTML = '<i class="fa fa-check-circle mr-1"></i>' + res.info;
+        numInput.classList.remove('is-invalid');
+        numInput.classList.add('is-valid');
+      } else {
+        feedbackEl.className = 'small mt-1 text-danger font-weight-bold';
+        feedbackEl.innerHTML = '<i class="fa fa-exclamation-circle mr-1"></i>' + res.error;
+        numInput.classList.remove('is-valid');
+        numInput.classList.add('is-invalid');
+      }
+    } else if (type === 'PASSPORT') {
+      feedbackEl.classList.remove('d-none');
+      const passValid = /^[A-Za-z0-9]{6,15}$/.test(value);
+      if (passValid) {
+        feedbackEl.className = 'small mt-1 text-success font-weight-bold';
+        feedbackEl.innerHTML = '<i class="fa fa-check-circle mr-1"></i>✓ Định dạng số hộ chiếu hợp lệ';
+        numInput.classList.remove('is-invalid');
+        numInput.classList.add('is-valid');
+      } else {
+        feedbackEl.className = 'small mt-1 text-danger font-weight-bold';
+        feedbackEl.innerHTML = '<i class="fa fa-exclamation-circle mr-1"></i>Số hộ chiếu phải gồm 6 - 15 ký tự chữ và số.';
+        numInput.classList.remove('is-valid');
+        numInput.classList.add('is-invalid');
+      }
+    } else {
+      feedbackEl.className = 'small mt-1 d-none';
+      numInput.classList.remove('is-invalid');
+      numInput.classList.add('is-valid');
+    }
+  }
+
 /**
  * Validates the current wizard step before moving forward.
  * @param {number} step - Wizard step index to validate.
@@ -759,7 +883,7 @@
         return false;
       }
     }
-    // Validate the applicant contact details before moving beyond the profile step.
+    // Validate the applicant contact details and identification before moving beyond the profile step.
     if (step === 0) {
       const phone = formValue('applicantPhone');
       const phoneInput = document.getElementById('applicant-phone');
@@ -769,8 +893,56 @@
           phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
           phoneInput.focus();
         }
-        showAlert('Enter a valid phone number using 7 to 30 digits or phone symbols.', 'danger');
+        showAlert('Vui lòng nhập số điện thoại hợp lệ (từ 7 đến 30 chữ số).', 'danger');
         return false;
+      }
+
+      const idType = formValue('identificationType');
+      const idTypeInput = document.getElementById('identification-type');
+      if (!idType) {
+        if (idTypeInput) {
+          idTypeInput.classList.add('is-invalid');
+          idTypeInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          idTypeInput.focus();
+        }
+        showAlert('Vui lòng chọn loại giấy tờ định danh (Document type).', 'danger');
+        return false;
+      }
+
+      const idNumber = formValue('identificationNumber');
+      const idNumInput = document.getElementById('identification-number');
+      if (idType === 'NATIONAL_ID') {
+        const cccdRes = validateCccd(idNumber);
+        if (!cccdRes.valid) {
+          if (idNumInput) {
+            idNumInput.classList.add('is-invalid');
+            idNumInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            idNumInput.focus();
+          }
+          showAlert(cccdRes.error, 'danger');
+          updateIdentificationValidationUI();
+          return false;
+        }
+      } else if (idType === 'PASSPORT') {
+        if (!/^[A-Za-z0-9]{6,15}$/.test(idNumber)) {
+          if (idNumInput) {
+            idNumInput.classList.add('is-invalid');
+            idNumInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            idNumInput.focus();
+          }
+          showAlert('Số hộ chiếu không hợp lệ (từ 6 đến 15 ký tự chữ và số).', 'danger');
+          updateIdentificationValidationUI();
+          return false;
+        }
+      } else {
+        if (!idNumber || idNumber.trim().length < 4) {
+          if (idNumInput) {
+            idNumInput.classList.add('is-invalid');
+            idNumInput.focus();
+          }
+          showAlert('Vui lòng nhập số giấy tờ hợp lệ (tối thiểu 4 ký tự).', 'danger');
+          return false;
+        }
       }
     }
     // Coordinates are optional together, but they must be submitted as a pair.
@@ -1277,205 +1449,526 @@
  * Scans uploaded National ID or Passport images and auto-fills applicant details.
  * @returns {void}
  */
-  function setupOcrRecognition() {
-    const ocrInput = document.getElementById('ocr-id-file');
-    const fileLabel = document.getElementById('ocr-file-label');
-    const progressBox = document.getElementById('ocr-progress-box');
-    const progressBar = document.getElementById('ocr-progress-bar');
-    const progressText = document.getElementById('ocr-status-text');
-    const percentageText = document.getElementById('ocr-percentage');
-    const previewBox = document.getElementById('ocr-preview-box');
-    const previewImg = document.getElementById('ocr-preview-img');
-    const resultDetails = document.getElementById('ocr-result-details');
-    const resultBadge = document.getElementById('ocr-result-badge');
+/**
+ * Initializes client-side OCR document recognition using Tesseract.js.
+ * Scans uploaded National ID (CCCD) front and back images, extracts 12-digit number and name,
+ * and auto-fills applicant details with instant feedback and visual animations.
+ * @returns {void}
+ */
+function setupOcrRecognition() {
+  const frontInput = document.getElementById('ocr-front-file');
+  const backInput = document.getElementById('ocr-back-file');
+  const frontDropzone = document.getElementById('ocr-dropzone-front');
+  const backDropzone = document.getElementById('ocr-dropzone-back');
+  const frontPreview = document.getElementById('ocr-front-preview');
+  const backPreview = document.getElementById('ocr-back-preview');
+  const frontPlaceholder = document.getElementById('ocr-front-placeholder');
+  const backPlaceholder = document.getElementById('ocr-back-placeholder');
+  const frontBadge = document.getElementById('ocr-front-badge');
+  const backBadge = document.getElementById('ocr-back-badge');
+  const progressBox = document.getElementById('ocr-progress-box');
+  const progressBar = document.getElementById('ocr-progress-bar');
+  const progressText = document.getElementById('ocr-status-text');
+  const percentageText = document.getElementById('ocr-percentage');
+  const resultBox = document.getElementById('ocr-result-box');
+  const resultBadge = document.getElementById('ocr-result-badge');
+  const resultDetails = document.getElementById('ocr-result-details');
+  const sidesBadge = document.getElementById('ocr-sides-badge');
+  const autofillHint = document.getElementById('ocr-autofill-hint');
 
-    if (!ocrInput) {
-      return;
+  const ocrState = window.__ocrState || (window.__ocrState = {
+    frontFile: null,
+    backFile: null,
+    frontData: null,
+    backData: null,
+    extractedNumber: '',
+    extractedName: '',
+    detectedType: 'NATIONAL_ID',
+    worker: null
+  });
+
+  /** Parses raw OCR text for Vietnamese National ID (CCCD), Passport, and MRZ code. */
+  function parseCccdText(text, side) {
+    if (!text) return { number: '', type: 'NATIONAL_ID', name: '' };
+
+    let number = '';
+    let type = 'NATIONAL_ID';
+    let name = '';
+
+    // 1. Look for MRZ on back side: e.g. IDVNM0012010123456<<<<<<<<<<<<<
+    const mrz12Match = text.match(/IDVNM\s*(\d{12})/i);
+    const id12ColonMatch = text.match(/(?:Số|So|No\.?|SỐ|CCCD|CMND|Số\s*ĐDCN|ĐDCN)\s*[:：]?\s*(\d{12})/i);
+    const id12Strict = text.match(/\b(0\d{11})\b/);
+    const id12Any = text.match(/\b(\d{12})\b/);
+    const passportMatch = text.match(/\b([A-Z]\d{7,8})\b/i);
+    const id9Match = text.match(/\b(\d{9})\b/);
+
+    if (mrz12Match) {
+      number = mrz12Match[1];
+      type = 'NATIONAL_ID';
+    } else if (id12ColonMatch) {
+      number = id12ColonMatch[1];
+      type = 'NATIONAL_ID';
+    } else if (id12Strict) {
+      number = id12Strict[1];
+      type = 'NATIONAL_ID';
+    } else if (id12Any) {
+      number = id12Any[1];
+      type = 'NATIONAL_ID';
+    } else if (passportMatch) {
+      number = passportMatch[1].toUpperCase();
+      type = 'PASSPORT';
+    } else if (id9Match) {
+      number = id9Match[1];
+      type = 'NATIONAL_ID';
     }
 
-    ocrInput.addEventListener('change', async function () {
-      const file = this.files && this.files[0];
-      if (!file) {
-        return;
-      }
-
-      // Update filename label
-      if (fileLabel) {
-        fileLabel.textContent = file.name;
-      }
-
-      // Preview selected image
-      const objectUrl = URL.createObjectURL(file);
-      if (previewImg) {
-        previewImg.src = objectUrl;
-      }
-      if (previewBox) {
-        previewBox.classList.remove('d-none');
-      }
-      if (progressBox) {
-        progressBox.classList.remove('d-none');
-      }
-
-      // Check if Tesseract.js is loaded
-      if (typeof Tesseract === 'undefined') {
-        if (progressText) {
-          progressText.textContent = 'Thư viện Tesseract OCR đang được tải. Vui lòng thử lại sau giây lát.';
-        }
-        return;
-      }
-
-      try {
-        setBusy(true);
-        if (progressBar) {
-          progressBar.style.width = '10%';
-        }
-        if (percentageText) {
-          percentageText.textContent = '10%';
-        }
-        if (progressText) {
-          progressText.textContent = 'Đang nhận diện ký tự trên ảnh...';
-        }
-
-        const worker = await Tesseract.createWorker(['vie', 'eng']);
-        
-        // Track OCR progress
-        const result = await worker.recognize(file);
-        await worker.terminate();
-
-        const text = result && result.data && result.data.text ? result.data.text : '';
-
-        if (progressBar) {
-          progressBar.style.width = '100%';
-        }
-        if (percentageText) {
-          percentageText.textContent = '100%';
-        }
-        if (progressText) {
-          progressText.textContent = 'Hoàn tất trích xuất dữ liệu!';
-        }
-
-        // --- Regex parsing for Vietnamese National ID (CCCD) / Passport ---
-        // 1. Search for 12-digit CCCD number or 9-digit CMND number
-        const id12Match = text.match(/\b(0\d{11})\b/) || text.match(/\b(\d{12})\b/);
-        const id9Match = text.match(/\b(\d{9})\b/);
-        // Passport format: letter followed by 7-8 digits (e.g., C1234567, B1234567)
-        const passportMatch = text.match(/\b([A-Z]\d{7,8})\b/i);
-
-        let extractedNumber = '';
-        let detectedType = 'NATIONAL_ID';
-
-        if (id12Match) {
-          extractedNumber = id12Match[1];
-          detectedType = 'NATIONAL_ID';
-        } else if (passportMatch) {
-          extractedNumber = passportMatch[1].toUpperCase();
-          detectedType = 'PASSPORT';
-        } else if (id9Match) {
-          extractedNumber = id9Match[1];
-          detectedType = 'NATIONAL_ID';
-        }
-
-        // 2. Search for Full Name (Họ và tên / Full name)
-        let extractedName = '';
-        const lines = text.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i];
-          if (/Họ\s*v[àa]\s*tên|Full\s*name/i.test(line)) {
-            const parts = line.split(/[:：]/);
-            if (parts.length > 1 && parts[1].trim().length > 3) {
-              extractedName = parts[1].trim();
-              break;
-            } else if (i + 1 < lines.length) {
-              const nextLine = lines[i + 1].trim();
-              if (/^[A-ZÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ\s]{3,}$/.test(nextLine)) {
-                extractedName = nextLine;
-                break;
-              }
-            }
+    // 2. Extract Full Name
+    const lines = text.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (/Họ\s*v[àa]\s*tên|Full\s*name/i.test(line)) {
+        const parts = line.split(/[:：]/);
+        if (parts.length > 1 && parts[1].trim().length > 3) {
+          name = parts[1].trim();
+          break;
+        } else if (i + 1 < lines.length) {
+          const nextLine = lines[i + 1].trim();
+          if (/^[A-ZÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ\s]{3,}$/.test(nextLine)) {
+            name = nextLine;
+            break;
           }
         }
+      }
+    }
 
-        if (!extractedName) {
-          for (const line of lines) {
-            if (/^[A-ZÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ]{2,}\s+[A-ZÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ\s]+$/.test(line)
-                && !/CỘNG\s*HÒA|VIỆT\s*NAM|ĐỘC\s*LẬP|CĂN\s*CƯỚC|CỤC\s*TRƯỞNG/i.test(line)) {
-              extractedName = line;
-              break;
-            }
+    // Check MRZ format for name: e.g. NGUYEN<<VAN<A<<<<<<<<<<<<<<<
+    if (!name) {
+      const mrzNameMatch = text.match(/([A-Z]+)<<([A-Z<]+)/);
+      if (mrzNameMatch) {
+        const surname = mrzNameMatch[1];
+        const givenNames = mrzNameMatch[2].replace(/</g, ' ').trim();
+        if (surname && givenNames) {
+          name = (surname + ' ' + givenNames).trim();
+        }
+      }
+    }
+
+    // Fallback uppercase line (Vietnamese name)
+    if (!name) {
+      for (let j = 0; j < lines.length; j++) {
+        const line = lines[j];
+        if (/^[A-ZÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ]{2,}\s+[A-ZÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ\s]+$/.test(line)
+            && !/CỘNG\s*HÒA|VIỆT\s*NAM|ĐỘC\s*LẬP|CĂN\s*CƯỚC|CỤC\s*TRƯỞNG|GIÁM\s*ĐỐC|CÔNG\s*AN/i.test(line)) {
+          name = line;
+          break;
+        }
+      }
+    }
+
+    return { number: number, type: type, name: name };
+  }
+
+  /** Ensures Tesseract library is loaded. */
+  function ensureTesseract() {
+    return new Promise(function (resolve, reject) {
+      if (typeof Tesseract !== 'undefined') {
+        return resolve(window.Tesseract);
+      }
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+      script.onload = function () {
+        if (typeof Tesseract !== 'undefined') {
+          resolve(window.Tesseract);
+        } else {
+          reject(new Error('Tesseract script loaded but global Tesseract object missing.'));
+        }
+      };
+      script.onerror = function () {
+        // Fallback CDN
+        const fallback = document.createElement('script');
+        fallback.src = 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.5/tesseract.min.js';
+        fallback.onload = function () { resolve(window.Tesseract); };
+        fallback.onerror = function () { reject(new Error('Không thể tải thư viện Tesseract OCR.')); };
+        document.head.appendChild(fallback);
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  /** Reuses or initializes Tesseract worker for high performance. */
+  async function getWorker() {
+    if (!ocrState.worker) {
+      await ensureTesseract();
+      ocrState.worker = await Tesseract.createWorker(['vie', 'eng'], 1, {
+        logger: function (m) {
+          if (m.status === 'recognizing text' && progressBar && percentageText) {
+            const p = Math.round(m.progress * 100);
+            progressBar.style.width = p + '%';
+            percentageText.textContent = p + '%';
           }
         }
+      });
+    }
+    return ocrState.worker;
+  }
 
-        // Check confidence / OCR extraction quality
-        const numInput = document.getElementById('identification-number');
-        const ocrArea = ocrInput.closest('.card');
-
-        if (extractedNumber) {
-          setFormValue('identificationNumber', extractedNumber);
-          setFormValue('identificationType', detectedType);
-          if (numInput) {
-            numInput.classList.remove('is-invalid');
-            numInput.classList.add('is-valid');
-          }
-        }
-        if (extractedName) {
-          setFormValue('applicantName', extractedName);
-        }
-
-        if (resultBadge && resultDetails) {
-          if (extractedNumber) {
-            resultBadge.className = 'badge badge-success px-2 py-1 mb-1';
-            resultBadge.textContent = '✓ Nhận diện thành công';
-            resultDetails.innerHTML = '<strong>Đã trích xuất:</strong> ' +
-              (extractedName ? 'Họ tên: ' + extractedName + ' | ' : '') + 'Số: ' + extractedNumber;
-            if (ocrArea) ocrArea.classList.remove('border-danger');
+  /** Pre-scales large photos to max 1600px on canvas to speed up recognition & prevent mobile crashes. */
+  function prepareImageForOcr(file) {
+    return new Promise(function (resolve) {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        const maxDim = 1600;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
           } else {
-            // Blurred or unclear image detected
-            resultBadge.className = 'badge badge-danger px-2 py-1 mb-1';
-            resultBadge.textContent = '⚠️ Ảnh mờ / Không rõ số CCCD';
-            resultDetails.innerHTML = '<span class="text-danger font-weight-bold">Ảnh bị mờ, lóa sáng hoặc mất góc.</span> Hệ thống không thể đọc được số CCCD 12 chữ số. Vui lòng chụp lại ảnh rõ nét hoặc tự nhập tay số CCCD bên dưới.';
-            if (numInput) {
-              numInput.classList.add('is-invalid');
-              numInput.focus();
-            }
-            if (ocrArea) {
-              ocrArea.classList.add('border-danger');
-            }
-            showAlert('Ảnh CCCD bị mờ hoặc không nhận diện được số. Vui lòng tải lại ảnh rõ nét hoặc tự kiểm tra nhập số CCCD.', 'warning');
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
           }
         }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(function (blob) {
+          resolve(blob || file);
+        }, 'image/jpeg', 0.92);
+      };
+      img.onerror = function () { resolve(file); };
+      img.src = url;
+    });
+  }
 
-        // Auto-sync uploaded file to Step 4 Identity Document
-        if (state.application && state.application.status === 'DRAFT') {
-          try {
-            const formData = new FormData();
-            formData.append('file', file);
-            await post(state.application.id + '/documents/identity', formData, true, 'tải tài liệu định danh');
-            state.application = await request('/' + state.application.id);
-            renderDocuments();
-          } catch (docErr) {
-            // Non-blocking upload error
-          }
-        }
+  /** Merges front and back images vertically into a single image. */
+  function mergeImages(file1, file2) {
+    return new Promise(function (resolve) {
+      const img1 = new Image();
+      const img2 = new Image();
+      const u1 = URL.createObjectURL(file1);
+      const u2 = URL.createObjectURL(file2);
+      let loaded = 0;
 
-      } catch (err) {
-        if (progressText) {
-          progressText.textContent = 'Không thể quét ảnh: ' + (err.message || 'Lỗi xử lý OCR');
-        }
-        if (resultBadge) {
-          resultBadge.className = 'badge badge-danger px-2 py-1 mb-1';
-          resultBadge.textContent = 'Lỗi nhận diện ảnh';
-        }
-        showAlert('Lỗi xử lý ảnh: ' + (err.message || 'Vui lòng thử lại với ảnh khác'), 'danger');
-      } finally {
-        setBusy(false);
+      function onLoaded() {
+        loaded++;
+        if (loaded < 2) return;
+        URL.revokeObjectURL(u1);
+        URL.revokeObjectURL(u2);
+
+        const maxW = 1200;
+        const s1 = maxW / img1.width;
+        const w1 = maxW;
+        const h1 = img1.height * s1;
+
+        const s2 = maxW / img2.width;
+        const w2 = maxW;
+        const h2 = img2.height * s2;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = maxW;
+        canvas.height = Math.round(h1 + h2 + 20);
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.drawImage(img1, 0, 0, w1, h1);
+        ctx.drawImage(img2, 0, h1 + 20, w2, h2);
+
+        canvas.toBlob(function (blob) {
+          resolve(blob || file1);
+        }, 'image/jpeg', 0.9);
+      }
+
+      img1.onload = onLoaded;
+      img1.onerror = function () { resolve(file1); };
+      img2.onload = onLoaded;
+      img2.onerror = function () { resolve(file1); };
+
+      img1.src = u1;
+      img2.src = u2;
+    });
+  }
+
+  /** Uploads composite identity document (front + back) or single image to Step 4. */
+  async function uploadCombinedIdentityDocument() {
+    if (!state.application || state.application.status !== 'DRAFT') return;
+
+    try {
+      let fileToUpload = ocrState.frontFile || ocrState.backFile;
+      if (ocrState.frontFile && ocrState.backFile) {
+        fileToUpload = await mergeImages(ocrState.frontFile, ocrState.backFile);
+      }
+      if (!fileToUpload) return;
+
+      const formData = new FormData();
+      formData.append('file', fileToUpload, 'identity_document.jpg');
+      await post(state.application.id + '/documents/identity', formData, true, 'tải tài liệu định danh');
+      state.application = await request('/' + state.application.id);
+      renderDocuments();
+    } catch (err) {
+      // Non-blocking background sync
+    }
+  }
+
+  /** Updates and auto-fills results into the form. */
+  async function updateResults() {
+    const front = ocrState.frontData || {};
+    const back = ocrState.backData || {};
+
+    const finalNumber = front.number || back.number || '';
+    const finalName = front.name || back.name || '';
+    const finalType = front.type || back.type || 'NATIONAL_ID';
+
+    ocrState.extractedNumber = finalNumber;
+    ocrState.extractedName = finalName;
+    ocrState.detectedType = finalType;
+
+    const numInput = document.getElementById('identification-number');
+    const typeSelect = document.getElementById('identification-type');
+    const nameInput = document.getElementById('applicant-name');
+
+    if (finalNumber) {
+      // 1. Auto-fill Document number
+      setFormValue('identificationNumber', finalNumber);
+      if (numInput) {
+        numInput.value = finalNumber;
+        numInput.classList.remove('is-invalid');
+        numInput.classList.add('is-valid');
+        numInput.classList.remove('ocr-highlight-success');
+        void numInput.offsetWidth; // Trigger reflow for animation
+        numInput.classList.add('ocr-highlight-success');
         setTimeout(function () {
-          if (progressBox) {
-            progressBox.classList.add('d-none');
-          }
-        }, 2000);
+          numInput.classList.remove('ocr-highlight-success');
+        }, 3500);
+        numInput.dispatchEvent(new Event('input', { bubbles: true }));
+        numInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      // 2. Auto-select Document type
+      setFormValue('identificationType', finalType);
+      if (typeSelect) {
+        typeSelect.value = finalType;
+        typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      updateIdentificationValidationUI();
+
+      // 3. Auto-fill Name if available and current input is empty
+      if (finalName && nameInput && !nameInput.value.trim()) {
+        nameInput.value = finalName;
+        setFormValue('applicantName', finalName);
+        nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+
+      // 4. Update Result Card
+      if (resultBox && resultBadge && resultDetails) {
+        resultBox.classList.remove('d-none', 'ocr-error');
+        resultBadge.className = 'badge badge-success px-2 py-1 mr-2 mb-1';
+        resultBadge.textContent = '✓ eKYC Nhận diện thành công';
+        if (autofillHint) autofillHint.classList.remove('d-none');
+
+        let detailsHtml = '<strong>Số CCCD:</strong> <span class="badge badge-primary px-2 py-1" style="font-size:0.95rem; font-family: monospace;">' + finalNumber + '</span>';
+        if (finalName) {
+          detailsHtml += ' &nbsp;|&nbsp; <strong>Họ tên:</strong> ' + finalName;
+        }
+        resultDetails.innerHTML = detailsHtml;
+
+        if (sidesBadge) {
+          const frontStatus = ocrState.frontData ? (ocrState.frontData.number ? 'Mặt trước: ✓' : 'Mặt trước: Đã quét') : 'Mặt trước: Chưa tải';
+          const backStatus = ocrState.backData ? (ocrState.backData.number ? 'Mặt sau: ✓' : 'Mặt sau: Đã quét') : 'Mặt sau: Chưa tải';
+          sidesBadge.textContent = '(' + frontStatus + ' | ' + backStatus + ')';
+        }
+      }
+
+      showAlert('eKYC OCR: Đã trích xuất và tự động điền số CCCD (' + finalNumber + ') vào Document number.', 'success');
+
+      // 5. Combine front and back images for Step 4 Identity Document
+      uploadCombinedIdentityDocument();
+    } else {
+      // Neither side returned a valid number
+      if (resultBox && resultBadge && resultDetails) {
+        resultBox.classList.remove('d-none');
+        resultBox.classList.add('ocr-error');
+        resultBadge.className = 'badge badge-danger px-2 py-1 mr-2 mb-1';
+        resultBadge.textContent = '⚠️ Chưa nhận diện được số CCCD';
+        if (autofillHint) autofillHint.classList.add('d-none');
+        resultDetails.innerHTML = '<span class="text-danger font-weight-bold">Ảnh bị mờ, lóa sáng hoặc mất góc.</span> Vui lòng chụp lại ảnh rõ nét hoặc tự nhập tay số CCCD vào trường bên dưới.';
+        if (sidesBadge) {
+          sidesBadge.textContent = '(Vui lòng tải thêm mặt còn lại hoặc chụp lại)';
+        }
+      }
+    }
+  }
+
+  /**
+   * Scans a single side (front or back).
+   * Can be invoked from change event, drop event, or inline window.handleOcrFileScan().
+   */
+  async function handleFileScan(side, target) {
+    let file = null;
+    if (target instanceof File) {
+      file = target;
+    } else if (target && target.files && target.files[0]) {
+      file = target.files[0];
+    } else if (typeof target === 'object' && target && target.name && target.size) {
+      file = target;
+    }
+
+    if (!file) return;
+
+    const isFront = side === 'front';
+    if (isFront) {
+      ocrState.frontFile = file;
+    } else {
+      ocrState.backFile = file;
+    }
+
+    // Step 1: Immediate visual preview & badge update
+    const previewImg = isFront ? frontPreview : backPreview;
+    const placeholder = isFront ? frontPlaceholder : backPlaceholder;
+    const sideBadge = isFront ? frontBadge : backBadge;
+
+    if (previewImg) {
+      previewImg.src = URL.createObjectURL(file);
+      previewImg.classList.remove('d-none');
+    }
+    if (placeholder) {
+      placeholder.classList.add('d-none');
+    }
+    if (sideBadge) {
+      sideBadge.className = 'badge badge-warning ocr-badge';
+      sideBadge.innerHTML = '<span class="spinner-border spinner-border-sm mr-1"></span> Đang quét...';
+    }
+
+    if (progressBox) {
+      progressBox.classList.remove('d-none');
+    }
+    if (progressBar) {
+      progressBar.style.width = '20%';
+    }
+    if (percentageText) {
+      percentageText.textContent = '20%';
+    }
+    if (progressText) {
+      progressText.textContent = 'Đang tiền xử lý ảnh mặt ' + (isFront ? 'trước' : 'sau') + ' CCCD...';
+    }
+
+    try {
+      setBusy(true);
+
+      // Preprocess image
+      const preprocessedBlob = await prepareImageForOcr(file);
+
+      if (progressBar) progressBar.style.width = '40%';
+      if (percentageText) percentageText.textContent = '40%';
+      if (progressText) progressText.textContent = 'Đang nhận diện ký tự (OCR)...';
+
+      const worker = await getWorker();
+      const result = await worker.recognize(preprocessedBlob);
+      const text = (result && result.data && result.data.text) ? result.data.text : '';
+
+      const parsed = parseCccdText(text, side);
+      if (isFront) {
+        ocrState.frontData = parsed;
+      } else {
+        ocrState.backData = parsed;
+      }
+
+      if (sideBadge) {
+        if (parsed.number) {
+          sideBadge.className = 'badge badge-success ocr-badge';
+          sideBadge.textContent = '✓ Số: ' + parsed.number;
+        } else {
+          sideBadge.className = 'badge badge-info ocr-badge';
+          sideBadge.textContent = '✓ Đã quét';
+        }
+      }
+
+      if (progressBar) progressBar.style.width = '100%';
+      if (percentageText) percentageText.textContent = '100%';
+      if (progressText) progressText.textContent = 'Đã quét xong mặt ' + (isFront ? 'trước' : 'sau') + '!';
+
+      await updateResults();
+    } catch (err) {
+      if (sideBadge) {
+        sideBadge.className = 'badge badge-danger ocr-badge';
+        sideBadge.textContent = 'Lỗi quét';
+      }
+      if (progressText) {
+        progressText.textContent = 'Không thể quét ảnh: ' + (err.message || 'Lỗi xử lý OCR');
+      }
+      showAlert('Lỗi quét ảnh: ' + (err.message || 'Vui lòng kiểm tra lại ảnh hoặc tự nhập số định danh'), 'warning');
+    } finally {
+      setBusy(false);
+      setTimeout(function () {
+        if (progressBox) progressBox.classList.add('d-none');
+      }, 1800);
+    }
+  }
+
+  // Expose globally so inline onchange can call it directly
+  window.handleOcrFileScan = handleFileScan;
+
+  // Front file change listener
+  if (frontInput && !frontInput.dataset.ocrAttached) {
+    frontInput.dataset.ocrAttached = 'true';
+    frontInput.addEventListener('change', function () {
+      handleFileScan('front', this);
+    });
+  }
+
+  // Back file change listener
+  if (backInput && !backInput.dataset.ocrAttached) {
+    backInput.dataset.ocrAttached = 'true';
+    backInput.addEventListener('change', function () {
+      handleFileScan('back', this);
+    });
+  }
+
+  // Drag and drop support
+  function setupDragDrop(zone, side) {
+    if (!zone || zone.dataset.dropAttached) return;
+    zone.dataset.dropAttached = 'true';
+
+    ['dragenter', 'dragover'].forEach(function (eventName) {
+      zone.addEventListener(eventName, function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        zone.classList.add('dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach(function (eventName) {
+      zone.addEventListener(eventName, function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        zone.classList.remove('dragover');
+      });
+    });
+    zone.addEventListener('drop', function (e) {
+      const dt = e.dataTransfer;
+      const file = dt && dt.files && dt.files[0];
+      if (file) {
+        handleFileScan(side, file);
       }
     });
   }
+
+  setupDragDrop(frontDropzone, 'front');
+  setupDragDrop(backDropzone, 'back');
+}
+
+// Ensure OCR is initialized as soon as script runs or DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupOcrRecognition);
+} else {
+  setupOcrRecognition();
+}
 
 /**
  * Loads the page state, user profile, and any existing draft before showing the wizard.
@@ -1522,6 +2015,7 @@
     renderDocuments();
     setupOcrRecognition();
     setupAddressAutocomplete();
+    setupIdentificationValidation();
     changeStep(0);
     if (state.application) {
       showAlert('Your saved draft has been restored.', 'info');
@@ -1667,6 +2161,42 @@
         );
       });
     }
+  }
+
+  /**
+   * Initializes real-time validation and format helper for National ID (CCCD) and Passport.
+   */
+  function setupIdentificationValidation() {
+    const numInput = document.getElementById('identification-number');
+    const typeSelect = document.getElementById('identification-type');
+    const feedbackEl = document.getElementById('identification-feedback');
+    if (!numInput || !typeSelect || !feedbackEl) return;
+
+    // Filter input characters and validate on typing
+    numInput.addEventListener('input', function () {
+      if (typeSelect.value === 'NATIONAL_ID') {
+        // Strip non-digits and cap at 12 digits
+        const stripped = this.value.replace(/\D/g, '').slice(0, 12);
+        if (this.value !== stripped) {
+          this.value = stripped;
+        }
+      }
+      setFormValue('identificationNumber', this.value);
+      updateIdentificationValidationUI();
+    });
+
+    // Update rules and placeholder when document type changes
+    typeSelect.addEventListener('change', function () {
+      setFormValue('identificationType', this.value);
+      if (this.value === 'NATIONAL_ID' && numInput.value) {
+        numInput.value = numInput.value.replace(/\D/g, '').slice(0, 12);
+        setFormValue('identificationNumber', numInput.value);
+      }
+      updateIdentificationValidationUI();
+    });
+
+    // Initial check on load
+    updateIdentificationValidationUI();
   }
 
   loadPage().catch(function (error) {

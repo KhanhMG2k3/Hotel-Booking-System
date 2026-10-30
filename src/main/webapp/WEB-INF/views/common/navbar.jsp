@@ -92,8 +92,8 @@
                                         <c:if test="${not empty sessionScope.userEmail or not empty sessionScope.email}">
                                             <span class="user-dropdown-email"><c:out value="${not empty sessionScope.userEmail ? sessionScope.userEmail : sessionScope.email}" /></span>
                                         </c:if>
-                                        <c:set var="uRoleName" value="${not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : (not empty sessionScope.role ? sessionScope.role : '')}" />
-                                        <c:set var="uRoleId" value="${sessionScope.roleId}" />
+                                        <c:set var="uRoleName" value="${not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : (not empty sessionScope.user.role.name ? sessionScope.user.role.name : (not empty sessionScope.role ? sessionScope.role : ''))}" />
+                                        <c:set var="uRoleId" value="${not empty sessionScope.roleId ? sessionScope.roleId : (not empty sessionScope.user.roleId ? sessionScope.user.roleId : (not empty sessionScope.user.role.id ? sessionScope.user.role.id : 0))}" />
                                         <c:set var="isUserAdmin" value="${uRoleId == 1 || uRoleId == 5 || uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN'}" />
                                         <c:set var="isUserHost" value="${uRoleId == 3 || uRoleName == 'HOST' || uRoleName == 'ROLE_HOST' || uRoleName == 'HOTEL_OWNER'}" />
                                         <c:choose>
@@ -134,9 +134,6 @@
                                     <c:if test="${isUserAdmin}">
                                         <a href="${pageContext.request.contextPath}/admin/dashboard" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-cogs"></i> Trang Quản Trị
-                                        </a>
-                                        <a href="${pageContext.request.contextPath}/admin/host-applications" class="user-dropdown-item" role="menuitem">
-                                            <i class="fa fa-file-text-o"></i> Duyệt Đơn Host
                                         </a>
                                     </c:if>
                                     <div class="user-dropdown-divider"></div>
@@ -381,13 +378,6 @@
                                                     <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                                 </a>
                                             </li>
-                                            <li class="drawer-nav-item">
-                                                <a href="${pageContext.request.contextPath}/admin/host-applications" class="drawer-nav-link" onclick="closeSiteNavbar()">
-                                                    <span class="drawer-nav-icon icon-admin"><i class="fa fa-file-text-o"></i></span>
-                                                    <span class="drawer-nav-text">Duyệt Đơn Host</span>
-                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
-                                                </a>
-                                            </li>
                                         </c:if>
                                         <li class="drawer-nav-item">
                                             <a href="javascript:void(0)" class="drawer-nav-link text-danger" data-toggle="modal" data-target="#logoutModal" onclick="closeSiteNavbar()">
@@ -454,8 +444,9 @@
                         Ở lại
                     </button>
                     <form action="${pageContext.request.contextPath}/logout" method="post" class="m-0 d-inline">
-                        <c:if test="${not empty sessionScope.logoutCsrfToken}">
-                            <input type="hidden" name="csrfToken" value="<c:out value='${sessionScope.logoutCsrfToken}' />">
+                        <c:set var="lToken" value="${not empty logoutCsrfToken ? logoutCsrfToken : (not empty sessionScope.logoutCsrfToken ? sessionScope.logoutCsrfToken : '')}" />
+                        <c:if test="${not empty lToken}">
+                            <input type="hidden" name="csrfToken" value="<c:out value='${lToken}' />">
                         </c:if>
                         <button type="submit" class="btn btn-logout px-4 py-2 rounded-pill font-weight-bold">
                             <i class="fa fa-sign-out mr-1"></i> Đăng xuất

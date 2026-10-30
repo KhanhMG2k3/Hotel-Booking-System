@@ -10,26 +10,57 @@
 <jsp:include page="../common/navbar.jsp" />
 
 <style>
-    /* Header cố định nền trắng sắc nét cho trang nội bộ */
-    .site-header {
+    /* Header ở Light Mode cho trang quản trị */
+    html:not([data-theme="dark"]) .site-header,
+    body:not([data-theme="dark"]) .site-header {
         background: #ffffff !important;
         padding: 15px 0 !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
     }
-    .site-header .site-logo a {
+    html:not([data-theme="dark"]) .site-header .site-logo a {
         color: #1a1a1a !important;
     }
-    .site-header .site-menu-toggle span {
+    html:not([data-theme="dark"]) .site-header .site-menu-toggle span {
         background: #1a1a1a !important;
     }
-    .site-header .user-name {
+    html:not([data-theme="dark"]) .site-header .user-name {
         color: #1a1a1a !important;
     }
-    .site-header .user-caret {
+    html:not([data-theme="dark"]) .site-header .user-caret {
         color: #1a1a1a !important;
     }
-    .site-header .auth-link:not(.auth-link-primary) {
+    html:not([data-theme="dark"]) .site-header .auth-link:not(.auth-link-primary) {
         color: #1a1a1a !important;
+    }
+
+    /* Header ở Dark Mode (Night Mode) cho Admin Dashboard */
+    [data-theme="dark"] .site-header {
+        background: #0f172a !important;
+        border-bottom: 1px solid #334155 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+    [data-theme="dark"] .site-header .site-logo a {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .site-header .site-menu-toggle span {
+        background: #f8fafc !important;
+    }
+    [data-theme="dark"] .site-header .user-name {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .site-header .user-caret {
+        color: #94a3b8 !important;
+    }
+    [data-theme="dark"] .site-header .auth-link:not(.auth-link-primary) {
+        color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .site-header .user-menu-toggle {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    }
+    [data-theme="dark"] .site-header .user-menu-toggle:hover {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border-color: #f59e0b !important;
     }
 
     .admin-dash {
@@ -281,6 +312,24 @@
             </div>
         </div>
 
+        <!-- Flash Alert Messages -->
+        <c:if test="${not empty messageSuccess}">
+            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <i class="fa fa-check-circle mr-2"></i> <strong>Thành công!</strong> <c:out value="${messageSuccess}" />
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </c:if>
+        <c:if test="${not empty messageError}">
+            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <i class="fa fa-exclamation-triangle mr-2"></i> <strong>Lỗi:</strong> <c:out value="${messageError}" />
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </c:if>
+
         <!-- 4 KPI Stat Cards -->
         <div class="row">
             <div class="col-12 col-sm-6 col-lg-3 mb-3">
@@ -365,7 +414,7 @@
                 <!-- TAB 1: HỒ SƠ HOST CHỜ DUYỆT -->
                 <div class="tab-pane fade show active" id="tab-hosts" role="tabpanel" aria-labelledby="hosts-tab">
                     <c:choose>
-                        <c:when test="${empty pendingHostProfiles}">
+                        <c:when test="${empty pendingHostApplications && empty pendingHostProfiles}">
                             <div class="empty-state-box">
                                 <div class="empty-icon-circle">
                                     <i class="fa fa-check"></i>
@@ -384,14 +433,74 @@
                                         <tr>
                                             <th>ID</th>
                                             <th>User ID</th>
-                                            <th>Tên doanh nghiệp / Chỗ nghỉ</th>
-                                            <th>Loại hình</th>
-                                            <th>Số điện thoại</th>
+                                            <th>Người nộp / Tên Chỗ nghỉ</th>
+                                            <th>Loại hình & Quy mô</th>
+                                            <th>Số điện thoại / CCCD</th>
+                                            <th>Thời gian gửi</th>
                                             <th>Trạng thái</th>
                                             <th class="text-right">Hành động</th>
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        <%-- Danh sách hồ sơ đăng ký mới (HostApplication) --%>
+                                        <c:forEach var="app" items="${pendingHostApplications}">
+                                            <tr>
+                                                <td class="font-weight-bold">#${app.id}</td>
+                                                <td><span class="badge badge-light">User #${app.userId}</span></td>
+                                                <td>
+                                                    <strong class="text-dark"><c:out value="${app.propertyName}" /></strong>
+                                                    <div class="small text-muted">
+                                                        <i class="fa fa-user-circle-o mr-1"></i><c:out value="${app.applicantName}" />
+                                                        <c:if test="${not empty app.applicantEmail}"> &bull; <c:out value="${app.applicantEmail}" /></c:if>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge badge-info"><c:out value="${app.propertyType}" /></span>
+                                                    <div class="small text-muted mt-1">
+                                                        <c:out value="${app.roomCount != null ? app.roomCount : 1}" /> phòng &bull; <c:out value="${app.maxGuests != null ? app.maxGuests : 2}" /> khách
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div><i class="fa fa-phone text-muted mr-1"></i><c:out value="${app.applicantPhone}" /></div>
+                                                    <c:if test="${not empty app.identificationNumber}">
+                                                        <div class="small text-muted"><i class="fa fa-id-card-o mr-1"></i>CCCD: <strong><c:out value="${app.identificationNumber}" /></strong></div>
+                                                    </c:if>
+                                                </td>
+                                                <td>
+                                                    <div class="small font-weight-bold text-dark">
+                                                        <fmt:formatDate value="${app.submittedAt}" pattern="dd/MM/yyyy HH:mm" />
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="status-badge status-pending">
+                                                        <i class="fa fa-clock-o mr-1"></i> Chờ duyệt
+                                                    </span>
+                                                </td>
+                                                <td class="text-right" style="white-space: nowrap;">
+                                                    <a href="${pageContext.request.contextPath}/admin/host-applications?id=${app.id}"
+                                                        class="btn btn-sm btn-info font-weight-bold mr-1"
+                                                        style="border-radius: 8px; padding: 0.45rem 0.85rem; display: inline-flex; align-items: center; gap: 5px; color: #fff; background-color: #0ea5e9; border-color: #0ea5e9; box-shadow: 0 2px 5px rgba(14,165,233,0.25);"
+                                                        title="Chuyển sang trang kiểm tra chi tiết hồ sơ, ảnh và tài liệu">
+                                                         <i class="fa fa-folder-open-o"></i> Kiểm tra hồ sơ
+                                                     </a>
+                                                    <form method="post" action="${pageContext.request.contextPath}/admin/host/approve" style="display:inline-block;" onsubmit="return confirm('Bạn có chắc chắn muốn phê duyệt hồ sơ này và cấp quyền HOST? Chỗ nghỉ sẽ được tạo tự động.');">
+                                                        <input type="hidden" name="applicationId" value="${app.id}">
+                                                        <button type="submit" class="btn-approve">
+                                                            <i class="fa fa-check"></i> Duyệt Host
+                                                        </button>
+                                                    </form>
+                                                    <form method="post" action="${pageContext.request.contextPath}/admin/host/reject" style="display:inline-block; margin-left: 4px;" onsubmit="var r = prompt('Nhập lý do từ chối (tối thiểu 10 ký tự):', 'Hồ sơ chưa đạt tiêu chuẩn xác thực thông tin đối tác của Sogo Homestay.'); if(!r || r.trim().length < 10) return false; this.rejectionReason.value = r.trim(); return true;">
+                                                        <input type="hidden" name="applicationId" value="${app.id}">
+                                                        <input type="hidden" name="rejectionReason" value="">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 8px; padding: 0.45rem 0.75rem;">
+                                                            <i class="fa fa-times"></i> Từ chối
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+
+                                        <%-- Hồ sơ HostProfile phụ (nếu có) --%>
                                         <c:forEach var="profile" items="${pendingHostProfiles}">
                                             <tr>
                                                 <td class="font-weight-bold">#${profile.id}</td>
@@ -401,6 +510,7 @@
                                                 </td>
                                                 <td><c:out value="${profile.businessType}" /></td>
                                                 <td><i class="fa fa-phone text-muted mr-1"></i><c:out value="${profile.phone}" /></td>
+                                                <td>-</td>
                                                 <td>
                                                     <span class="status-badge status-pending">
                                                         <i class="fa fa-clock-o mr-1"></i> ${profile.verificationStatus}
@@ -410,7 +520,7 @@
                                                     <form method="post" action="${pageContext.request.contextPath}/admin/host/approve" style="display:inline-block;" onsubmit="return confirm('Bạn có chắc chắn muốn phê duyệt hồ sơ này và cấp quyền HOST?');">
                                                         <input type="hidden" name="profileId" value="${profile.id}">
                                                         <button type="submit" class="btn-approve">
-                                                            <i class="fa fa-check"></i> Duyệt Trở Thành Host
+                                                            <i class="fa fa-check"></i> Duyệt Host
                                                         </button>
                                                     </form>
                                                 </td>
@@ -555,5 +665,6 @@
 
     </div>
 </section>
+
 
 <jsp:include page="../common/footer.jsp" />

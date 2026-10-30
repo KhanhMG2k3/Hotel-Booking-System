@@ -56,6 +56,21 @@ public class HostFilter implements Filter {
                     || "ROLE_HOST".equalsIgnoreCase(user.getRole().getName())
                     || "HOST".equalsIgnoreCase(user.getRole().getName()));
 
+        if (!isHost && user != null && session != null) {
+            User refreshed = userDAO.findById(user.getId()).orElse(null);
+            if (refreshed != null) {
+                user = refreshed;
+                session.setAttribute("user", user);
+                session.setAttribute("role", user.getRole() != null ? user.getRole().getName() : "");
+                session.setAttribute("roleId", user.getRoleId());
+                isHost = user.getRole() != null
+                        && ("ROLE_HOST".equalsIgnoreCase(user.getRole().getRoleName())
+                            || "HOST".equalsIgnoreCase(user.getRole().getRoleName())
+                            || "ROLE_HOST".equalsIgnoreCase(user.getRole().getName())
+                            || "HOST".equalsIgnoreCase(user.getRole().getName()));
+            }
+        }
+
         if (!isHost) {
             if (user == null) {
                 httpResponse.sendRedirect(httpRequest.getContextPath() + "/login");

@@ -29,12 +29,11 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
             + "COALESCE(u.two_factor_enabled, 0) as two_factor_enabled, "
             + "u.google_id, u.auth_provider, u.created_at, "
             + "u.date_of_birth, u.gender, u.address, "
-            + "COALESCE(r.role_id, 2) as role_id, "
+            + "COALESCE(r.role_id, u.role_id, 2) as role_id, "
             + "COALESCE(r.role_name, 'ROLE_CUSTOMER') as role_name, "
             + "COALESCE(r.description, 'Khách hàng') as role_desc "
             + "FROM users u "
-            + "LEFT JOIN userroles ur ON u.user_id = ur.user_id "
-            + "LEFT JOIN roles r ON ur.role_id = r.role_id ";
+            + "LEFT JOIN roles r ON u.role_id = r.role_id ";
 
     @Override
     public Optional<User> findById(Integer id) {

@@ -930,7 +930,7 @@
 
                             <c:choose>
                                 <%-- TRƯỜNG HỢP 1: Tài khoản thường (Email + Mật khẩu local) --%>
-                                <c:when test="${not empty u.password}">
+                                <c:when test="${not (isGoogleAccount or (empty hasPassword and (u.authProvider == 'google' or not empty u.googleId))) and (hasPassword or not empty u.password or empty u.authProvider or u.authProvider == 'local')}">
                                     
                                     <div class="fitflow-password-help p-3 mb-4 rounded">
                                         <h6 class="font-weight-bold mb-1 small fitflow-help-title">
