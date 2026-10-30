@@ -39,7 +39,7 @@ public class WishlistDAO extends BaseDAO {
                 "LEFT JOIN properties prop ON rt.property_id = prop.property_id " +
                 "LEFT JOIN destinations dest ON prop.destination_id = dest.destination_id " +
                 "LEFT JOIN provinces prov ON dest.province_id = prov.province_id " +
-                "LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri " +
+                "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri " +
                 "ON rt.room_type_id = ri.room_type_id " +
                 "WHERE w.user_id = ? " +
                 "ORDER BY w.created_at DESC";

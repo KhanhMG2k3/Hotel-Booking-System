@@ -32,7 +32,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             "LEFT JOIN properties prop ON rt.property_id = prop.property_id " +
             "LEFT JOIN destinations dest ON prop.destination_id = dest.destination_id " +
             "LEFT JOIN provinces prov ON dest.province_id = prov.province_id " +
-            "LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri " +
+            "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri " +
             "ON rt.room_type_id = ri.room_type_id ";
 
     @Override
@@ -94,7 +94,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
      */
     public List<String> getRoomImages(Connection conn, int roomTypeId) {
         List<String> images = new ArrayList<>();
-        String sql = "SELECT image_url FROM roomimages WHERE room_type_id = ? ORDER BY display_order ASC";
+        String sql = "SELECT image_url FROM roomimages WHERE room_type_id = ? AND (media_type = 'IMAGE' OR media_type IS NULL) ORDER BY is_primary DESC, display_order ASC, image_id ASC";
         PreparedStatement ps = null;
         ResultSet rs = null;
 

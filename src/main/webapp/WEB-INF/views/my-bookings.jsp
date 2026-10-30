@@ -260,7 +260,7 @@
                 <!-- Thumbnail -->
                 <div class="col-md-3 col-lg-2 mb-3 mb-md-0">
                   <img src="${pageContext.request.contextPath}/${b.roomImageUrl}"
-                       alt="${b.roomName}" class="booking-thumb-img shadow-sm" />
+                       alt="${b.roomName}" class="booking-thumb-img shadow-sm" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/img_1.jpg';" />
                 </div>
 
                 <!-- Info Details -->

@@ -363,7 +363,7 @@
               <div class="added-room-item p-3 mb-3 rounded border">
                 <div class="row align-items-center">
                   <div class="col-md-3">
-                    <img src="${pageContext.request.contextPath}/${item.imageUrl}" class="img-fluid rounded shadow-sm" style="height: 100px; width: 100%; object-fit: cover;" alt="${item.roomName}" />
+                    <img src="${pageContext.request.contextPath}/${item.imageUrl}" class="img-fluid rounded shadow-sm" style="height: 100px; width: 100%; object-fit: cover;" alt="${item.roomName}" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/img_1.jpg';" />
                   </div>
                   <div class="col-md-6 my-2 my-md-0">
                     <h5 class="font-weight-bold text-dark mb-1">

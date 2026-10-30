@@ -8,6 +8,7 @@
 
       <jsp:include page="common/navbar.jsp" />
 
+
       <!-- HERO SECTION -->
       <section class="site-hero inner-page overlay hero-rooms" data-stellar-background-ratio="0.5">
         <div class="container">
@@ -151,6 +152,163 @@
             </form>
           </div>
 
+          <!-- SECTION AI: RECOMMENDED FOR YOU (Module: AI — Catalog & Discovery) -->
+          <c:if test="${not empty recommendedRooms}">
+            <!-- NÚT BẬT / TẮT AI RECOMMENDER -->
+            <div class="sogo-ai-toggle-bar mb-3 p-3 rounded d-flex justify-content-between align-items-center flex-wrap" data-aos="fade-up">
+              <div class="d-flex align-items-center mb-2 mb-md-0">
+                <span class="badge badge-ai-pulse mr-2"><i class="fa fa-magic mr-1"></i> AI Engine</span>
+                <div>
+                  <span class="font-weight-bold text-dark ai-toggle-title">✨ Gợi Ý Thông Minh AI (Recommended for You)</span>
+                  <span class="text-muted small ml-2 d-none d-md-inline" id="aiToggleSubtitle">- Đề xuất homestay phù hợp theo sở thích & ngân sách</span>
+                </div>
+              </div>
+
+              <!-- CÔNG TẮC BẬT / TẮT TRỰC QUAN -->
+              <div class="d-flex align-items-center">
+                <span class="mr-2 small font-weight-bold" id="aiToggleStatusLabel">
+                  <i class="fa fa-power-off text-muted mr-1"></i><span class="text-muted">Đang tắt</span>
+                </span>
+                <label class="sogo-ai-switch mb-0" title="Bật hoặc tắt gợi ý phòng AI">
+                  <input type="checkbox" id="aiRecommenderSwitch" onchange="toggleAiRecommender(this.checked)">
+                  <span class="sogo-ai-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- KHỐI CHỨA CÁC THẺ PHÒNG GỢI Ý (ẨN / HIỆN KHI BẬT TẮT) -->
+            <div id="sogoRecommendedSection" class="sogo-recommended-container mb-5 p-4 rounded" style="display: none;" data-aos="fade-up">
+              <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                <div>
+                  <div class="d-flex align-items-center mb-1 flex-wrap">
+                    <span class="badge badge-ai-pulse mr-2 mb-1"><i class="fa fa-magic mr-1"></i> AI Recommender Engine</span>
+                    <h3 class="h4 font-weight-bold mb-1 text-dark ai-title">
+                      ✨ Gợi Ý Dành Riêng Cho Bạn
+                      <span class="text-muted font-weight-normal small d-none d-sm-inline">(Recommended for You)</span>
+                    </h3>
+                  </div>
+                  <p class="text-muted small mb-0">
+                    <c:choose>
+                      <c:when test="${not empty sessionScope.user}">
+                        Được AI tính toán dựa trên lịch sử đặt phòng, mức ngân sách và địa điểm yêu thích của <strong>${not empty sessionScope.user.displayName ? sessionScope.user.displayName : sessionScope.user.fullName}</strong>.
+                      </c:when>
+                      <c:otherwise>
+                        Được AI tuyển chọn từ những homestay có đánh giá xuất sắc nhất và được nhiều du khách yêu thích.
+                      </c:otherwise>
+                    </c:choose>
+                  </p>
+                </div>
+                <div class="mt-2 mt-md-0">
+                  <span class="badge badge-light border text-muted px-3 py-2 font-weight-normal ai-badge-count">
+                    <i class="fa fa-bolt text-warning mr-1"></i> ${recommendedRooms.size()} phòng đề xuất
+                  </span>
+                </div>
+              </div>
+
+              <!-- RECOMMENDED ROOMS CARDS GRID -->
+              <div class="row">
+                <c:forEach var="rec" items="${recommendedRooms}">
+                  <c:set var="r" value="${rec.room}" />
+                  <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                    <div class="ai-room-card h-100 d-flex flex-column border rounded overflow-hidden shadow-sm">
+                      
+                      <!-- Ảnh phòng & Huy hiệu % phù hợp ở góc trên bên trái -->
+                      <div class="position-relative overflow-hidden ai-card-media" style="height: 180px;">
+                        <a href="${pageContext.request.contextPath}/room-detail?id=${r.id}" class="d-block w-100 h-100">
+                          <img src="${pageContext.request.contextPath}/assets/${not empty r.imageUrl ? r.imageUrl : 'images/img_1.jpg'}"
+                               alt="${r.roomName}" class="img-fluid w-100 h-100 ai-room-img" style="height: 180px; object-fit: cover;"
+                               onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/img_1.jpg';">
+                        </a>
+
+                        <!-- Badge Độ Phù Hợp AI ở góc trên bên trái -->
+                        <span class="badge badge-warning position-absolute px-2 py-1 font-weight-bold shadow-sm" style="top: 10px; left: 10px; z-index: 2; font-size: 11px;">
+                          <i class="fa fa-bolt mr-1"></i> ${rec.matchPercentage}% Phù hợp
+                        </span>
+
+                        <!-- Nút Yêu Thích Wishlist ở góc trên bên phải -->
+                        <c:set var="isRecWishlisted" value="${not empty wishlistRoomIds and wishlistRoomIds.contains(r.id)}" />
+                        <button type="button" 
+                          class="btn-wishlist-toggle ${isRecWishlisted ? 'active' : ''}" 
+                          data-room-id="${r.id}"
+                          title="${isRecWishlisted ? 'Bỏ lưu phòng yêu thích' : 'Lưu vào danh sách yêu thích'}"
+                          onclick="handleWishlistClick(event, this, ${r.id})">
+                          <i class="fa ${isRecWishlisted ? 'fa-heart text-danger' : 'fa-heart-o'}"></i>
+                        </button>
+                      </div>
+
+                      <!-- Nội dung Card (Các hàng phân tách rõ ràng, không đè lên nhau) -->
+                      <div class="p-3 d-flex flex-column flex-grow-1 justify-content-between ai-card-body">
+                        <div>
+                          <!-- Hàng 1: Huy hiệu Loại Gợi Ý AI (Bên Trái) & Điểm Rating (Bên Phải) -->
+                          <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge badge-primary px-2 py-1 font-weight-bold text-truncate mr-2" style="max-width: 65%; font-size: 11px;">
+                              <i class="fa ${rec.typeIcon} mr-1"></i> ${rec.typeLabel}
+                            </span>
+                            <span class="sogo-rating-badge small flex-shrink-0">
+                              <i class="fa fa-star text-warning"></i> <fmt:formatNumber value="${r.rating}" minFractionDigits="1" maxFractionDigits="1" />
+                              <small class="text-muted">(${r.reviewCount})</small>
+                            </span>
+                          </div>
+
+                          <!-- Hàng 2: Tên phòng -->
+                          <h4 class="h6 font-weight-bold mb-1 text-truncate" title="${r.roomName}">
+                            <a href="${pageContext.request.contextPath}/room-detail?id=${r.id}" class="text-dark hover-primary">
+                              ${r.roomName}
+                            </a>
+                          </h4>
+
+                          <!-- Hàng 3: Địa điểm & Hạng phòng -->
+                          <div class="text-muted small mb-2 text-truncate">
+                            <i class="fa fa-map-marker text-danger mr-1"></i> ${not empty r.provinceName ? r.provinceName : 'Việt Nam'}
+                            <c:if test="${not empty r.roomType}">
+                              <span class="text-muted">&bull; ${r.roomType.typeName}</span>
+                            </c:if>
+                          </div>
+
+                          <!-- Hộp giải thích AI Reason -->
+                          <div class="ai-reason-pill mb-3" title="${rec.reason}">
+                            <i class="fa fa-lightbulb-o text-warning mr-1 flex-shrink-0 mt-1"></i>
+                            <span class="ai-reason-text">${rec.reason}</span>
+                          </div>
+                        </div>
+
+                        <!-- Tiện ích & Giá & Nút hành động -->
+                        <div class="pt-2 border-top ai-card-footer">
+                          <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
+                            <span><i class="fa fa-users text-primary mr-1"></i> ${r.capacity} khách</span>
+                            <span><i class="fa fa-arrows-alt text-primary mr-1"></i> ${r.size} m²</span>
+                          </div>
+
+                          <div class="d-flex justify-content-between align-items-baseline mb-2">
+                            <span class="small text-muted">Giá phòng:</span>
+                            <span class="font-weight-bold text-primary h6 mb-0">
+                              ${r.formattedPrice} đ<small class="text-muted font-weight-normal">/đêm</small>
+                            </span>
+                          </div>
+
+                          <div class="row no-gutters">
+                            <div class="col-6 pr-1">
+                              <a href="${pageContext.request.contextPath}/room-detail?id=${r.id}"
+                                 class="btn btn-outline-primary btn-sm btn-block py-1 font-weight-bold">
+                                Chi tiết
+                              </a>
+                            </div>
+                            <div class="col-6 pl-1">
+                              <a href="${pageContext.request.contextPath}/reservation?roomId=${r.id}"
+                                 class="btn btn-primary btn-sm btn-block py-1 text-white font-weight-bold shadow-sm">
+                                Đặt ngay
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </c:forEach>
+              </div>
+            </div>
+          </c:if>
+
           <!-- THỐNG KÊ KẾT QUẢ & CÁC TAG LỌC ĐANG CHỌN -->
           <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
             <div>
@@ -233,7 +391,7 @@
                           class="d-block position-relative overflow-hidden">
                           <img
                             src="${pageContext.request.contextPath}/assets/${not empty room.imageUrl ? room.imageUrl : 'images/img_1.jpg'}"
-                            alt="${room.roomName}" class="img-fluid w-100 room-card-image">
+                            alt="${room.roomName}" class="img-fluid w-100 room-card-image" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/img_1.jpg';">
                           <span class="badge badge-primary position-absolute px-3 py-2 font-weight-bold room-code-badge">
                             Mã: ${room.roomNumber}
                           </span>
@@ -495,6 +653,47 @@
             toast.style.display = 'none';
           }, 3200);
         }
+
+        // HÀM BẬT / TẮT CHẾ ĐỘ AI RECOMMENDER
+        function toggleAiRecommender(isEnabled) {
+          var container = document.getElementById('sogoRecommendedSection');
+          var statusLabel = document.getElementById('aiToggleStatusLabel');
+          var switchInput = document.getElementById('aiRecommenderSwitch');
+
+          if (switchInput) {
+            switchInput.checked = isEnabled;
+          }
+
+          if (container) {
+            if (isEnabled) {
+              container.style.display = 'block';
+              container.classList.add('ai-fade-in');
+            } else {
+              container.style.display = 'none';
+              container.classList.remove('ai-fade-in');
+            }
+          }
+
+          if (statusLabel) {
+            if (isEnabled) {
+              statusLabel.innerHTML = '<i class="fa fa-check-circle text-success mr-1"></i><span class="text-success font-weight-bold">Đang bật</span>';
+            } else {
+              statusLabel.innerHTML = '<i class="fa fa-power-off text-muted mr-1"></i><span class="text-muted">Đang tắt</span>';
+            }
+          }
+
+          try {
+            localStorage.setItem('sogo_ai_recommender_enabled', isEnabled ? 'true' : 'false');
+          } catch (e) {}
+        }
+
+        // Tự động khôi phục trạng thái bật/tắt từ localStorage khi tải trang
+        document.addEventListener('DOMContentLoaded', function() {
+          var savedState = localStorage.getItem('sogo_ai_recommender_enabled');
+          // Mặc định là TẮT (false) nếu chưa từng bật
+          var isEnabled = (savedState === 'true');
+          toggleAiRecommender(isEnabled);
+        });
 
         function handleWishlistClick(e, btn, roomId) {
           if (e) {

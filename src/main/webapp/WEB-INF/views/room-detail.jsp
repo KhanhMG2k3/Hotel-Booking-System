@@ -54,7 +54,7 @@
                 <a href="${pageContext.request.contextPath}/assets/${room.imageUrl}" data-fancybox="gallery"
                   data-caption="${room.roomName} - Ảnh Chính">
                   <img src="${pageContext.request.contextPath}/assets/${room.imageUrl}" alt="${room.roomName}"
-                    class="img-fluid w-100 room-detail-image">
+                    class="img-fluid w-100 room-detail-image" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/img_1.jpg';">
                 </a>
                 <button type="button" 
                   class="btn-wishlist-toggle ${isWishlisted ? 'active' : ''}" 

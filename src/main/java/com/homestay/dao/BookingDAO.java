@@ -341,7 +341,7 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
                      "FROM rooms r " +
                      "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
                      "LEFT JOIN properties prop ON r.property_id = prop.property_id " +
-                     "LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri ON rt.room_type_id = ri.room_type_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
                      "WHERE r.status = 'AVAILABLE' " +
                      (excludeRoomId != null ? " AND r.room_id <> ? " : "") +
                      "  AND NOT EXISTS ( " +
@@ -536,7 +536,7 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
                      "JOIN rooms r ON br.room_id = r.room_id " +
                      "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
                      "LEFT JOIN properties p ON r.property_id = p.property_id " +
-                     "LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri ON rt.room_type_id = ri.room_type_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
                      "WHERE br.booking_id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
@@ -619,7 +619,7 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
                      "LEFT JOIN rooms r ON b.room_id = r.room_id " +
                      "LEFT JOIN properties prop ON r.property_id = prop.property_id " +
                      "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
-                     "LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri ON rt.room_type_id = ri.room_type_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
                      "WHERE (b.user_id = ? OR (? IS NOT NULL AND ? <> '' AND b.customer_email = ?)) " +
                      "ORDER BY b.id DESC";
         Connection conn = null;
