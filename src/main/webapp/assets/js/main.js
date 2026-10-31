@@ -162,9 +162,25 @@
       'format': 'm/d/yyyy',
       'autoclose': true
     });
-    $('#checkin_date, #checkout_date').datepicker({
+    $('#checkin_date').datepicker({
       'format': 'd MM, yyyy',
-      'autoclose': true
+      'autoclose': true,
+      'startDate': new Date()
+    }).on('changeDate', function (e) {
+      if (e.date) {
+        var nextDay = new Date(e.date);
+        nextDay.setDate(nextDay.getDate() + 1);
+        $('#checkout_date').datepicker('setStartDate', nextDay);
+        var checkoutDate = $('#checkout_date').datepicker('getDate');
+        if (checkoutDate && checkoutDate <= e.date) {
+          $('#checkout_date').datepicker('setDate', nextDay);
+        }
+      }
+    });
+    $('#checkout_date').datepicker({
+      'format': 'd MM, yyyy',
+      'autoclose': true,
+      'startDate': '+1d'
     });
     $('#m_time').timepicker();
   };

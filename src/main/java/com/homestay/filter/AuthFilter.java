@@ -22,8 +22,9 @@ import java.io.IOException;
         "/profile",
         "/profile/*",
         "/booking",
-        "/booking/*"
-        // Sau này muốn bảo vệ thêm URL nào thì chỉ cần thêm vào đây
+        "/booking/*",
+        "/checkout",
+        "/checkout/*"
 })
 public class AuthFilter implements Filter {
 

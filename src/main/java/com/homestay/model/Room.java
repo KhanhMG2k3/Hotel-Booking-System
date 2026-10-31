@@ -14,6 +14,10 @@ public class Room implements Serializable {
 
     private int id;
     private int typeId;
+
+    // Property (homestay) that this room belongs to
+    private Long propertyId;
+
     private RoomType roomType;
     private String roomNumber;
     private String roomName;
@@ -39,7 +43,11 @@ public class Room implements Serializable {
     public Room() {
     }
 
-    public Room(int id, int typeId, String roomNumber, String roomName, BigDecimal pricePerNight, int capacity, String imageUrl, String description, String status, boolean isFeatured, Timestamp createdAt) {
+    public Room(int id, int typeId, String roomNumber, String roomName,
+                BigDecimal pricePerNight, int capacity, String imageUrl,
+                String description, String status, boolean isFeatured,
+                Timestamp createdAt) {
+
         this.id = id;
         this.typeId = typeId;
         this.roomNumber = roomNumber;
@@ -67,6 +75,15 @@ public class Room implements Serializable {
 
     public void setTypeId(int typeId) {
         this.typeId = typeId;
+    }
+
+    // Getter and setter for propertyId
+    public Long getPropertyId() {
+        return propertyId;
+    }
+
+    public void setPropertyId(Long propertyId) {
+        this.propertyId = propertyId;
     }
 
     public RoomType getRoomType() {
@@ -184,6 +201,7 @@ public class Room implements Serializable {
     public Timestamp getCreatedAt() {
         return createdAt;
     }
+
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
     }

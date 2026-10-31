@@ -19,11 +19,12 @@ import java.util.logging.Level;
  */
 public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
 
-    private static final String BASE_SELECT = 
+    private static final String BASE_SELECT =
             "SELECT r.room_id as id, r.room_type_id as type_id, r.room_number, r.status, " +
             "       rt.room_name, rt.description, rt.max_guests as capacity, rt.base_price as price_per_night, " +
             "       rt.size_m2, rt.bed_type, COALESCE(rt.rating, 4.5) as rating, COALESCE(rt.review_count, 10) as review_count, " +
             "       COALESCE(ri.image_url, 'images/img_1.jpg') as image_url, " +
+            "       prop.property_id AS property_id, " +
             "       COALESCE(prop.property_name, 'Sogo Homestay') as property_name, " +
             "       COALESCE(prop.address, '') as address, " +
             "       prov.province_id, COALESCE(prov.province_name, 'Đà Nẵng') as province_name " +
@@ -50,10 +51,13 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
 
             if (rs.next()) {
                 Room room = mapResultSetToRoom(rs);
+
                 // Load all images for this room type
                 room.setImages(getRoomImages(conn, room.getTypeId()));
+
                 // Set standard homestay amenities
                 room.setAmenities(getDefaultAmenities(room.getTypeId()));
+
                 return Optional.of(room);
             }
         } catch (SQLException e) {
@@ -61,6 +65,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         } finally {
             closeResources(conn, ps, rs);
         }
+
         return Optional.empty();
     }
 
@@ -86,6 +91,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         } finally {
             closeResources(conn, ps, rs);
         }
+
         return rooms;
     }
 
@@ -109,13 +115,25 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Error loading room images for type: " + roomTypeId, e);
         } finally {
-            if (rs != null) try { rs.close(); } catch (SQLException ignored) {}
-            if (ps != null) try { ps.close(); } catch (SQLException ignored) {}
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException ignored) {
+                }
+            }
+
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException ignored) {
+                }
+            }
         }
 
         if (images.isEmpty()) {
             images.add("images/img_1.jpg");
         }
+
         return images;
     }
 
@@ -186,6 +204,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
 
     private Room mapResultSetToRoom(ResultSet rs) throws SQLException {
         Room room = new Room();
+
         room.setId(rs.getInt("id"));
         room.setTypeId(rs.getInt("type_id"));
         room.setRoomNumber(rs.getString("room_number"));
@@ -200,9 +219,15 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         room.setFeatured(true);
         room.setRating(rs.getDouble("rating"));
         room.setReviewCount(rs.getInt("review_count"));
+
         int provId = rs.getInt("province_id");
         room.setProvinceId(provId != 0 ? provId : null);
         room.setProvinceName(rs.getString("province_name"));
+
+        // Map property_id from database to Room model
+        long propertyId = rs.getLong("property_id");
+        room.setPropertyId(rs.wasNull() ? null : propertyId);
+
         room.setPropertyName(rs.getString("property_name"));
         room.setAddress(rs.getString("address"));
 
@@ -210,24 +235,46 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         roomType.setId(rs.getInt("type_id"));
         roomType.setTypeName(rs.getString("room_name"));
         roomType.setDescription(rs.getString("description"));
+
         room.setRoomType(roomType);
 
         return room;
     }
 
     /**
-     * Search rooms with dynamic filters: keyword, price range, capacity, room type, province/city, star rating range (min-max), and sort.
+     * Search rooms with dynamic filters:
+     * keyword, price range, capacity, room type,
+     * province/city, star rating range, and sort.
      */
-    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
-                                  Integer capacity, Integer typeId, Integer provinceId, Double minRating, Double maxRating, String sortBy) {
+    public List<Room> searchRooms(
+            String keyword,
+            java.math.BigDecimal minPrice,
+            java.math.BigDecimal maxPrice,
+            Integer capacity,
+            Integer typeId,
+            Integer provinceId,
+            Double minRating,
+            Double maxRating,
+            String sortBy) {
+
         List<Room> rooms = new ArrayList<>();
         StringBuilder sql = new StringBuilder(BASE_SELECT);
         sql.append("WHERE 1=1 ");
+
         List<Object> params = new ArrayList<>();
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            sql.append("AND (LOWER(rt.room_name) LIKE ? OR LOWER(rt.description) LIKE ? OR LOWER(r.room_number) LIKE ? OR LOWER(prov.province_name) LIKE ? OR LOWER(prop.address) LIKE ? OR LOWER(prop.property_name) LIKE ?) ");
+            sql.append(
+                    "AND (LOWER(rt.room_name) LIKE ? " +
+                    "OR LOWER(rt.description) LIKE ? " +
+                    "OR LOWER(r.room_number) LIKE ? " +
+                    "OR LOWER(prov.province_name) LIKE ? " +
+                    "OR LOWER(prop.address) LIKE ? " +
+                    "OR LOWER(prop.property_name) LIKE ?) "
+            );
+
             String kw = "%" + keyword.trim().toLowerCase() + "%";
+
             params.add(kw);
             params.add(kw);
             params.add(kw);
@@ -290,8 +337,10 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql.toString());
+
             for (int i = 0; i < params.size(); i++) {
                 Object p = params.get(i);
+
                 if (p instanceof Integer) {
                     ps.setInt(i + 1, (Integer) p);
                 } else if (p instanceof Double) {
@@ -302,7 +351,9 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
                     ps.setString(i + 1, p.toString());
                 }
             }
+
             rs = ps.executeQuery();
+
             while (rs.next()) {
                 Room room = mapResultSetToRoom(rs);
                 rooms.add(room);
@@ -312,17 +363,41 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         } finally {
             closeResources(conn, ps, rs);
         }
+
         return rooms;
     }
 
-    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
-                                  Integer capacity, Integer typeId, Double minRating, Double maxRating, String sortBy) {
-        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, null, minRating, maxRating, sortBy);
+    public List<Room> searchRooms(
+            String keyword,
+            java.math.BigDecimal minPrice,
+            java.math.BigDecimal maxPrice,
+            Integer capacity,
+            Integer typeId,
+            Double minRating,
+            Double maxRating,
+            String sortBy) {
+
+        return searchRooms(
+                keyword, minPrice, maxPrice,
+                capacity, typeId, null,
+                minRating, maxRating, sortBy
+        );
     }
 
-    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
-                                  Integer capacity, Integer typeId, Double minRating, String sortBy) {
-        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, null, minRating, null, sortBy);
+    public List<Room> searchRooms(
+            String keyword,
+            java.math.BigDecimal minPrice,
+            java.math.BigDecimal maxPrice,
+            Integer capacity,
+            Integer typeId,
+            Double minRating,
+            String sortBy) {
+
+        return searchRooms(
+                keyword, minPrice, maxPrice,
+                capacity, typeId, null,
+                minRating, null, sortBy
+        );
     }
 
     /**
@@ -330,7 +405,11 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
      */
     public List<Province> getAllProvinces() {
         List<Province> provinces = new ArrayList<>();
-        String sql = "SELECT province_id, country_id, province_name FROM provinces ORDER BY province_name ASC";
+
+        String sql =
+                "SELECT province_id, country_id, province_name " +
+                "FROM provinces ORDER BY province_name ASC";
+
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -339,6 +418,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
             rs = ps.executeQuery();
+
             while (rs.next()) {
                 Province p = new Province();
                 p.setId(rs.getInt("province_id"));
@@ -351,6 +431,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         } finally {
             closeResources(conn, ps, rs);
         }
+
         return provinces;
     }
 
@@ -359,7 +440,11 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
      */
     public List<RoomType> getAllRoomTypes() {
         List<RoomType> types = new ArrayList<>();
-        String sql = "SELECT room_type_id as id, room_name as type_name, description FROM roomtypes ORDER BY room_type_id ASC";
+
+        String sql =
+                "SELECT room_type_id as id, room_name as type_name, description " +
+                "FROM roomtypes ORDER BY room_type_id ASC";
+
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -368,6 +453,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
             rs = ps.executeQuery();
+
             while (rs.next()) {
                 RoomType type = new RoomType();
                 type.setId(rs.getInt("id"));
@@ -380,20 +466,22 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         } finally {
             closeResources(conn, ps, rs);
         }
+
         return types;
     }
 
     private List<String> getDefaultAmenities(int typeId) {
         List<String> amenities = new ArrayList<>(Arrays.asList(
-            "Wifi tốc độ cao miễn phí",
-            "Điều hòa không khí 2 chiều",
-            "Smart TV 55 inch Full HD",
-            "Tủ lạnh mini & Nước suối miễn phí",
-            "Máy sấy tóc & Bình đun siêu tốc",
-            "Phòng tắm riêng có nóng lạnh",
-            "Khăn tắm & Bộ vệ sinh cá nhân cao cấp",
-            "Dịch vụ dọn phòng hàng ngày"
+                "Wifi tốc độ cao miễn phí",
+                "Điều hòa không khí 2 chiều",
+                "Smart TV 55 inch Full HD",
+                "Tủ lạnh mini & Nước suối miễn phí",
+                "Máy sấy tóc & Bình đun siêu tốc",
+                "Phòng tắm riêng có nóng lạnh",
+                "Khăn tắm & Bộ vệ sinh cá nhân cao cấp",
+                "Dịch vụ dọn phòng hàng ngày"
         ));
+
         if (typeId == 2 || typeId == 6) {
             amenities.add("Bếp nấu gia đình & Bàn ăn riêng");
             amenities.add("Ban công thoáng mát view đồi/vườn");
@@ -401,6 +489,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             amenities.add("Bồn tắm nằm thư giãn");
             amenities.add("Ban công lớn view toàn cảnh biển");
         }
+
         return amenities;
     }
 }

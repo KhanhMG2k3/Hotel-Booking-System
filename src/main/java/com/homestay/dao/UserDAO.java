@@ -21,12 +21,16 @@ import java.util.logging.Level;
  */
 public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
 
+    public static final int ROLE_ADMIN_ID = 1;
+    public static final int ROLE_CUSTOMER_ID = 2;
+    public static final int ROLE_HOST_ID = 3;
+
     private static final String BASE_SELECT =
             "SELECT u.user_id as id, u.full_name, u.email, u.password_hash as password, u.phone, "
             + "u.avatar_url, u.status, u.google_id, u.auth_provider, u.created_at, "
             + "u.date_of_birth, u.gender, u.address, "
-            + "COALESCE(r.role_id, 1) as role_id, "
-            + "COALESCE(r.role_name, 'CUSTOMER') as role_name, "
+            + "COALESCE(r.role_id, 2) as role_id, "
+            + "COALESCE(r.role_name, 'ROLE_CUSTOMER') as role_name, "
             + "COALESCE(r.description, 'Khách hàng') as role_desc "
             + "FROM users u "
             + "LEFT JOIN userroles ur ON u.user_id = ur.user_id "
@@ -181,7 +185,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
                     int newUserId = rs.getInt(1);
                     user.setId(newUserId);
 
-                    int roleId = user.getRoleId() > 0 ? user.getRoleId() : 1;
+                    int roleId = user.getRoleId() > 0 ? user.getRoleId() : ROLE_CUSTOMER_ID;
                     psRole = conn.prepareStatement(sqlRole);
                     psRole.setInt(1, newUserId);
                     psRole.setInt(2, roleId);
@@ -308,7 +312,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         u.setFullName(fullName);
         u.setPhone(phone);
         u.setPassword(hashedPassword);
-        u.setRoleId(1); // 1 = CUSTOMER
+        u.setRoleId(ROLE_CUSTOMER_ID); // 2 = ROLE_CUSTOMER
         u.setStatus("ACTIVE");
         u.setAuthProvider("local");
 
@@ -326,7 +330,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         u.setPassword(null);
         u.setGoogleId(googleId);
         u.setAvatarUrl(avatarUrl);
-        u.setRoleId(1); // 1 = CUSTOMER
+        u.setRoleId(ROLE_CUSTOMER_ID); // 2 = ROLE_CUSTOMER
         u.setStatus("ACTIVE");
         u.setAuthProvider("google");
 

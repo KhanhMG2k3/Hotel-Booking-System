@@ -14,4 +14,24 @@
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 
+    <!-- Payment Webhook & Polling Servlets -->
+    <servlet>
+        <servlet-name>PaymentStatusServlet</servlet-name>
+        <servlet-class>com.homestay.controller.api.PaymentStatusServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PaymentStatusServlet</servlet-name>
+        <url-pattern>/api/payment/status</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>SePayWebhookServlet</servlet-name>
+        <servlet-class>com.homestay.controller.api.SePayWebhookServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SePayWebhookServlet</servlet-name>
+        <url-pattern>/api/payment/webhook</url-pattern>
+        <url-pattern>/api/webhook/sepay</url-pattern>
+    </servlet-mapping>
+
 </web-app>

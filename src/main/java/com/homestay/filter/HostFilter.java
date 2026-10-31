@@ -18,7 +18,15 @@ import java.util.Optional;
 @WebFilter(urlPatterns = {"/host/*"})
 public class HostFilter implements Filter {
 
-    private final HostProfileDAO hostProfileDAO = new HostProfileDAO();
+    private final HostProfileDAO hostProfileDAO;
+
+    public HostFilter() {
+        this(new HostProfileDAO());
+    }
+
+    HostFilter(HostProfileDAO hostProfileDAO) {
+        this.hostProfileDAO = hostProfileDAO;
+    }
 
     @Override
     public void doFilter(

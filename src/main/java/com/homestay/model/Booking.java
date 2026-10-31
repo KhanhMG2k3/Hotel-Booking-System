@@ -1,3 +1,4 @@
+
 package com.homestay.model;
 
 import java.io.Serializable;
@@ -9,29 +10,63 @@ import java.sql.Timestamp;
  * Booking Model - Represents room reservation records.
  */
 public class Booking implements Serializable {
+
     private static final long serialVersionUID = 1L;
 
     private int id;
     private Integer userId;
     private User user;
+
     private String customerName;
     private String customerEmail;
     private String customerPhone;
+
     private int roomId;
     private Room room;
+
     private Date checkInDate;
     private Date checkOutDate;
+
     private int adults;
     private int children;
+
     private BigDecimal totalPrice;
+
     private String notes;
     private String status;
+    private String cancellationReason;
     private Timestamp createdAt;
+
+    // Iteration 2: Checkout, Voucher and Payment
+    private String bookingCode;
+    private Long propertyId;
+
+    private BigDecimal subtotal;
+    private BigDecimal discountAmount;
+    private BigDecimal totalAmount;
 
     public Booking() {
     }
 
-    public Booking(int id, Integer userId, String customerName, String customerEmail, String customerPhone, int roomId, Date checkInDate, Date checkOutDate, int adults, int children, BigDecimal totalPrice, String notes, String status, Timestamp createdAt) {
+    /**
+     * Existing constructor kept for backward compatibility.
+     */
+    public Booking(
+            int id,
+            Integer userId,
+            String customerName,
+            String customerEmail,
+            String customerPhone,
+            int roomId,
+            Date checkInDate,
+            Date checkOutDate,
+            int adults,
+            int children,
+            BigDecimal totalPrice,
+            String notes,
+            String status,
+            Timestamp createdAt) {
+
         this.id = id;
         this.userId = userId;
         this.customerName = customerName;
@@ -86,6 +121,14 @@ public class Booking implements Serializable {
 
     public void setEmail(String customerEmail) {
         this.customerEmail = customerEmail;
+    }
+
+    public void setCustomerEmail(String customerEmail) {
+        this.customerEmail = customerEmail;
+    }
+
+    public String getEmail() {
+        return customerEmail;
     }
 
     public String getCustomerPhone() {
@@ -168,6 +211,14 @@ public class Booking implements Serializable {
         this.status = status;
     }
 
+    public String getCancellationReason() {
+        return cancellationReason;
+    }
+
+    public void setCancellationReason(String cancellationReason) {
+        this.cancellationReason = cancellationReason;
+    }
+
     public Timestamp getCreatedAt() {
         return createdAt;
     }
@@ -176,16 +227,62 @@ public class Booking implements Serializable {
         this.createdAt = createdAt;
     }
 
+    public String getBookingCode() {
+        return bookingCode;
+    }
+
+    public void setBookingCode(String bookingCode) {
+        this.bookingCode = bookingCode;
+    }
+
+    public Long getPropertyId() {
+        return propertyId;
+    }
+
+    public void setPropertyId(Long propertyId) {
+        this.propertyId = propertyId;
+    }
+
+    public BigDecimal getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(BigDecimal subtotal) {
+        this.subtotal = subtotal;
+    }
+
+    public BigDecimal getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public void setDiscountAmount(BigDecimal discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
     @Override
     public String toString() {
         return "Booking{" +
                 "id=" + id +
+                ", bookingCode='" + bookingCode + '\'' +
+                ", propertyId=" + propertyId +
                 ", customerName='" + customerName + '\'' +
                 ", roomId=" + roomId +
                 ", checkInDate=" + checkInDate +
                 ", checkOutDate=" + checkOutDate +
+                ", subtotal=" + subtotal +
+                ", discountAmount=" + discountAmount +
+                ", totalAmount=" + totalAmount +
                 ", totalPrice=" + totalPrice +
                 ", status='" + status + '\'' +
+                ", cancellationReason='" + cancellationReason + '\'' +
                 '}';
     }
 }
