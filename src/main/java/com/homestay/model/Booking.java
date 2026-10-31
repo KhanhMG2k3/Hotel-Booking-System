@@ -40,7 +40,9 @@ public class Booking implements Serializable {
 
     // Presentation attributes
     private String roomName;
+    private String roomNumber;
     private String propertyName;
+    private String propertyAddress;
     private String roomImageUrl;
     private java.util.List<BookingRoomItem> bookingRooms = new java.util.ArrayList<>();
 
@@ -281,6 +283,22 @@ public class Booking implements Serializable {
 
     public void setRoomImageUrl(String roomImageUrl) {
         this.roomImageUrl = roomImageUrl;
+    }
+
+    public String getRoomNumber() {
+        return roomNumber;
+    }
+
+    public void setRoomNumber(String roomNumber) {
+        this.roomNumber = roomNumber;
+    }
+
+    public String getPropertyAddress() {
+        return propertyAddress;
+    }
+
+    public void setPropertyAddress(String propertyAddress) {
+        this.propertyAddress = propertyAddress;
     }
 
     public int getNumberOfNights() {

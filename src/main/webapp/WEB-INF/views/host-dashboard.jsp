@@ -213,10 +213,12 @@
     font-size: 14px;
   }
   .badge-status {
-    padding: 6px 12px;
+    padding: 6px 14px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
+    white-space: nowrap;
+    display: inline-block;
   }
   .badge-status-completed {
     background-color: #d1fae5;
@@ -245,6 +247,155 @@
   .property-box:hover {
     border-color: #cbd5e1;
   }
+
+  /* Booking Row & Modal Interaction */
+  .booking-row {
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+  }
+  .booking-row:hover {
+    background-color: rgba(245, 158, 11, 0.08) !important;
+  }
+  .booking-code-link {
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .booking-code-link:hover {
+    text-decoration: underline;
+    color: #d97706 !important;
+  }
+
+  .booking-detail-modal .modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .booking-summary-banner {
+    background-color: #f8fafc;
+  }
+  .booking-detail-card {
+    background-color: #ffffff;
+  }
+
+  /* Night Mode Adaptations */
+  [data-theme="dark"] .booking-row:hover {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+  }
+  [data-theme="dark"] .booking-detail-modal .modal-content {
+    background-color: #141d2b !important;
+    color: #e2e8f0 !important;
+    border-color: #24354b !important;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7) !important;
+  }
+  [data-theme="dark"] .booking-detail-modal .modal-header,
+  [data-theme="dark"] .booking-detail-modal .modal-footer {
+    border-color: #24354b !important;
+    background-color: #162032 !important;
+  }
+  [data-theme="dark"] .booking-detail-modal .modal-title,
+  [data-theme="dark"] .booking-detail-modal h6,
+  [data-theme="dark"] .booking-detail-modal .text-dark {
+    color: #f1f5f9 !important;
+  }
+  [data-theme="dark"] .booking-detail-modal .close {
+    color: #cbd5e1 !important;
+  }
+  [data-theme="dark"] .booking-detail-modal .booking-summary-banner {
+    background-color: #182337 !important;
+    border-color: #2a3d5a !important;
+  }
+  [data-theme="dark"] .booking-detail-modal .booking-detail-card {
+    background-color: #162032 !important;
+    border-color: #24354b !important;
+  }
+  [data-theme="dark"] .booking-detail-modal .bg-light {
+    background-color: #111a28 !important;
+    border-color: #24354b !important;
+    color: #cbd5e1 !important;
+  }
+  [data-theme="dark"] .booking-detail-modal .stay-period-box {
+    background-color: #111a28 !important;
+    border-color: #2a3d5a !important;
+  }
+  [data-theme="dark"] .booking-detail-modal .thead-light th {
+    background-color: #182337 !important;
+    color: #e2e8f0 !important;
+    border-color: #24354b !important;
+  }
+  [data-theme="dark"] .booking-detail-modal .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+  }
+  [data-theme="dark"] .booking-detail-modal .table td,
+  [data-theme="dark"] .booking-detail-modal .table th {
+    border-color: #24354b !important;
+    color: #cbd5e1 !important;
+  }
+
+  /* Edit Room Modal & Card Styling */
+  .room-inventory-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .room-inventory-card:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1 !important;
+  }
+  .edit-room-modal .modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .edit-room-modal .input-group-text {
+    font-size: 13px;
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #475569;
+  }
+
+  /* Night Mode Adaptations for Edit Modal */
+  [data-theme="dark"] .room-inventory-card {
+    background-color: #111a28 !important;
+    border-color: #24354b !important;
+  }
+  [data-theme="dark"] .room-inventory-card strong.text-dark {
+    color: #f8fafc !important;
+  }
+  [data-theme="dark"] .edit-room-modal .modal-content {
+    background-color: #141d2b !important;
+    color: #e2e8f0 !important;
+    border-color: #24354b !important;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7) !important;
+  }
+  [data-theme="dark"] .edit-room-modal .modal-header,
+  [data-theme="dark"] .edit-room-modal .modal-footer {
+    border-color: #24354b !important;
+    background-color: #162032 !important;
+  }
+  [data-theme="dark"] .edit-room-modal .modal-title,
+  [data-theme="dark"] .edit-room-modal label,
+  [data-theme="dark"] .edit-room-modal .text-dark {
+    color: #f1f5f9 !important;
+  }
+  [data-theme="dark"] .edit-room-modal .close {
+    color: #cbd5e1 !important;
+  }
+  [data-theme="dark"] .edit-room-modal .form-control,
+  [data-theme="dark"] .edit-room-modal .custom-select {
+    background-color: #0d1522 !important;
+    border-color: #2a3d5a !important;
+    color: #f1f5f9 !important;
+  }
+  [data-theme="dark"] .edit-room-modal .form-control:focus,
+  [data-theme="dark"] .edit-room-modal .custom-select:focus {
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 0 0.2rem rgba(245, 158, 11, 0.25) !important;
+  }
+  [data-theme="dark"] .edit-room-modal .input-group-text {
+    background-color: #182337 !important;
+    border-color: #2a3d5a !important;
+    color: #94a3b8 !important;
+  }
+  [data-theme="dark"] .edit-room-modal .custom-control-label {
+    color: #cbd5e1 !important;
+  }
+
 </style>
 
 <%-- Main Dashboard Section --%>
@@ -265,15 +416,48 @@
         </p>
       </div>
       <div class="col-md-4 text-md-right mt-3 mt-md-0 d-flex flex-column align-items-md-end justify-content-center">
-        <a href="${pageContext.request.contextPath}/host/vouchers" class="btn btn-warning font-weight-bold px-3 py-2 shadow-sm mb-2" style="background:#f59e0b; border-color:#d97706; color:#ffffff;">
-          <i class="fa fa-ticket mr-1"></i> Quản lý Voucher
-        </a>
+        <div class="d-flex flex-wrap justify-content-md-end mb-2">
+          <a href="${pageContext.request.contextPath}/host/calendar" class="btn btn-primary font-weight-bold px-3 py-2 shadow-sm mr-2 mb-1" style="background:#2563eb; border-color:#1d4ed8; color:#ffffff;">
+            <i class="fa fa-calendar-check-o mr-1"></i> Lịch Đặt Phòng
+          </a>
+          <a href="${pageContext.request.contextPath}/host/vouchers" class="btn btn-warning font-weight-bold px-3 py-2 shadow-sm mb-1" style="background:#f59e0b; border-color:#d97706; color:#ffffff;">
+            <i class="fa fa-ticket mr-1"></i> Quản lý Voucher
+          </a>
+        </div>
         <div>
           <span class="text-muted small">Dữ liệu năm: </span>
           <span class="font-weight-bold text-primary"><c:out value="${currentYear}" /></span>
         </div>
       </div>
     </div>
+
+    
+    <%-- Thông Báo Trạng Thái Thao Tác --%>
+    <c:if test="${not empty sessionScope.messageSuccess}">
+      <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+        <div class="d-flex align-items-center">
+          <i class="fa fa-check-circle fa-lg mr-2 text-success"></i>
+          <div><c:out value="${sessionScope.messageSuccess}" /></div>
+        </div>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <c:remove var="messageSuccess" scope="session" />
+    </c:if>
+
+    <c:if test="${not empty sessionScope.messageError}">
+      <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
+        <div class="d-flex align-items-center">
+          <i class="fa fa-exclamation-triangle fa-lg mr-2 text-danger"></i>
+          <div><c:out value="${sessionScope.messageError}" /></div>
+        </div>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <c:remove var="messageError" scope="session" />
+    </c:if>
 
     <c:choose>
       <%-- Case 1: Approved Host with Dynamic Revenue & Operations --%>
@@ -391,7 +575,7 @@
           </div>
 
           <div class="table-responsive">
-            <table class="table table-custom table-hover">
+            <table class="table table-custom table-hover mb-0">
               <thead>
                 <tr>
                   <th>Mã đơn</th>
@@ -405,32 +589,40 @@
               </thead>
               <tbody>
                 <c:forEach var="booking" items="${recentBookings}">
-                  <tr>
+                  <tr class="booking-row" 
+                      data-toggle="modal" 
+                      data-target="#bookingDetailModal${booking.id}"
+                      title="Nhấn để xem chi tiết đơn phòng #${booking.bookingCode}">
                     <td>
-                      <span class="font-weight-bold text-dark font-monospace">
-                        <c:out value="${booking.bookingCode}" />
-                      </span>
+                      <a href="javascript:void(0)" class="font-weight-bold text-primary font-monospace booking-code-link text-nowrap"
+                         data-toggle="modal" data-target="#bookingDetailModal${booking.id}">
+                        <i class="fa fa-ticket mr-1 text-muted"></i><c:out value="${booking.bookingCode}" />
+                      </a>
+                      <div class="small text-muted">
+                        <fmt:formatDate value="${booking.createdAt}" pattern="dd/MM/yyyy HH:mm" />
+                      </div>
                     </td>
                     <td>
-                      <strong><c:out value="${booking.customerName}" /></strong>
+                      <strong class="text-dark"><c:out value="${booking.customerName}" /></strong>
                       <c:if test="${not empty booking.customerPhone}">
-                        <div class="small text-muted"><c:out value="${booking.customerPhone}" /></div>
+                        <div class="small text-muted"><i class="fa fa-phone mr-1"></i><c:out value="${booking.customerPhone}" /></div>
                       </c:if>
                     </td>
                     <td>
                       <span class="text-dark font-weight-500"><c:out value="${booking.roomName}" /></span>
-                      <div class="small text-muted"><c:out value="${booking.propertyName}" /></div>
+                      <div class="small text-muted"><i class="fa fa-building-o mr-1"></i><c:out value="${booking.propertyName}" /></div>
                     </td>
                     <td>
                       <fmt:formatDate value="${booking.checkInDate}" pattern="dd/MM/yyyy" />
                       <span class="text-muted">→</span>
                       <fmt:formatDate value="${booking.checkOutDate}" pattern="dd/MM/yyyy" />
+                      <div class="small text-muted font-italic">${booking.numberOfNights} đêm</div>
                     </td>
                     <td>
                       <c:out value="${booking.guestCount}" /> người
                     </td>
                     <td>
-                      <strong class="text-primary">
+                      <strong class="text-primary text-nowrap">
                         <fmt:formatNumber value="${booking.totalPrice}" pattern="#,##0" /> ₫
                       </strong>
                     </td>
@@ -462,6 +654,237 @@
               </tbody>
             </table>
           </div>
+
+        <%-- Modal Chi Tiết Từng Đơn Đặt Phòng Cho Host --%>
+        <c:forEach var="booking" items="${recentBookings}">
+          <div class="modal fade booking-detail-modal text-left" id="bookingDetailModal${booking.id}" tabindex="-1" role="dialog" aria-labelledby="modalLabel${booking.id}" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+              <div class="modal-content shadow-lg">
+                <div class="modal-header d-flex align-items-center justify-content-between pb-3">
+                  <div class="d-flex align-items-center flex-wrap">
+                    <h5 class="modal-title font-weight-bold mb-0 text-dark" id="modalLabel${booking.id}">
+                      <i class="fa fa-id-card-o text-warning mr-2"></i>Chi Tiết Đơn Đặt Phòng
+                    </h5>
+                    <span class="badge badge-primary px-3 py-1 font-monospace ml-2 font-weight-bold" style="font-size: 13px;">
+                      #<c:out value="${booking.bookingCode}" />
+                    </span>
+                  </div>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                
+                <div class="modal-body p-4">
+                  <!-- Banner Tổng quan Trạng Thái & Ngày tạo & Tổng tiền -->
+                  <div class="booking-summary-banner p-3 rounded mb-4 d-flex flex-wrap justify-content-between align-items-center border">
+                    <div class="d-flex align-items-center mb-2 mb-md-0">
+                      <div class="mr-3">
+                        <c:choose>
+                          <c:when test="${booking.status == 'COMPLETED'}">
+                            <span class="badge badge-success px-3 py-2" style="font-size: 13px;"><i class="fa fa-check-circle mr-1"></i> Đã hoàn thành</span>
+                          </c:when>
+                          <c:when test="${booking.status == 'CONFIRMED'}">
+                            <span class="badge badge-primary px-3 py-2" style="font-size: 13px;"><i class="fa fa-calendar-check-o mr-1"></i> Đã xác nhận</span>
+                          </c:when>
+                          <c:when test="${booking.status == 'PENDING'}">
+                            <span class="badge badge-warning px-3 py-2 text-dark font-weight-bold" style="font-size: 13px;"><i class="fa fa-hourglass-half mr-1"></i> Đang chờ duyệt</span>
+                          </c:when>
+                          <c:otherwise>
+                            <span class="badge badge-danger px-3 py-2" style="font-size: 13px;"><i class="fa fa-ban mr-1"></i> Đã hủy</span>
+                          </c:otherwise>
+                        </c:choose>
+                      </div>
+                      <div class="small text-muted">
+                        <div><i class="fa fa-clock-o mr-1"></i> Ngày đặt: <strong><fmt:formatDate value="${booking.createdAt}" pattern="dd/MM/yyyy HH:mm" /></strong></div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="small text-muted">Tổng thanh toán</div>
+                      <div class="h4 font-weight-bold text-primary mb-0">
+                        <fmt:formatNumber value="${booking.totalPrice}" pattern="#,##0" /> ₫
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 2 Cột: Thông tin Khách hàng & Thông tin Homestay/Phòng -->
+                  <div class="row">
+                    <!-- Cột 1: Thông tin Khách hàng -->
+                    <div class="col-md-6 mb-3">
+                      <div class="booking-detail-card h-100 p-3 rounded border">
+                        <h6 class="font-weight-bold text-dark border-bottom pb-2 mb-3">
+                          <i class="fa fa-user-circle-o text-primary mr-2"></i>Thông Tin Khách Hàng
+                        </h6>
+                        <div class="info-group mb-2">
+                          <span class="text-muted small d-block">Họ và tên khách:</span>
+                          <strong class="text-dark font-weight-600"><c:out value="${booking.customerName}" /></strong>
+                        </div>
+                        <div class="info-group mb-2">
+                          <span class="text-muted small d-block">Số điện thoại liên hệ:</span>
+                          <c:choose>
+                            <c:when test="${not empty booking.customerPhone}">
+                              <a href="tel:${booking.customerPhone}" class="text-primary font-weight-500">
+                                <i class="fa fa-phone text-success mr-1"></i><c:out value="${booking.customerPhone}" />
+                              </a>
+                            </c:when>
+                            <c:otherwise>
+                              <span class="text-muted italic">Chưa cập nhật</span>
+                            </c:otherwise>
+                          </c:choose>
+                        </div>
+                        <div class="info-group mb-2">
+                          <span class="text-muted small d-block">Địa chỉ Email:</span>
+                          <c:choose>
+                            <c:when test="${not empty booking.customerEmail}">
+                              <a href="mailto:${booking.customerEmail}" class="text-primary font-weight-500">
+                                <i class="fa fa-envelope text-info mr-1"></i><c:out value="${booking.customerEmail}" />
+                              </a>
+                            </c:when>
+                            <c:otherwise>
+                              <span class="text-muted italic">Chưa cập nhật</span>
+                            </c:otherwise>
+                          </c:choose>
+                        </div>
+                        <div class="info-group mb-0">
+                          <span class="text-muted small d-block">Số lượng khách lưu trú:</span>
+                          <span class="font-weight-bold text-dark">
+                            <i class="fa fa-users text-warning mr-1"></i><c:out value="${booking.guestCount}" /> khách
+                            <small class="text-muted">(${booking.adults} người lớn, ${booking.children} trẻ em)</small>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Cột 2: Thông tin Phòng Homestay & Thời gian lưu trú -->
+                    <div class="col-md-6 mb-3">
+                      <div class="booking-detail-card h-100 p-3 rounded border">
+                        <h6 class="font-weight-bold text-dark border-bottom pb-2 mb-3">
+                          <i class="fa fa-home text-warning mr-2"></i>Thông Tin Homestay & Phòng
+                        </h6>
+                        <div class="d-flex align-items-center mb-3">
+                          <img src="${pageContext.request.contextPath}/assets/${not empty booking.roomImageUrl ? booking.roomImageUrl : 'images/img_1.jpg'}"
+                               alt="${booking.roomName}" 
+                               class="rounded mr-3 border shadow-sm"
+                               style="width: 70px; height: 70px; object-fit: cover;"
+                               onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/img_1.jpg';">
+                          <div>
+                            <div class="font-weight-bold text-dark"><c:out value="${booking.roomName}" /></div>
+                            <c:if test="${not empty booking.roomNumber}">
+                              <span class="badge badge-secondary px-2 py-1 small">Mã phòng: <c:out value="${booking.roomNumber}" /></span>
+                            </c:if>
+                            <div class="small text-muted mt-1"><i class="fa fa-building-o mr-1"></i><c:out value="${booking.propertyName}" /></div>
+                          </div>
+                        </div>
+
+                        <c:if test="${not empty booking.propertyAddress}">
+                          <div class="info-group mb-2">
+                            <span class="text-muted small d-block">Địa chỉ homestay:</span>
+                            <span class="small text-dark"><i class="fa fa-map-marker text-danger mr-1"></i><c:out value="${booking.propertyAddress}" /></span>
+                          </div>
+                        </c:if>
+
+                        <div class="p-2 rounded bg-light border stay-period-box mt-2">
+                          <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small text-muted"><i class="fa fa-sign-in text-success mr-1"></i>Nhận phòng (Check-in):</span>
+                            <strong class="text-dark small"><fmt:formatDate value="${booking.checkInDate}" pattern="dd/MM/yyyy" /> <span class="text-muted">(từ 14:00)</span></strong>
+                          </div>
+                          <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small text-muted"><i class="fa fa-sign-out text-danger mr-1"></i>Trả phòng (Check-out):</span>
+                            <strong class="text-dark small"><fmt:formatDate value="${booking.checkOutDate}" pattern="dd/MM/yyyy" /> <span class="text-muted">(trước 12:00)</span></strong>
+                          </div>
+                          <div class="d-flex justify-content-between align-items-center border-top pt-1 mt-1">
+                            <span class="small text-muted">Thời gian lưu trú:</span>
+                            <strong class="text-primary small">${booking.numberOfNights} đêm</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Danh sách phòng chi tiết nếu đơn có nhiều phòng -->
+                  <c:if test="${not empty booking.bookingRooms and booking.bookingRooms.size() > 0}">
+                    <div class="mb-3">
+                      <h6 class="font-weight-bold text-dark mb-2">
+                        <i class="fa fa-bed text-info mr-2"></i>Danh Sách Phòng Trong Đơn (${booking.bookingRooms.size()} phòng)
+                      </h6>
+                      <div class="table-responsive rounded border">
+                        <table class="table table-sm table-striped mb-0">
+                          <thead class="thead-light">
+                            <tr>
+                              <th>Phòng</th>
+                              <th>Loại phòng</th>
+                              <th>Số khách</th>
+                              <th class="text-right">Đơn giá / đêm</th>
+                              <th class="text-right">Số đêm</th>
+                              <th class="text-right">Thành tiền</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <c:forEach var="item" items="${booking.bookingRooms}">
+                              <tr>
+                                <td>
+                                  <strong><c:out value="${item.roomName}" /></strong>
+                                </td>
+                                <td><c:out value="${item.roomTypeName}" /></td>
+                                <td><c:out value="${item.capacity}" /> khách</td>
+                                <td class="text-right"><fmt:formatNumber value="${item.pricePerNight}" pattern="#,##0" /> ₫</td>
+                                <td class="text-right">${item.numberOfNights}</td>
+                                <td class="text-right font-weight-bold text-primary">
+                                  <fmt:formatNumber value="${item.subtotal}" pattern="#,##0" /> ₫
+                                </td>
+                              </tr>
+                            </c:forEach>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </c:if>
+
+                  <!-- Ghi chú & Yêu cầu đặc biệt từ khách hàng -->
+                  <div class="row">
+                    <div class="col-md-6 mb-2">
+                      <div class="p-3 rounded border h-100 bg-light">
+                        <span class="small font-weight-bold text-dark d-block mb-1">
+                          <i class="fa fa-pencil-square-o text-muted mr-1"></i>Ghi chú từ khách:
+                        </span>
+                        <div class="small text-muted">
+                          <c:out value="${not empty booking.notes ? booking.notes : 'Không có ghi chú thêm.'}" />
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <div class="p-3 rounded border h-100 bg-light">
+                        <span class="small font-weight-bold text-dark d-block mb-1">
+                          <i class="fa fa-bell-o text-muted mr-1"></i>Yêu cầu đặc biệt:
+                        </span>
+                        <div class="small text-muted">
+                          <c:out value="${not empty booking.specialRequests ? booking.specialRequests : 'Không có yêu cầu đặc biệt.'}" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="modal-footer d-flex justify-content-between">
+                  <div>
+                    <c:if test="${not empty booking.customerPhone}">
+                      <a href="tel:${booking.customerPhone}" class="btn btn-outline-success btn-sm">
+                        <i class="fa fa-phone mr-1"></i>Gọi khách: <c:out value="${booking.customerPhone}" />
+                      </a>
+                    </c:if>
+                    <c:if test="${not empty booking.customerEmail}">
+                      <a href="mailto:${booking.customerEmail}" class="btn btn-outline-info btn-sm ml-1">
+                        <i class="fa fa-envelope mr-1"></i>Gửi email
+                      </a>
+                    </c:if>
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm px-4" data-dismiss="modal">
+                    <i class="fa fa-times mr-1"></i>Đóng
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </c:forEach>
         </div>
 
         <%-- Row 4: Managed Properties & Rooms Inventory --%>
@@ -495,23 +918,244 @@
                 <div class="row">
                   <c:forEach var="room" items="${property.rooms}">
                     <div class="col-md-6 mb-3">
-                      <div class="p-3 bg-light rounded border">
-                        <div class="d-flex justify-content-between align-items-center">
-                          <strong><c:out value="${room.roomName}" /></strong>
-                          <span class="text-primary font-weight-bold">
-                            <fmt:formatNumber value="${room.pricePerNight}" pattern="#,##0" /> ₫ / đêm
-                          </span>
-                        </div>
-                        <div class="small text-muted mt-1">
-                          <i class="fa fa-users mr-1"></i>Tối đa <c:out value="${room.maxGuests}" /> khách ·
-                          <i class="fa fa-bed mr-1"></i><c:out value="${room.bedCount}" /> giường ·
-                          <i class="fa fa-bath mr-1"></i><c:out value="${room.bathroomCount}" /> phòng tắm
-                        </div>
-                        <c:if test="${not empty room.amenities}">
-                          <div class="small text-muted mt-2 border-top pt-2">
-                            Tiện ích: <c:out value="${room.amenities}" />
+                      <div class="p-3 bg-light rounded border h-100 d-flex flex-column justify-content-between room-inventory-card">
+                        <div>
+                          <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                              <strong class="text-dark" style="font-size: 15px;"><c:out value="${room.roomName}" /></strong>
+                              <span class="badge badge-secondary ml-1 font-weight-normal text-uppercase" style="font-size: 11px;">
+                                <c:out value="${not empty room.roomTypeName ? room.roomTypeName : 'DOUBLE'}" />
+                              </span>
+                            </div>
+                            <span class="text-primary font-weight-bold ml-2 text-nowrap">
+                              <fmt:formatNumber value="${room.pricePerNight}" pattern="#,##0" /> ₫ <small class="text-muted font-weight-normal">/ đêm</small>
+                            </span>
                           </div>
-                        </c:if>
+                          <div class="small text-muted mt-2">
+                            <span class="mr-3"><i class="fa fa-users mr-1 text-primary"></i>Tối đa <strong><c:out value="${room.maxGuests}" /></strong> khách</span>
+                            <span class="mr-3"><i class="fa fa-bed mr-1 text-info"></i><strong><c:out value="${room.bedCount}" /></strong> giường</span>
+                            <span><i class="fa fa-bath mr-1 text-success"></i><strong><c:out value="${room.bathroomCount}" /></strong> phòng tắm</span>
+                          </div>
+                          <c:if test="${not empty room.amenities}">
+                            <div class="small text-muted mt-2 border-top pt-2 d-flex flex-wrap align-items-center">
+                              <span class="font-weight-bold mr-2"><i class="fa fa-check-circle-o mr-1 text-warning"></i>Tiện ích:</span>
+                              <c:forEach var="amenity" items="${room.amenities}">
+                                <span class="badge badge-light border mr-1 mb-1 font-weight-normal"><c:out value="${amenity}" /></span>
+                              </c:forEach>
+                            </div>
+                          </c:if>
+                        </div>
+
+                        <div class="mt-3 pt-2 border-top d-flex justify-content-end align-items-center">
+                          <a href="${pageContext.request.contextPath}/host/calendar?propertyId=${property.id}&roomId=${room.id}" class="btn btn-sm btn-outline-primary font-weight-bold px-3 mr-2 shadow-none">
+                            <i class="fa fa-calendar mr-1"></i>Lịch phòng
+                          </a>
+                          <button type="button" class="btn btn-sm btn-outline-warning font-weight-bold px-3 shadow-none" 
+                                  data-toggle="modal" data-target="#editRoomModal${room.id}">
+                            <i class="fa fa-pencil mr-1"></i>Chỉnh sửa phòng
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Modal Chỉnh Sửa Phòng -->
+                    <div class="modal fade edit-room-modal text-left" id="editRoomModal${room.id}" tabindex="-1" role="dialog" aria-labelledby="editRoomModalLabel${room.id}" aria-hidden="true">
+                      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+                        <div class="modal-content shadow-lg">
+                          <form action="${pageContext.request.contextPath}/host/dashboard" method="post">
+                            <input type="hidden" name="action" value="editRoom" />
+                            <input type="hidden" name="propertyId" value="${property.id}" />
+                            <input type="hidden" name="roomId" value="${room.id}" />
+
+                            <div class="modal-header d-flex align-items-center justify-content-between pb-3">
+                              <div class="d-flex align-items-center flex-wrap">
+                                <h5 class="modal-title font-weight-bold mb-0 text-dark" id="editRoomModalLabel${room.id}">
+                                  <i class="fa fa-pencil text-warning mr-2"></i>Chỉnh Sửa Thông Tin Phòng
+                                </h5>
+                                <span class="badge badge-info px-2 py-1 ml-2 font-weight-normal" style="font-size: 12px;">
+                                  <c:out value="${property.propertyName}" />
+                                </span>
+                              </div>
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                              </button>
+                            </div>
+
+                            <div class="modal-body p-4">
+                              <div class="form-row">
+                                <div class="form-group col-md-7">
+                                  <label class="font-weight-bold text-dark small mb-1">
+                                    <i class="fa fa-tag mr-1 text-primary"></i>Tên phòng <span class="text-danger">*</span>
+                                  </label>
+                                  <input type="text" class="form-control" name="roomName" value="<c:out value="${room.roomName}" />" required maxlength="120" placeholder="Ví dụ: Deluxe Ocean View 101" />
+                                </div>
+
+                                <div class="form-group col-md-5">
+                                  <label class="font-weight-bold text-dark small mb-1">
+                                    <i class="fa fa-th-large mr-1 text-primary"></i>Loại phòng <span class="text-danger">*</span>
+                                  </label>
+                                  <select class="form-control custom-select" name="roomType" required>
+                                    <option value="SINGLE" ${room.roomTypeName == 'SINGLE' ? 'selected' : ''}>Phòng Đơn (Single)</option>
+                                    <option value="DOUBLE" ${room.roomTypeName == 'DOUBLE' || empty room.roomTypeName ? 'selected' : ''}>Phòng Đôi (Double)</option>
+                                    <option value="TWIN" ${room.roomTypeName == 'TWIN' ? 'selected' : ''}>Phòng 2 Giường (Twin)</option>
+                                    <option value="FAMILY" ${room.roomTypeName == 'FAMILY' ? 'selected' : ''}>Phòng Gia Đình (Family)</option>
+                                    <option value="SUITE" ${room.roomTypeName == 'SUITE' ? 'selected' : ''}>Phòng Cao Cấp (Suite)</option>
+                                    <option value="OTHER" ${room.roomTypeName == 'OTHER' ? 'selected' : ''}>Loại Khác (Other)</option>
+                                  </select>
+                                </div>
+                              </div>
+
+                              <div class="form-row">
+                                <div class="form-group col-md-6">
+                                  <label class="font-weight-bold text-dark small mb-1">
+                                    <i class="fa fa-money mr-1 text-success"></i>Giá thuê mỗi đêm (VNĐ) <span class="text-danger">*</span>
+                                  </label>
+                                  <div class="input-group">
+                                    <input type="number" class="form-control" name="pricePerNight" value="<fmt:formatNumber value="${room.pricePerNight}" pattern="0" />" min="10000" max="99999999" step="10000" required placeholder="500000" />
+                                    <div class="input-group-append">
+                                      <span class="input-group-text font-weight-bold">₫ / đêm</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                  <label class="font-weight-bold text-dark small mb-1">
+                                    <i class="fa fa-sort-numeric-asc mr-1 text-muted"></i>Thứ tự hiển thị
+                                  </label>
+                                  <input type="number" class="form-control" name="sortOrder" value="${room.sortOrder}" min="0" max="100" />
+                                </div>
+                              </div>
+
+                              <div class="form-row">
+                                <div class="form-group col-md-4">
+                                  <label class="font-weight-bold text-dark small mb-1">
+                                    <i class="fa fa-users mr-1 text-primary"></i>Sức chứa tối đa <span class="text-danger">*</span>
+                                  </label>
+                                  <div class="input-group">
+                                    <input type="number" class="form-control" name="maxGuests" value="${room.maxGuests}" min="1" max="50" required />
+                                    <div class="input-group-append">
+                                      <span class="input-group-text">khách</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                  <label class="font-weight-bold text-dark small mb-1">
+                                    <i class="fa fa-bed mr-1 text-info"></i>Số lượng giường <span class="text-danger">*</span>
+                                  </label>
+                                  <div class="input-group">
+                                    <input type="number" class="form-control" name="bedCount" value="${room.bedCount}" min="1" max="20" required />
+                                    <div class="input-group-append">
+                                      <span class="input-group-text">giường</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                  <label class="font-weight-bold text-dark small mb-1">
+                                    <i class="fa fa-bath mr-1 text-success"></i>Số phòng tắm <span class="text-danger">*</span>
+                                  </label>
+                                  <div class="input-group">
+                                    <input type="number" class="form-control" name="bathroomCount" value="${room.bathroomCount > 0 ? room.bathroomCount : 1}" min="1" max="10" required />
+                                    <div class="input-group-append">
+                                      <span class="input-group-text">phòng</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="form-group mb-0">
+                                <label class="font-weight-bold text-dark small mb-2 d-block">
+                                  <i class="fa fa-list-ul mr-1 text-warning"></i>Tiện ích phòng
+                                </label>
+                                <div class="row">
+                                  <c:set var="amList" value="${room.amenities}" />
+                                  <div class="col-6 col-md-4 mb-2">
+                                    <div class="custom-control custom-checkbox">
+                                      <input type="checkbox" class="custom-control-input" id="am_wifi_${room.id}" name="amenities" value="Wifi miễn phí" ${amList != null && amList.contains('Wifi miễn phí') ? 'checked' : ''} />
+                                      <label class="custom-control-label small" for="am_wifi_${room.id}">Wifi miễn phí</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-6 col-md-4 mb-2">
+                                    <div class="custom-control custom-checkbox">
+                                      <input type="checkbox" class="custom-control-input" id="am_ac_${room.id}" name="amenities" value="Điều hòa không khí" ${amList != null && amList.contains('Điều hòa không khí') ? 'checked' : ''} />
+                                      <label class="custom-control-label small" for="am_ac_${room.id}">Điều hòa không khí</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-6 col-md-4 mb-2">
+                                    <div class="custom-control custom-checkbox">
+                                      <input type="checkbox" class="custom-control-input" id="am_tv_${room.id}" name="amenities" value="TV thông minh" ${amList != null && amList.contains('TV thông minh') ? 'checked' : ''} />
+                                      <label class="custom-control-label small" for="am_tv_${room.id}">TV thông minh</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-6 col-md-4 mb-2">
+                                    <div class="custom-control custom-checkbox">
+                                      <input type="checkbox" class="custom-control-input" id="am_fridge_${room.id}" name="amenities" value="Tủ lạnh / Minibar" ${amList != null && amList.contains('Tủ lạnh / Minibar') ? 'checked' : ''} />
+                                      <label class="custom-control-label small" for="am_fridge_${room.id}">Tủ lạnh / Minibar</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-6 col-md-4 mb-2">
+                                    <div class="custom-control custom-checkbox">
+                                      <input type="checkbox" class="custom-control-input" id="am_hotwater_${room.id}" name="amenities" value="Bình nóng lạnh" ${amList != null && amList.contains('Bình nóng lạnh') ? 'checked' : ''} />
+                                      <label class="custom-control-label small" for="am_hotwater_${room.id}">Bình nóng lạnh</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-6 col-md-4 mb-2">
+                                    <div class="custom-control custom-checkbox">
+                                      <input type="checkbox" class="custom-control-input" id="am_dryer_${room.id}" name="amenities" value="Máy sấy tóc" ${amList != null && amList.contains('Máy sấy tóc') ? 'checked' : ''} />
+                                      <label class="custom-control-label small" for="am_dryer_${room.id}">Máy sấy tóc</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-6 col-md-4 mb-2">
+                                    <div class="custom-control custom-checkbox">
+                                      <input type="checkbox" class="custom-control-input" id="am_balcony_${room.id}" name="amenities" value="Ban công view đẹp" ${amList != null && amList.contains('Ban công view đẹp') ? 'checked' : ''} />
+                                      <label class="custom-control-label small" for="am_balcony_${room.id}">Ban công view đẹp</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-6 col-md-4 mb-2">
+                                    <div class="custom-control custom-checkbox">
+                                      <input type="checkbox" class="custom-control-input" id="am_kitchen_${room.id}" name="amenities" value="Bếp nấu ăn" ${amList != null && amList.contains('Bếp nấu ăn') ? 'checked' : ''} />
+                                      <label class="custom-control-label small" for="am_kitchen_${room.id}">Bếp nấu ăn</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-6 col-md-4 mb-2">
+                                    <div class="custom-control custom-checkbox">
+                                      <input type="checkbox" class="custom-control-input" id="am_bathtub_${room.id}" name="amenities" value="Bồn tắm / Jacuzzi" ${amList != null && amList.contains('Bồn tắm / Jacuzzi') ? 'checked' : ''} />
+                                      <label class="custom-control-label small" for="am_bathtub_${room.id}">Bồn tắm / Jacuzzi</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-6 col-md-4 mb-2">
+                                    <div class="custom-control custom-checkbox">
+                                      <input type="checkbox" class="custom-control-input" id="am_desk_${room.id}" name="amenities" value="Bàn làm việc" ${amList != null && amList.contains('Bàn làm việc') ? 'checked' : ''} />
+                                      <label class="custom-control-label small" for="am_desk_${room.id}">Bàn làm việc</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-6 col-md-4 mb-2">
+                                    <div class="custom-control custom-checkbox">
+                                      <input type="checkbox" class="custom-control-input" id="am_kettle_${room.id}" name="amenities" value="Ấm siêu tốc" ${amList != null && amList.contains('Ấm siêu tốc') ? 'checked' : ''} />
+                                      <label class="custom-control-label small" for="am_kettle_${room.id}">Ấm siêu tốc</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-6 col-md-4 mb-2">
+                                    <div class="custom-control custom-checkbox">
+                                      <input type="checkbox" class="custom-control-input" id="am_iron_${room.id}" name="amenities" value="Bàn ủi / Là quần áo" ${amList != null && amList.contains('Bàn ủi / Là quần áo') ? 'checked' : ''} />
+                                      <label class="custom-control-label small" for="am_iron_${room.id}">Bàn ủi / Là quần áo</label>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="modal-footer d-flex justify-content-between">
+                              <button type="button" class="btn btn-secondary btn-sm px-4" data-dismiss="modal">
+                                <i class="fa fa-times mr-1"></i>Hủy bỏ
+                              </button>
+                              <button type="submit" class="btn btn-warning btn-sm px-4 font-weight-bold" style="background:#f59e0b; border-color:#d97706; color:#ffffff;">
+                                <i class="fa fa-save mr-1"></i>Lưu Thay Đổi
+                              </button>
+                            </div>
+                          </form>
+                        </div>
                       </div>
                     </div>
                   </c:forEach>

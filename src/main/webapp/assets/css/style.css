@@ -950,15 +950,69 @@ textarea.form-control {
   line-height: 1.2;
 }
 
-/* Mouse Animation */
+/* Hero Action Buttons & Middle Scroll Mouse */
+.hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  margin-top: 1.5rem;
+}
+
+.hero-actions .hero-btn {
+  display: inline-block;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.hero-actions .hero-mouse {
+  position: static !important;
+  transform: none !important;
+  left: auto !important;
+  bottom: auto !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  margin: 0 8px;
+  z-index: 2;
+  cursor: pointer;
+  text-decoration: none !important;
+  transition: transform 0.3s ease;
+}
+
+.hero-actions .hero-mouse:hover {
+  transform: translateY(3px) !important;
+}
+
+.hero-actions .hero-mouse .mouse-icon {
+  margin: 0 auto;
+}
+
+@media (max-width: 575.98px) {
+  .hero-actions {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .hero-actions .hero-btn {
+    width: 100%;
+    max-width: 280px;
+  }
+  .hero-actions .hero-mouse {
+    margin: 4px 0;
+  }
+}
+
+/* Mouse Animation (default for other pages like about, rooms, etc.) */
 .mouse {
-  width: 100px;
+  width: 30px;
   display: inline-block;
   position: absolute;
   left: 50%;
-  bottom: 140px;
-  z-index: 1;
-  transform: translateX(-25%);
+  bottom: 20px;
+  z-index: 5;
+  transform: translateX(-50%);
+  text-align: center;
 }
 
 .mouse-icon {
@@ -969,7 +1023,9 @@ textarea.form-control {
   cursor: pointer;
   position: relative;
   text-align: center;
+  margin: 0 auto;
 }
+
 
 .mouse-wheel {
   height: 6px;

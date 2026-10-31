@@ -601,6 +601,16 @@ public class PropertyDAO {
                     }
                 }
                 replaceAmenities(connection, roomId, room.getAmenities());
+                String syncSql = "UPDATE roomtypes rt JOIN rooms r ON rt.room_type_id = r.room_type_id " +
+                        "SET rt.room_name = ?, rt.base_price = ?, rt.max_guests = ? " +
+                        "WHERE r.room_id = ?";
+                try (PreparedStatement syncStmt = connection.prepareStatement(syncSql)) {
+                    syncStmt.setString(1, room.getRoomName().trim());
+                    syncStmt.setBigDecimal(2, room.getPricePerNight());
+                    syncStmt.setInt(3, room.getMaxGuests());
+                    syncStmt.setInt(4, roomId);
+                    syncStmt.executeUpdate();
+                }
                 updatePropertyCapacity(connection, propertyId);
                 connection.commit();
                 return true;

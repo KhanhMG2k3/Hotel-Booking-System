@@ -41,10 +41,10 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/fonts/fontawesome/css/font-awesome.min.css">
 
     <!-- Theme Style -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css?v=20261011-eye-fix">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css?v=20261031-mouse-middle">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/_custom.css?v=3.4">
     <!-- Light / Dark Mode & Dynamic Typography -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css?v=20261028-1">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css?v=20261031-mouse-middle">
 
     <style>
       .password-input-wrap {

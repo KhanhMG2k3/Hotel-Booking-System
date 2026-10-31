@@ -127,6 +127,9 @@
                                         <a href="${pageContext.request.contextPath}/host/dashboard" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-dashboard"></i> Host Dashboard
                                         </a>
+                                        <a href="${pageContext.request.contextPath}/host/calendar" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-calendar-check-o"></i> Lịch Đặt Phòng
+                                        </a>
                                         <a href="${pageContext.request.contextPath}/host/vouchers" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-ticket"></i> Quản lý Voucher
                                         </a>
@@ -359,6 +362,13 @@
                                                 <a href="${pageContext.request.contextPath}/host/dashboard" class="drawer-nav-link" onclick="closeSiteNavbar()">
                                                     <span class="drawer-nav-icon icon-dashboard"><i class="fa fa-dashboard"></i></span>
                                                     <span class="drawer-nav-text">Host Dashboard</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
+                                            <li class="drawer-nav-item ${activePage == 'host-calendar' ? 'active' : ''}">
+                                                <a href="${pageContext.request.contextPath}/host/calendar" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fa fa-calendar-check-o"></i></span>
+                                                    <span class="drawer-nav-text">Lịch Đặt Phòng</span>
                                                     <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                                 </a>
                                             </li>

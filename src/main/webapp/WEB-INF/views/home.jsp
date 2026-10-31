@@ -24,21 +24,20 @@
                 <h1 class="heading mb-4">Không Gian Nghỉ Dưỡng Bình Yên & Trải Nghiệm Đáng Nhớ</h1>
                 <p class="lead text-white mb-5">Hòa mình vào thiên nhiên tươi mát, tận hưởng sự thoải mái ấm cúng như chính
                     ngôi nhà của bạn.</p>
-                <p>
+                <div class="hero-actions">
                     <a href="#about-story"
-                       class="btn btn-primary text-white py-3 px-4 mr-3 font-weight-bold smoothscroll">Khám Phá Homestay</a>
+                       class="btn btn-primary text-white py-3 px-4 font-weight-bold smoothscroll hero-btn">Khám Phá Homestay</a>
+                    <a class="mouse hero-mouse smoothscroll" href="#about-story" title="Cuộn xuống khám phá">
+                        <div class="mouse-icon">
+                            <span class="mouse-wheel"></span>
+                        </div>
+                    </a>
                     <a href="${pageContext.request.contextPath}/rooms"
-                       class="btn btn-outline-light py-3 px-4 font-weight-bold">Xem Danh Sách Phòng</a>
-                </p>
+                       class="btn btn-outline-light py-3 px-4 font-weight-bold hero-btn">Xem Danh Sách Phòng</a>
+                </div>
             </div>
         </div>
     </div>
-
-    <a class="mouse smoothscroll" href="#about-story">
-        <div class="mouse-icon">
-            <span class="mouse-wheel"></span>
-        </div>
-    </a>
 </section>
 <!-- END HERO SECTION -->
 

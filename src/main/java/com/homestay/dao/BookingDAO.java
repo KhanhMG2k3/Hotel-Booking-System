@@ -6,6 +6,7 @@ import com.homestay.model.BookingRoomItem;
 import com.homestay.model.Room;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -219,10 +220,14 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
 
     public List<Booking> findBookingsByHost(int hostId, int limit, int offset) throws SQLException {
         List<Booking> bookings = new ArrayList<>();
-        String sql = "SELECT b.*, r.room_name, p.property_name " +
+        String sql = "SELECT b.*, r.room_name, r.room_number, p.property_name, " +
+                     "       COALESCE(p.address, '') as property_address, " +
+                     "       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') as room_image_url " +
                      "FROM bookings b " +
                      "JOIN rooms r ON b.room_id = r.room_id " +
                      "JOIN properties p ON r.property_id = p.property_id " +
+                     "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
                      "WHERE p.host_id = ? " +
                      "ORDER BY b.created_at DESC LIMIT ? OFFSET ?";
         try (Connection conn = getConnection();
@@ -234,11 +239,27 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
                 while (rs.next()) {
                     Booking b = mapResultSetToBooking(rs);
                     b.setRoomName(rs.getString("room_name"));
+                    b.setRoomNumber(rs.getString("room_number"));
                     b.setPropertyName(rs.getString("property_name"));
+                    b.setPropertyAddress(rs.getString("property_address"));
+                    try {
+                        b.setRoomImageUrl(rs.getString("room_image_url"));
+                    } catch (SQLException ignored) {}
                     bookings.add(b);
                 }
             }
         }
+
+        // Attach multi-room items if any
+        for (Booking b : bookings) {
+            try {
+                List<BookingRoomItem> rooms = getBookingRooms(b.getId());
+                if (rooms != null && !rooms.isEmpty()) {
+                    b.setBookingRooms(rooms);
+                }
+            } catch (Exception ignored) {}
+        }
+
         return bookings;
     }
 
@@ -283,6 +304,57 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
     public List<Booking> findRecentBookingsByHost(int hostId, int limit) throws SQLException {
         return findBookingsByHost(hostId, limit, 0);
     }
+
+    /**
+     * Retrieves active bookings overlapping with a date range for a given host and optional property/room.
+     */
+    public List<Booking> findBookingsForCalendar(int hostId, int propertyId, int roomId, LocalDate startDate, LocalDate endDate) throws SQLException {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT DISTINCT b.*, r.room_name, r.room_number, p.property_name, " +
+                     "       COALESCE(p.address, '') as property_address, " +
+                     "       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') as room_image_url, " +
+                     "       COALESCE(br.room_id, b.room_id) as calendar_room_id " +
+                     "FROM bookings b " +
+                     "LEFT JOIN bookingrooms br ON b.id = br.booking_id " +
+                     "JOIN rooms r ON r.room_id = COALESCE(br.room_id, b.room_id) " +
+                     "JOIN properties p ON r.property_id = p.property_id " +
+                     "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
+                     "WHERE p.host_id = ? " +
+                     "  AND (? = 0 OR p.property_id = ?) " +
+                     "  AND (? = 0 OR r.room_id = ?) " +
+                     "  AND b.status IN ('PENDING', 'CONFIRMED', 'COMPLETED') " +
+                     "  AND (b.check_in_date < ? AND b.check_out_date > ?) " +
+                     "ORDER BY b.check_in_date ASC, b.id ASC";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hostId);
+            ps.setInt(2, propertyId);
+            ps.setInt(3, propertyId);
+            ps.setInt(4, roomId);
+            ps.setInt(5, roomId);
+            ps.setDate(6, java.sql.Date.valueOf(endDate));
+            ps.setDate(7, java.sql.Date.valueOf(startDate));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Booking b = mapResultSetToBooking(rs);
+                    b.setRoomName(rs.getString("room_name"));
+                    b.setRoomNumber(rs.getString("room_number"));
+                    b.setPropertyName(rs.getString("property_name"));
+                    b.setPropertyAddress(rs.getString("property_address"));
+                    try {
+                        b.setRoomImageUrl(rs.getString("room_image_url"));
+                    } catch (SQLException ignored) {}
+                    b.setRoomId(rs.getInt("calendar_room_id"));
+                    bookings.add(b);
+                }
+            }
+        }
+        return bookings;
+    }
+
 
     public int createBooking(Booking booking) throws SQLException {
         if (insert(booking)) {
@@ -493,10 +565,14 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
      */
     public Optional<Booking> findByBookingCode(String bookingCode) {
         if (bookingCode == null || bookingCode.trim().isEmpty()) return Optional.empty();
-        String sql = "SELECT b.*, r.room_name, p.property_name " +
+        String sql = "SELECT b.*, r.room_name, r.room_number, p.property_name, " +
+                     "       COALESCE(p.address, '') as property_address, " +
+                     "       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') as room_image_url " +
                      "FROM bookings b " +
-                     "LEFT JOIN rooms r ON b.room_id = r.room_id " +
-                     "LEFT JOIN properties p ON r.property_id = p.property_id " +
+                     "JOIN rooms r ON b.room_id = r.room_id " +
+                     "JOIN properties p ON r.property_id = p.property_id " +
+                     "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
                      "WHERE b.booking_code = ? LIMIT 1";
         Connection conn = null;
         PreparedStatement ps = null;

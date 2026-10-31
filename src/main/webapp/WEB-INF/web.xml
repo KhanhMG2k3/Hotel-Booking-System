@@ -150,6 +150,15 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>HostCalendarController</servlet-name>
+        <servlet-class>com.homestay.controller.HostCalendarController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>HostCalendarController</servlet-name>
+        <url-pattern>/host/calendar</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>HostPropertyApiController</servlet-name>
         <servlet-class>com.homestay.controller.HostPropertyApiController</servlet-class>
     </servlet>
