@@ -132,6 +132,7 @@
     .badge-tx-credit { background: #dcfce7; color: #15803d; font-weight: 600; }
     .badge-tx-debit { background: #fee2e2; color: #b91c1c; font-weight: 600; }
     .badge-tx-topup { background: #e0f2fe; color: #0369a1; font-weight: 600; }
+    .badge-tx-withdrawal { background: #e0e7ff; color: #4338ca; font-weight: 600; }
 </style>
 
 <section class="host-dash">
@@ -157,6 +158,22 @@
             </div>
         </div>
 
+        <c:if test="${not empty successMessage}">
+            <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+                <i class="fa fa-check-circle mr-2"></i> ${successMessage}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </c:if>
+        <c:if test="${not empty errorMessage}">
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
+                <i class="fa fa-exclamation-circle mr-2"></i> ${errorMessage}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </c:if>
         <c:if test="${not empty error}">
             <div class="alert alert-danger shadow-sm border-0 rounded mb-4">
                 <c:out value="${error}" />
@@ -168,19 +185,26 @@
             <div class="row mb-4">
                 <!-- SỐ DƯ VÍ KHẢ DỤNG (Model 2) -->
                 <div class="col-6 col-md-3 mb-3">
-                    <div class="stat-card wallet-stat-card d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="stat-label text-success font-weight-bold">
-                                <i class="fa fa-shield mr-1"></i> Số dư ví Host
+                    <div class="stat-card wallet-stat-card d-flex flex-column justify-content-between h-100">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="stat-label text-success font-weight-bold">
+                                    <i class="fa fa-shield mr-1"></i> Số dư ví Host
+                                </div>
+                                <div class="stat-value text-success font-weight-bold">
+                                    <fmt:formatNumber value="${hostBalance}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
+                                </div>
                             </div>
-                            <div class="stat-value">
-                                <fmt:formatNumber value="${hostBalance}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
-                            </div>
+                            <div class="stat-icon"><i class="fa fa-credit-card"></i></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                             <small class="text-muted" style="font-size: 11px;">
                                 <i class="fa fa-check-circle text-success mr-1"></i>Khả dụng hoàn tiền
                             </small>
+                            <button type="button" class="btn btn-xs btn-sm btn-link text-success p-0 font-weight-bold" onclick="openTopupModal()">
+                                + Nạp ví
+                            </button>
                         </div>
-                        <div class="stat-icon"><i class="fa fa-credit-card"></i></div>
                     </div>
                 </div>
 
@@ -340,6 +364,111 @@
                         </c:otherwise>
                     </c:choose>
 
+                    <!-- Host Bookings & Revenue Withdrawal (Model 2) -->
+                    <div class="card border-0 shadow-sm rounded-12 mt-4" style="border-radius: 12px; overflow: hidden;">
+                        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="font-weight-bold mb-0 text-dark">
+                                    <i class="fa fa-calendar-check-o text-success mr-2"></i>Đơn đặt phòng & Rút doanh thu về ngân hàng
+                                </h6>
+                                <small class="text-muted">Rút tiền doanh thu từ từng đơn đặt phòng về trực tiếp tài khoản ngân hàng của bạn</small>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0" style="font-size: 13px;">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>Mã đơn</th>
+                                            <th>Homestay / Phòng</th>
+                                            <th>Khách hàng</th>
+                                            <th>Thời gian ở</th>
+                                            <th>Doanh thu</th>
+                                            <th>Trạng thái</th>
+                                            <th class="text-right">Rút tiền ngân hàng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:choose>
+                                            <c:when test="${empty hostBookings}">
+                                                <tr>
+                                                    <td colspan="7" class="text-center py-4 text-muted">
+                                                        Chưa có đơn đặt phòng nào cho cơ sở của bạn.
+                                                    </td>
+                                                </tr>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:forEach var="b" items="${hostBookings}">
+                                                    <tr>
+                                                        <td>
+                                                            <div class="font-weight-bold font-monospace text-dark">${b.bookingCode}</div>
+                                                            <small class="text-muted"><fmt:formatDate value="${b.createdAt}" pattern="dd/MM/yyyy HH:mm"/></small>
+                                                        </td>
+                                                        <td>
+                                                            <div class="font-weight-bold text-dark">${b.propertyName}</div>
+                                                            <small class="text-secondary">${b.roomName}</small>
+                                                        </td>
+                                                        <td>
+                                                            <div class="font-weight-bold text-dark">${b.customerName}</div>
+                                                            <small class="text-muted">${b.customerPhone}</small>
+                                                        </td>
+                                                        <td class="text-muted text-nowrap">
+                                                            <fmt:formatDate value="${b.checkInDate}" pattern="dd/MM/yyyy"/>
+                                                            <i class="fa fa-arrow-right mx-1 small text-muted"></i>
+                                                            <fmt:formatDate value="${b.checkOutDate}" pattern="dd/MM/yyyy"/>
+                                                        </td>
+                                                        <td>
+                                                            <span class="font-weight-bold text-success font-monospace" style="font-size: 14px;">
+                                                                <fmt:formatNumber value="${b.totalAmount}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <c:choose>
+                                                                <c:when test="${b.status == 'CONFIRMED'}">
+                                                                    <span class="badge badge-success px-2 py-1">Đã xác nhận</span>
+                                                                </c:when>
+                                                                <c:when test="${b.status == 'REFUNDED'}">
+                                                                    <span class="badge badge-secondary px-2 py-1">Đã hoàn tiền</span>
+                                                                </c:when>
+                                                                <c:when test="${b.status == 'PENDING'}">
+                                                                    <span class="badge badge-warning px-2 py-1">Chờ thanh toán</span>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <span class="badge badge-light border text-muted">${b.status}</span>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <c:choose>
+                                                                <c:when test="${b.canWithdraw()}">
+                                                                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 font-weight-bold shadow-sm"
+                                                                            onclick="openWithdrawModal(${b.id}, '${b.bookingCode}', ${b.totalAmount})">
+                                                                        <i class="fa fa-university mr-1"></i> Rút về ngân hàng
+                                                                    </button>
+                                                                </c:when>
+                                                                <c:when test="${b.isWithdrawn()}">
+                                                                    <span class="badge badge-info px-2 py-1 text-white">
+                                                                        <i class="fa fa-check mr-1"></i> Đã rút tiền
+                                                                    </span>
+                                                                </c:when>
+                                                                <c:when test="${b.status == 'REFUNDED'}">
+                                                                    <span class="text-muted small font-italic">Đã hoàn tiền khách</span>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <span class="text-muted small">Không khả dụng</span>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </td>
+                                                    </tr>
+                                                </c:forEach>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Recent Wallet Transactions (Model 2) -->
                     <div class="card border-0 shadow-sm rounded-12 mt-4" style="border-radius: 12px; overflow: hidden;">
                         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
@@ -385,6 +514,9 @@
                                                                 <c:when test="${tx.transactionType == 'DEBIT_REFUND'}">
                                                                     <span class="badge badge-tx-debit px-2 py-1">Hoàn tiền khách</span>
                                                                 </c:when>
+                                                                <c:when test="${tx.transactionType == 'DEBIT_WITHDRAWAL'}">
+                                                                    <span class="badge badge-tx-withdrawal px-2 py-1">Rút về ngân hàng</span>
+                                                                </c:when>
                                                                 <c:otherwise>
                                                                     <span class="badge badge-tx-topup px-2 py-1">Nạp tiền ký quỹ</span>
                                                                 </c:otherwise>
@@ -392,7 +524,7 @@
                                                         </td>
                                                         <td class="font-weight-bold">
                                                             <c:choose>
-                                                                <c:when test="${tx.transactionType == 'DEBIT_REFUND'}">
+                                                                <c:when test="${tx.transactionType == 'DEBIT_REFUND' or tx.transactionType == 'DEBIT_WITHDRAWAL'}">
                                                                     <span class="text-danger">-<fmt:formatNumber value="${tx.amount}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/></span>
                                                                 </c:when>
                                                                 <c:otherwise>
@@ -432,4 +564,180 @@
     </div>
 </section>
 
+<!-- ========================================== -->
+<!-- MODAL RÚT TIỀN VỀ NGÂN HÀNG HOST (MODEL 2) -->
+<!-- ========================================== -->
+<div class="modal fade" id="withdrawModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title font-weight-bold">
+                    <i class="fa fa-university mr-2"></i>Rút Doanh Thu Đơn Phòng Về Ngân Hàng Host
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="${pageContext.request.contextPath}/host/dashboard" method="post" id="withdrawForm">
+                <input type="hidden" name="action" value="withdraw" />
+                <input type="hidden" name="bookingId" id="withdrawBookingId" />
+                <div class="modal-body p-4">
+                    <p class="text-muted mb-3" style="font-size: 13.5px;">
+                        Rút tiền doanh thu của đơn đặt phòng <strong id="withdrawBookingCode" class="text-dark font-monospace"></strong> về tài khoản ngân hàng của bạn.
+                    </p>
+
+                    <!-- Summary box -->
+                    <div class="p-3 bg-light rounded mb-3 border">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Doanh thu đơn phòng:</span>
+                            <span id="withdrawAmountDisplay" class="font-weight-bold text-success" style="font-size: 17px;"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Số dư ví Host hiện tại:</span>
+                            <span class="font-weight-bold text-dark" style="font-size: 15px;">
+                                <fmt:formatNumber value="${hostBalance}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between pt-2 border-top">
+                            <span class="text-muted">Số dư ví sau khi rút:</span>
+                            <span id="withdrawBalanceAfter" class="font-weight-bold" style="font-size: 15px;"></span>
+                        </div>
+
+                        <div id="withdrawInsufficientAlert" class="alert alert-danger py-2 px-3 mb-0 mt-3 small" style="display: none;">
+                            <i class="fa fa-exclamation-triangle mr-1"></i> Số dư ví hiện tại không đủ để thực hiện rút tiền!
+                        </div>
+                    </div>
+
+                    <!-- Bank details -->
+                    <div class="form-group mb-2">
+                        <label class="font-weight-bold text-dark" style="font-size: 13px;">Ngân hàng nhận tiền <span class="text-danger">*</span></label>
+                        <select name="bankCode" class="form-control font-weight-bold" required>
+                            <option value="TPBANK" selected>TPBank (Ngân hàng Tiên Phong)</option>
+                            <option value="MB">MBBank (Ngân hàng Quân Đội)</option>
+                            <option value="VCB">Vietcombank (Ngoại Thương Việt Nam)</option>
+                            <option value="TCB">Techcombank (Kỹ Thương Việt Nam)</option>
+                            <option value="BIDV">BIDV (Đầu tư và Phát triển VN)</option>
+                            <option value="ICB">VietinBank (Công Thương Việt Nam)</option>
+                            <option value="VPB">VPBank (Việt Nam Thịnh Vượng)</option>
+                            <option value="ACB">ACB (Á Châu)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="font-weight-bold text-dark" style="font-size: 13px;">Số tài khoản thụ hưởng <span class="text-danger">*</span></label>
+                        <input type="text" name="accountNumber" class="form-control font-monospace font-weight-bold" value="22465786789" required />
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="font-weight-bold text-dark" style="font-size: 13px;">Tên chủ tài khoản <span class="text-danger">*</span></label>
+                        <input type="text" name="accountHolder" class="form-control font-weight-bold text-uppercase" value="NGUYEN THANH HAI" required />
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label class="font-weight-bold text-dark" style="font-size: 13px;">Ghi chú rút tiền:</label>
+                        <input type="text" name="notes" class="form-control" value="Rút tiền doanh thu phòng về ngân hàng Host" />
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-dismiss="modal">Đóng</button>
+                    <button type="submit" id="btnConfirmWithdraw" class="btn btn-primary rounded-pill px-4 font-weight-bold">
+                        <i class="fa fa-university mr-1"></i> Xác Nhận Rút Tiền Về Ngân Hàng
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL TOP-UP WALLET (NẠP TIỀN VÍ HOST)      -->
+<!-- ========================================== -->
+<div class="modal fade" id="topupModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title font-weight-bold">
+                    <i class="fa fa-credit-card mr-2"></i>Nạp Tiền Vào Ví Host
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="${pageContext.request.contextPath}/host/dashboard" method="post" id="topupForm">
+                <input type="hidden" name="action" value="topup" />
+                <div class="modal-body p-4">
+                    <p class="text-muted mb-3" style="font-size: 13px;">
+                        Nạp thêm số dư vào ví Host để dự phòng thanh toán hoàn tiền hoặc lưu giữ quỹ.
+                    </p>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold text-dark" style="font-size: 13px;">Chọn nhanh số tiền nạp:</label>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mr-2 mb-2 font-weight-bold" onclick="selectTopupAmount(500000)">+ 500.000đ</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mr-2 mb-2 font-weight-bold" onclick="selectTopupAmount(2000000)">+ 2.000.000đ</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mr-2 mb-2 font-weight-bold" onclick="selectTopupAmount(5000000)">+ 5.000.000đ</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold text-dark" style="font-size: 13px;">Số tiền nạp (VNĐ): <span class="text-danger">*</span></label>
+                        <input type="number" step="1000" min="1000" name="amount" id="topupAmountInput" class="form-control form-control-lg font-weight-bold text-success" placeholder="Nhập số tiền VNĐ..." required value="2000000" />
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label class="font-weight-bold text-dark" style="font-size: 13px;">Nội dung nạp tiền:</label>
+                        <input type="text" name="note" class="form-control" value="Nạp tiền bổ sung Ví Host" />
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 font-weight-bold">
+                        <i class="fa fa-arrow-down mr-1"></i> Xác Nhận Nạp Tiền
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <jsp:include page="../common/footer.jsp" />
+
+<script>
+    var currentHostBal = ${hostBalance != null ? hostBalance : 0};
+
+    function openWithdrawModal(bookingId, bookingCode, amount) {
+        document.getElementById('withdrawBookingId').value = bookingId;
+        document.getElementById('withdrawBookingCode').textContent = '#' + bookingCode;
+
+        var formattedAmount = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        document.getElementById('withdrawAmountDisplay').textContent = formattedAmount;
+
+        var balAfter = currentHostBal - amount;
+        var formattedBalAfter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(balAfter);
+        var balAfterElem = document.getElementById('withdrawBalanceAfter');
+        balAfterElem.textContent = formattedBalAfter;
+
+        var alertInsufficient = document.getElementById('withdrawInsufficientAlert');
+        var btnConfirm = document.getElementById('btnConfirmWithdraw');
+
+        if (currentHostBal >= amount) {
+            balAfterElem.className = 'font-weight-bold text-success';
+            alertInsufficient.style.display = 'none';
+            btnConfirm.disabled = false;
+        } else {
+            balAfterElem.className = 'font-weight-bold text-danger';
+            alertInsufficient.style.display = 'block';
+            btnConfirm.disabled = true;
+        }
+
+        $('#withdrawModal').modal('show');
+    }
+
+    function openTopupModal() {
+        $('#topupModal').modal('show');
+    }
+
+    function selectTopupAmount(val) {
+        document.getElementById('topupAmountInput').value = val;
+    }
+</script>

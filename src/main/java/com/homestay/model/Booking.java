@@ -51,6 +51,7 @@ public class Booking implements Serializable {
     private String roomImageUrl;
     private Refund refund;
     private Payment payment;
+    private String payoutStatus = "UNPAID";
 
     public Booking() {
     }
@@ -312,6 +313,22 @@ public class Booking implements Serializable {
 
     public void setPayment(Payment payment) {
         this.payment = payment;
+    }
+
+    public String getPayoutStatus() {
+        return payoutStatus != null ? payoutStatus : "UNPAID";
+    }
+
+    public void setPayoutStatus(String payoutStatus) {
+        this.payoutStatus = payoutStatus;
+    }
+
+    public boolean isWithdrawn() {
+        return "WITHDRAWN".equalsIgnoreCase(payoutStatus);
+    }
+
+    public boolean canWithdraw() {
+        return ("CONFIRMED".equalsIgnoreCase(status) || "COMPLETED".equalsIgnoreCase(status)) && !isWithdrawn();
     }
 
     @Override

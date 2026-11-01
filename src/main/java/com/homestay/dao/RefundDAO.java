@@ -353,7 +353,7 @@ public class RefundDAO extends BaseDAO {
                         INSERT INTO wallet_accounts (
                             owner_type, owner_key, owner_user_id, account_type,
                             currency, status, balance, created_at
-                        ) VALUES ('HOST', ?, ?, 'AVAILABLE', 'VND', 'ACTIVE', 25000000.00, CURRENT_TIMESTAMP)
+                        ) VALUES ('HOST', ?, ?, 'AVAILABLE', 'VND', 'ACTIVE', 0.00, CURRENT_TIMESTAMP)
                         """;
                 PreparedStatement initPs = conn.prepareStatement(initWalletSql, Statement.RETURN_GENERATED_KEYS);
                 initPs.setString(1, "host_" + hostUserId);
@@ -361,7 +361,7 @@ public class RefundDAO extends BaseDAO {
                 initPs.executeUpdate();
                 ResultSet gk = initPs.getGeneratedKeys();
                 walletAccountId = gk.next() ? gk.getLong(1) : 0;
-                currentBalance = new BigDecimal("25000000.00");
+                currentBalance = BigDecimal.ZERO;
                 gk.close();
                 initPs.close();
             }

@@ -78,5 +78,13 @@ class WalletDAOTest {
         assertNotNull(txs);
         assertTrue(txs.isEmpty());
     }
+
+    @Test
+    @DisplayName("withdrawBookingRevenue throws IllegalArgumentException for non-existent booking")
+    void testWithdrawNonExistentBooking() {
+        assertThrows(RuntimeException.class, () -> {
+            walletDAO.withdrawBookingRevenue(3L, 99999999L, "TPBANK", "22465786789", "NGUYEN THANH HAI", "Test");
+        });
+    }
 }
 

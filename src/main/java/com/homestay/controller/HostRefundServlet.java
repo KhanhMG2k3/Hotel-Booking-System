@@ -175,6 +175,30 @@ public class HostRefundServlet extends HttpServlet {
             return;
         }
 
+        // Action: Withdraw booking revenue
+        if ("withdraw".equalsIgnoreCase(action.trim())) {
+            String bookingIdParam = request.getParameter("bookingId");
+            String bankCode = request.getParameter("bankCode");
+            String accountNumber = request.getParameter("accountNumber");
+            String accountHolder = request.getParameter("accountHolder");
+            String notes = request.getParameter("notes");
+
+            if (bookingIdParam == null || bookingIdParam.isBlank()) {
+                sendJsonResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "Mã đơn đặt phòng không được để trống.");
+                return;
+            }
+
+            try {
+                long bookingId = Long.parseLong(bookingIdParam.trim());
+                walletDAO.withdrawBookingRevenue(userId, bookingId, bankCode, accountNumber, accountHolder, notes);
+                sendJsonResponse(response, HttpServletResponse.SC_OK, true,
+                        "Rút tiền doanh thu phòng về ngân hàng thành công! Số dư ví đã được trừ tương ứng.");
+            } catch (Exception e) {
+                sendJsonResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, e.getMessage());
+            }
+            return;
+        }
+
         String refundIdParam = request.getParameter("refundId");
         String hostNote = request.getParameter("hostNote");
 

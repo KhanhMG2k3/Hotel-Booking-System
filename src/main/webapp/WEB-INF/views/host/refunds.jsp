@@ -451,6 +451,9 @@
                                                     <c:when test="${tx.transactionType == 'DEBIT_REFUND'}">
                                                         <span class="badge badge-tx-debit px-2 py-1">Hoàn tiền khách</span>
                                                     </c:when>
+                                                    <c:when test="${tx.transactionType == 'DEBIT_WITHDRAWAL'}">
+                                                        <span class="badge badge-info px-2 py-1">Rút về ngân hàng</span>
+                                                    </c:when>
                                                     <c:otherwise>
                                                         <span class="badge badge-tx-topup px-2 py-1">Nạp tiền ký quỹ</span>
                                                     </c:otherwise>
@@ -458,7 +461,7 @@
                                             </td>
                                             <td class="font-weight-bold">
                                                 <c:choose>
-                                                    <c:when test="${tx.transactionType == 'DEBIT_REFUND'}">
+                                                    <c:when test="${tx.transactionType == 'DEBIT_REFUND' or tx.transactionType == 'DEBIT_WITHDRAWAL'}">
                                                         <span class="text-danger">-<fmt:formatNumber value="${tx.amount}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/></span>
                                                     </c:when>
                                                     <c:otherwise>
@@ -542,17 +545,31 @@
                             <span class="text-muted d-block mb-1" style="font-size: 12px;">Tài khoản ngân hàng của khách nhận tiền:</span>
                             <div class="p-2 bg-white rounded font-weight-bold text-dark font-monospace border" id="approveBankInfo"></div>
                         </div>
+
+                        <!-- VietQR Dynamic Hoàn Tiền Code -->
+                        <div id="refundVietQrSection" class="text-center p-3 bg-white rounded border mt-3" style="display: none;">
+                            <div class="font-weight-bold text-dark mb-1" style="font-size: 13.5px;">
+                                <i class="fa fa-qrcode text-primary mr-1"></i> Quét mã VietQR chuyển tiền hoàn cho khách
+                            </div>
+                            <small class="text-muted d-block mb-2">Host mở App Ngân hàng quét mã để chuyển tiền trực tiếp trả lại khách</small>
+                            <div class="d-flex justify-content-center my-2">
+                                <img id="refundVietQrImg" src="" alt="Mã VietQR hoàn tiền" class="img-fluid border rounded shadow-sm" style="max-width: 220px;" />
+                            </div>
+                            <small class="text-muted font-italic">
+                                <i class="fa fa-info-circle mr-1"></i>Mã QR đã tích hợp sẵn STK nhận, số tiền hoàn và nội dung chuyển khoản.
+                            </small>
+                        </div>
                     </div>
 
                     <div class="form-group mb-0">
                         <label class="font-weight-bold text-dark" style="font-size: 13px;">Ghi chú duyệt hoàn tiền:</label>
-                        <input type="text" name="hostNote" class="form-control" placeholder="Ví dụ: Đã duyệt hoàn trả tiền phòng từ Ví Host..." value="Host đã duyệt hoàn tiền từ Ví" />
+                        <input type="text" name="hostNote" class="form-control" placeholder="Ví dụ: Đã quét VietQR chuyển tiền hoàn trả..." value="Host đã chuyển tiền hoàn qua VietQR và trừ Ví" />
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary rounded-pill px-4" data-dismiss="modal">Hủy</button>
                     <button type="submit" id="btnConfirmApprove" class="btn btn-success rounded-pill px-4 font-weight-bold">
-                        <i class="fa fa-check mr-1"></i> Xác Nhận & Trừ Tiền Ví
+                        <i class="fa fa-check mr-1"></i> Xác Nhận Đã Chuyển Tiền Hoàn & Trừ Ví
                     </button>
                 </div>
             </form>
@@ -665,6 +682,53 @@
         
         var formatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
         document.getElementById('approveAmount').textContent = formatted;
+
+        // Generate VietQR dynamic code for refunding customer
+        var qrSection = document.getElementById('refundVietQrSection');
+        var qrImg = document.getElementById('refundVietQrImg');
+
+        if (bankInfo && bankInfo.indexOf('-') > -1) {
+            var parts = bankInfo.split('-');
+            var rawBank = parts[0].trim();
+            var rest = parts.slice(1).join('-').trim();
+            
+            var accNo = '';
+            var holder = customerName || '';
+            
+            var parenIdx = rest.indexOf('(');
+            if (parenIdx > -1) {
+                accNo = rest.substring(0, parenIdx).trim();
+                var closeParen = rest.indexOf(')', parenIdx);
+                if (closeParen > -1) {
+                    holder = rest.substring(parenIdx + 1, closeParen).trim();
+                }
+            } else {
+                accNo = rest.trim();
+            }
+
+            var bankUpper = rawBank.toUpperCase();
+            var bankCode = 'MB'; // fallback default
+            if (bankUpper.indexOf('VIETCOMBANK') > -1 || bankUpper.indexOf('VCB') > -1) bankCode = 'VCB';
+            else if (bankUpper.indexOf('MB') > -1) bankCode = 'MB';
+            else if (bankUpper.indexOf('TPBANK') > -1 || bankUpper.indexOf('TPB') > -1) bankCode = 'TPB';
+            else if (bankUpper.indexOf('TECHCOM') > -1 || bankUpper.indexOf('TCB') > -1) bankCode = 'TCB';
+            else if (bankUpper.indexOf('BIDV') > -1) bankCode = 'BIDV';
+            else if (bankUpper.indexOf('AGRI') > -1 || bankUpper.indexOf('VBA') > -1) bankCode = 'VBA';
+            else if (bankUpper.indexOf('VIETIN') > -1 || bankUpper.indexOf('ICB') > -1) bankCode = 'ICB';
+            else if (bankUpper.indexOf('VPBANK') > -1 || bankUpper.indexOf('VPB') > -1) bankCode = 'VPB';
+            else if (bankUpper.indexOf('ACB') > -1) bankCode = 'ACB';
+            else if (bankUpper.indexOf('OCB') > -1) bankCode = 'OCB';
+            else if (bankUpper.indexOf('SACOM') > -1 || bankUpper.indexOf('STB') > -1) bankCode = 'STB';
+
+            var qrUrl = 'https://img.vietqr.io/image/' + bankCode + '-' + encodeURIComponent(accNo) + '-compact2.png'
+                      + '?amount=' + Math.round(amount)
+                      + '&addInfo=' + encodeURIComponent('HOAN TIEN ' + bookingCode)
+                      + '&accountName=' + encodeURIComponent(holder);
+            qrImg.src = qrUrl;
+            qrSection.style.display = 'block';
+        } else {
+            qrSection.style.display = 'none';
+        }
 
         // Balance calculation
         var balanceAfter = currentHostBalance - amount;

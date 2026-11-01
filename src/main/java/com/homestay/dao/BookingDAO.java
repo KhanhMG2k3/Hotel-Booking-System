@@ -113,6 +113,70 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
     }
 
     /**
+     * Finds bookings for homestays/properties owned by a host user.
+     */
+    public List<Booking> findByHostUserId(long hostUserId, int limit) {
+        List<Booking> list = new ArrayList<>();
+        String sql = """
+                SELECT b.*,
+                       COALESCE(p.property_name, p.name, 'Homestay') AS joined_property_name,
+                       COALESCE(r.room_name, 'Phòng tiêu chuẩn') AS joined_room_name,
+                       (SELECT ri.image_url FROM roomimages ri WHERE ri.room_id = b.room_id ORDER BY ri.is_primary DESC, ri.image_id ASC LIMIT 1) AS joined_image_url
+                FROM bookings b
+                JOIN properties p ON b.property_id = p.property_id
+                LEFT JOIN rooms r ON b.room_id = r.room_id
+                WHERE p.owner_id = ? OR p.host_id IN (SELECT id FROM host_profiles WHERE user_id = ?)
+                ORDER BY b.booking_id DESC
+                LIMIT ?
+                """;
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, hostUserId);
+            ps.setLong(2, hostUserId);
+            ps.setInt(3, limit > 0 ? limit : 50);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapResultSetToBooking(rs));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting bookings for host user: " + hostUserId, e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+
+        return list;
+    }
+
+    /**
+     * Updates payout status of a booking (e.g. WITHDRAWN).
+     */
+    public boolean updatePayoutStatus(long bookingId, String payoutStatus) {
+        String sql = "UPDATE bookings SET payout_status = ? WHERE booking_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, payoutStatus);
+            ps.setLong(2, bookingId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating payout status for booking: " + bookingId, e);
+            return false;
+        } finally {
+            closeResources(conn, ps, null);
+        }
+    }
+
+    /**
      * Finds a booking by ID with joined property and room details.
      */
     public Optional<Booking> findByIdWithDetails(int id) {
@@ -641,6 +705,14 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
             String imgUrl = rs.getString("joined_image_url");
             if (imgUrl != null) {
                 booking.setRoomImageUrl(imgUrl);
+            }
+        } catch (SQLException ignored) {
+        }
+
+        try {
+            String payoutStatus = rs.getString("payout_status");
+            if (payoutStatus != null) {
+                booking.setPayoutStatus(payoutStatus);
             }
         } catch (SQLException ignored) {
         }
