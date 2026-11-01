@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java"  %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
@@ -98,6 +98,47 @@
     .section-label {
         font-family: "Playfair Display", serif; font-weight: 700; font-size: 1.25rem; margin-bottom: 1rem;
     }
+    /* ==========================================================================
+       HOST DASHBOARD DARK MODE RULES
+       ========================================================================== */
+    [data-theme="dark"] .host-dash {
+        background: var(--bg-body) !important;
+    }
+    [data-theme="dark"] .host-dash .page-title {
+        color: var(--text-heading) !important;
+    }
+    [data-theme="dark"] .host-dash .page-sub {
+        color: var(--text-muted) !important;
+    }
+    [data-theme="dark"] .stat-card,
+    [data-theme="dark"] .profile-card,
+    [data-theme="dark"] .property-card,
+    [data-theme="dark"] .empty-state {
+        background: var(--bg-card) !important;
+        border-color: var(--border-color) !important;
+        box-shadow: var(--shadow-card) !important;
+        color: var(--text-body) !important;
+    }
+    [data-theme="dark"] .stat-card .stat-value {
+        color: var(--text-heading) !important;
+    }
+    [data-theme="dark"] .stat-card .stat-label {
+        color: var(--text-muted) !important;
+    }
+    [data-theme="dark"] .profile-card h5,
+    [data-theme="dark"] .property-card .card-title,
+    [data-theme="dark"] .section-label {
+        color: var(--text-heading) !important;
+    }
+    [data-theme="dark"] .profile-meta .label,
+    [data-theme="dark"] .property-card .card-loc,
+    [data-theme="dark"] .property-card .card-desc {
+        color: var(--text-muted) !important;
+    }
+    [data-theme="dark"] .property-card .card-img-placeholder {
+        background: var(--bg-surface) !important;
+        color: var(--primary-accent) !important;
+    }
 </style>
 
 <section class="host-dash">
@@ -106,15 +147,15 @@
         <!-- Header -->
         <div class="d-flex flex-wrap justify-content-between align-items-start mb-4">
             <div class="mb-3 mb-md-0">
-                <h1 class="page-title">Host Dashboard</h1>
+                <h1 class="page-title">Bảng Điều Khiển Host</h1>
                 <p class="page-sub mb-0">
                     Xin chào
                     <strong><c:out value="${sessionScope.userName}" /></strong>
-                    — quản lý homestay và property của bạn
+                    — quản lý homestay và phòng nghỉ của bạn
                 </p>
             </div>
             <a href="${pageContext.request.contextPath}/host/property/create" class="btn btn-host-primary">
-                <i class="fa fa-plus mr-1"></i> Tạo property mới
+                <i class="fa fa-plus mr-1"></i> Thêm Homestay mới
             </a>
         </div>
 
@@ -130,7 +171,7 @@
                 <div class="col-6 col-md-3 mb-3">
                     <div class="stat-card d-flex align-items-center justify-content-between">
                         <div>
-                            <div class="stat-label">Property</div>
+                            <div class="stat-label">Homestay / Chỗ nghỉ</div>
                             <div class="stat-value">
                                 <c:choose>
                                     <c:when test="${empty properties}">0</c:when>
@@ -210,10 +251,10 @@
                             <span class="label">Trạng thái xác minh</span>
                             <c:choose>
                                 <c:when test="${hostProfile.verificationStatus == 'APPROVED'}">
-                                    <span class="badge-status badge-approved">APPROVED</span>
+                                    <span class="badge-status badge-approved">Đã duyệt</span>
                                 </c:when>
                                 <c:when test="${hostProfile.verificationStatus == 'PENDING'}">
-                                    <span class="badge-status badge-pending">PENDING</span>
+                                    <span class="badge-status badge-pending">Chờ duyệt</span>
                                 </c:when>
                                 <c:otherwise>
                                     <span class="badge-status badge-draft"><c:out value="${hostProfile.verificationStatus}" /></span>
@@ -222,7 +263,7 @@
                         </div>
                         <hr class="my-3">
                         <a href="${pageContext.request.contextPath}/host/property/create" class="btn btn-host-outline btn-block btn-sm">
-                            <i class="fa fa-plus mr-1"></i> Thêm property
+                            <i class="fa fa-plus mr-1"></i> Thêm Homestay
                         </a>
                     </div>
                 </div>
@@ -230,17 +271,17 @@
                 <!-- Property list -->
                 <div class="col-lg-8 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h3 class="section-label mb-0">Danh sách property</h3>
+                        <h3 class="section-label mb-0">Danh sách Homestay</h3>
                     </div>
 
                     <c:choose>
                         <c:when test="${empty properties}">
                             <div class="empty-state">
                                 <div class="empty-icon"><i class="fa fa-building-o"></i></div>
-                                <h5 class="mb-2" style="font-family:'Playfair Display',serif;">Chưa có property nào</h5>
-                                <p class="text-muted mb-3">Tạo property đầu tiên để bắt đầu nhận đặt phòng từ khách.</p>
+                                <h5 class="mb-2" style="font-family:'Playfair Display',serif;">Chưa có Homestay nào</h5>
+                                <p class="text-muted mb-3">Thêm Homestay đầu tiên để bắt đầu nhận đặt phòng từ khách.</p>
                                 <a href="${pageContext.request.contextPath}/host/property/create" class="btn btn-host-primary">
-                                    <i class="fa fa-plus mr-1"></i> Tạo property đầu tiên
+                                    <i class="fa fa-plus mr-1"></i> Thêm Homestay đầu tiên
                                 </a>
                             </div>
                         </c:when>
@@ -260,7 +301,7 @@
                                                             <span class="badge-status badge-active"><c:out value="${property.status}" /></span>
                                                         </c:when>
                                                         <c:when test="${property.status == 'DRAFT'}">
-                                                            <span class="badge-status badge-draft">DRAFT</span>
+                                                            <span class="badge-status badge-draft">Bản nháp</span>
                                                         </c:when>
                                                         <c:otherwise>
                                                             <span class="badge-status badge-pending"><c:out value="${property.status}" /></span>
@@ -300,7 +341,7 @@
             <div class="empty-state">
                 <div class="empty-icon"><i class="fa fa-user-plus"></i></div>
                 <h5 class="mb-2" style="font-family:'Playfair Display',serif;">Chưa có hồ sơ Host</h5>
-                <p class="text-muted mb-3">Đăng ký trở thành Host để quản lý property tại đây.</p>
+                <p class="text-muted mb-3">Đăng ký trở thành Host để quản lý homestay tại đây.</p>
                 <a href="${pageContext.request.contextPath}/become-host" class="btn btn-host-primary">Trở thành Host</a>
             </div>
         </c:if>

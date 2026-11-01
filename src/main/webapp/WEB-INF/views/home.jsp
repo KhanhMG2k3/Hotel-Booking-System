@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java"  %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <%-- Home page flow: introduce the homestay, showcase guest experiences, and link to room browsing. --%>

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java"  %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <%-- Shared page footer: site links, contact details, newsletter form, and client scripts. --%>
@@ -38,7 +38,7 @@
         </div>
         <div class="row pt-5">
           <p class="col-md-8 text-left">
-            Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | Sogo Homestay Booking System
+            Copyright &copy;<script>document.write(new Date().getFullYear());</script> Đã đăng ký toàn bộ quyền | Hệ Thống Đặt Phòng Sogo Homestay
           </p>
           <p class="col-md-4 text-right social">
             <a href="#"><span class="fa fa-tripadvisor"></span></a>
@@ -60,8 +60,8 @@
     <script src="${pageContext.request.contextPath}/assets/js/jquery.fancybox.min.js"></script>
     <script src="${pageContext.request.contextPath}/assets/js/aos.js"></script>
     <script src="${pageContext.request.contextPath}/assets/js/jquery.timepicker.min.js"></script> 
-    <script src="${pageContext.request.contextPath}/assets/js/main.js?v=20261027-native-only-v3"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/main.js?v=20261031-utf8" charset="UTF-8"></script>
     <!-- Theme Toggle Controller -->
-    <script src="${pageContext.request.contextPath}/assets/js/theme-toggle.js?v=20261027-3"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/theme-toggle.js?v=20261031-utf8" charset="UTF-8"></script>
   </body>
 </html>

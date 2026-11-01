@@ -15,8 +15,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(name = "CheckEmailServlet", urlPatterns = {"/api/check-email"})
-public class CheckEmailServlet extends HttpServlet {
+@WebServlet(name = "CheckEmailController", urlPatterns = { "/api/check-email" })
+public class CheckEmailController extends HttpServlet {
 
     private final UserDAO userDao = new UserDAO();
 
@@ -28,10 +28,10 @@ public class CheckEmailServlet extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet CheckEmailServlet</title>");
+            out.println("<title>Servlet CheckEmailController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet CheckEmailServlet at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet CheckEmailController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }

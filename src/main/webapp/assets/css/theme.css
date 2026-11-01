@@ -1523,3 +1523,195 @@ h1, h2, h3, h4, h5, h6,
   color: #cbd5e1 !important;
 }
 
+
+/* ==========================================================================
+   13. COMPREHENSIVE PROJECT-WIDE DARK MODE EXTENSIONS
+   ========================================================================== */
+
+/* Host Detail Screen */
+[data-theme="dark"] .host-detail-page {
+  background: var(--bg-body) !important;
+}
+
+[data-theme="dark"] .detail-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: var(--shadow-card) !important;
+  color: var(--text-body) !important;
+}
+
+[data-theme="dark"] .card-title-custom {
+  color: var(--text-heading) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .stat-widget {
+  background: var(--bg-surface) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .stat-widget .stat-number {
+  color: var(--text-heading) !important;
+}
+
+[data-theme="dark"] .stat-widget .stat-label {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .info-label {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .info-value {
+  color: var(--text-heading) !important;
+}
+
+[data-theme="dark"] .property-mini-card {
+  background: var(--bg-surface) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .table-rooms thead th {
+  background: var(--bg-surface) !important;
+  color: var(--text-heading) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .table-rooms tbody td {
+  color: var(--text-body) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .table-rooms tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+[data-theme="dark"] .room-thumb-empty {
+  background: var(--bg-surface) !important;
+  color: var(--text-muted) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Admin Dashboard KPI & Controls */
+[data-theme="dark"] .kpi-val {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .kpi-label {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .empty-title {
+  color: var(--text-heading) !important;
+}
+
+[data-theme="dark"] .empty-desc {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .role-select-box {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-body) !important;
+}
+
+[data-theme="dark"] .role-select-host {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+[data-theme="dark"] .role-select-host:hover {
+  background-color: rgba(245, 158, 11, 0.28) !important;
+}
+
+[data-theme="dark"] .role-select-admin {
+  background-color: rgba(239, 68, 68, 0.18) !important;
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+[data-theme="dark"] .role-select-admin:hover {
+  background-color: rgba(239, 68, 68, 0.28) !important;
+}
+
+[data-theme="dark"] .btn-detail-host {
+  background: var(--bg-surface) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-body) !important;
+}
+
+[data-theme="dark"] .btn-detail-host:hover {
+  background: var(--bg-card-hover) !important;
+  color: var(--text-heading) !important;
+}
+
+/* Global Bootstrap Tables in Dark Mode */
+[data-theme="dark"] .thead-light th {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-heading) !important;
+  border-bottom: 2px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .table-bordered,
+[data-theme="dark"] .table-bordered th,
+[data-theme="dark"] .table-bordered td {
+  border-color: var(--border-color) !important;
+}
+
+/* Global Text Colors */
+[data-theme="dark"] a.text-dark,
+[data-theme="dark"] strong.text-dark,
+[data-theme="dark"] .text-dark {
+  color: var(--text-heading) !important;
+}
+
+[data-theme="dark"] a.text-dark:hover {
+  color: var(--primary-accent) !important;
+}
+
+/* Global Bootstrap Alerts in Dark Mode */
+[data-theme="dark"] .alert-success {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  color: #6ee7b7 !important;
+}
+
+[data-theme="dark"] .alert-danger {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #fca5a5 !important;
+}
+
+[data-theme="dark"] .alert-warning {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  color: #fde68a !important;
+}
+
+[data-theme="dark"] .alert-info {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: #93c5fd !important;
+}
+
+/* Global Bootstrap Dropdowns in Dark Mode */
+[data-theme="dark"] .dropdown-menu {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45) !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--text-body) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+  background-color: var(--bg-surface-alt) !important;
+  color: var(--primary-accent) !important;
+}
+
+[data-theme="dark"] .dropdown-divider {
+  border-top-color: var(--border-color) !important;
+}

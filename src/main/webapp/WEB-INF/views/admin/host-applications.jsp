@@ -1,10 +1,10 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java"  %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <%-- Admin flow: filter applications, inspect a submission, and approve or reject it. --%>
 <%-- Shared page header and navigation. --%>
 <jsp:include page="../common/header.jsp">
-  <jsp:param name="pageTitle" value="Host Applications - Sogo Homestay" />
+  <jsp:param name="pageTitle" value="Duyệt Hồ Sơ Host - Sogo Homestay" />
 </jsp:include>
 
 <jsp:include page="../common/navbar.jsp" />
@@ -33,38 +33,38 @@
       <div class="card-body p-4">
         <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 admin-host-filters">
           <div class="form-group mb-2">
-            <label for="host-application-status">Filter by status</label>
+            <label for="host-application-status">Lọc theo trạng thái</label>
             <select id="host-application-status" class="form-control">
-              <option value="">All submitted applications</option>
-              <option value="PENDING">Pending</option>
-              <option value="APPROVED">Approved</option>
-              <option value="REJECTED">Rejected</option>
+              <option value="">Tất cả trạng thái hồ sơ</option>
+              <option value="PENDING">Chờ duyệt</option>
+              <option value="APPROVED">Đã duyệt</option>
+              <option value="REJECTED">Bị từ chối</option>
             </select>
           </div>
           <div class="form-group mb-2 admin-host-search">
-            <label for="host-application-search">Search applications</label>
+            <label for="host-application-search">Tìm kiếm hồ sơ</label>
             <input id="host-application-search" class="form-control" type="search"
-                   placeholder="Applicant, email, or property">
+                   placeholder="Tên người nộp, email hoặc tên homestay...">
           </div>
         </div>
 
         <div id="host-application-loading" class="text-center py-5" role="status">
           <span class="spinner-border text-primary" aria-hidden="true"></span>
-          <p class="text-muted mt-3 mb-0">Loading Host Applications...</p>
+          <p class="text-muted mt-3 mb-0">Đang tải danh sách hồ sơ Host...</p>
         </div>
 
         <div class="table-responsive">
           <table id="host-application-table" class="table table-hover admin-host-table d-none">
             <thead>
               <tr>
-                <th scope="col">Application ID</th>
-                <th scope="col">Applicant</th>
+                <th scope="col">Mã hồ sơ</th>
+                <th scope="col">Người nộp</th>
                 <th scope="col">Email</th>
-                <th scope="col">Property</th>
-                <th scope="col">Type</th>
-                <th scope="col">Submitted</th>
-                <th scope="col">Status</th>
-                <th scope="col">Actions</th>
+                <th scope="col">Homestay</th>
+                <th scope="col">Loại hình</th>
+                <th scope="col">Ngày nộp</th>
+                <th scope="col">Trạng thái</th>
+                <th scope="col">Thao tác</th>
               </tr>
             </thead>
             <tbody id="host-application-rows"></tbody>
@@ -72,16 +72,16 @@
         </div>
 
         <div id="host-application-empty" class="text-center text-muted py-4 d-none">
-          No submitted Host Applications match your search.
+          Không có hồ sơ nào phù hợp với tìm kiếm.
         </div>
         <nav id="host-application-pagination" class="d-flex flex-wrap align-items-center justify-content-between mt-3 d-none"
              aria-label="Host application pages">
           <small id="host-application-page-summary" class="text-muted"></small>
           <div class="d-flex admin-host-actions">
             <button id="host-application-prev" class="btn btn-sm btn-outline-secondary"
-                    type="button">Previous</button>
+                    type="button">Trang trước</button>
             <button id="host-application-next" class="btn btn-sm btn-outline-secondary"
-                    type="button">Next</button>
+                    type="button">Trang sau</button>
           </div>
         </nav>
       </div>
@@ -106,7 +106,7 @@
         </div>
         <div id="host-detail-loading" class="text-center py-4 d-none" role="status">
           <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
-          <span class="ml-2">Loading application details...</span>
+          <span class="ml-2">Đang tải chi tiết hồ sơ...</span>
         </div>
         <div id="host-detail-content"></div>
         <div class="d-flex flex-wrap admin-host-actions mt-4 align-items-center pt-3 border-top">
@@ -128,18 +128,18 @@
   <div class="admin-host-dialog-backdrop" data-dialog-close></div>
   <section class="admin-host-dialog-card">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2 id="host-reject-title" class="h4 mb-0">Reject Host Application</h2>
+      <h2 id="host-reject-title" class="h4 mb-0">Từ Chối Hồ Sơ Đăng Ký Host</h2>
       <button class="close" type="button" aria-label="Close" data-dialog-close>
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
-    <label for="host-rejection-reason">Rejection Reason <span class="text-danger">*</span></label>
+    <label for="host-rejection-reason">Lý do từ chối hồ sơ <span class="text-danger">*</span></label>
     <textarea id="host-rejection-reason" class="form-control" rows="5"
               minlength="10" maxlength="500" required></textarea>
-    <small class="form-text text-muted">Enter 10 to 500 characters.</small>
+    <small class="form-text text-muted">Vui lòng nhập từ 10 đến 500 ký tự.</small>
     <div class="d-flex justify-content-end admin-host-actions mt-4">
-      <button id="host-reject-cancel" class="btn btn-outline-secondary" type="button">Cancel</button>
-      <button id="host-reject-confirm" class="btn btn-danger" type="button">Reject Application</button>
+      <button id="host-reject-cancel" class="btn btn-outline-secondary" type="button">Hủy bỏ</button>
+      <button id="host-reject-confirm" class="btn btn-danger" type="button">Xác nhận từ chối</button>
     </div>
   </section>
 </div>
@@ -173,5 +173,5 @@
 </style>
 
 <%-- Load application interactions, then render the shared footer. --%>
-<script src="${pageContext.request.contextPath}/assets/js/admin-host-applications.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/admin-host-applications.js?v=20261031-utf8" charset="UTF-8"></script>
 <jsp:include page="../common/footer.jsp" />

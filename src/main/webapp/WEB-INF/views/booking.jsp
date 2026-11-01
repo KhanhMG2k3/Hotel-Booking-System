@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java"  %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
@@ -159,7 +159,7 @@
                 <c:otherwise>2</c:otherwise>
               </c:choose>
             </div>
-            <div class="booking-step-label">Bước 2: Xem Lại & Multi-Room</div>
+            <div class="booking-step-label">Bước 2: Xem Lại & Chọn Thêm Phòng</div>
           </div>
           <div class="booking-step-item ${step == 'success' ? 'active completed' : ''}">
             <div class="booking-step-circle">

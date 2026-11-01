@@ -262,7 +262,7 @@
       const view = document.createElement('button');
       view.type = 'button';
       view.className = 'btn btn-sm btn-outline-primary';
-      view.textContent = 'View';
+      view.textContent = 'Xem chi tiết';
       view.dataset.applicationId = application.id;
       view.dataset.action = 'view';
       actions.appendChild(view);
@@ -306,7 +306,7 @@
         link.href = entry.href;
         link.target = '_blank';
         link.rel = 'noopener';
-        link.textContent = entry.value || 'View document';
+        link.textContent = entry.value || 'Xem tài liệu';
         value.appendChild(link);
       } else {
         value.textContent = entry.value === null || entry.value === undefined || entry.value === ''
@@ -412,12 +412,12 @@ function renderRooms(rooms) {
     section.className = 'admin-host-detail-section';
     const heading = document.createElement('h3');
     heading.className = 'h5 mb-3';
-    heading.textContent = 'Room Information';
+    heading.textContent = 'Thông tin các phòng';
     section.appendChild(heading);
     if (!rooms || !rooms.length) {
       const note = document.createElement('p');
       note.className = 'text-muted';
-      note.textContent = 'No rooms were included in this application.';
+      note.textContent = 'Hồ sơ này chưa có phòng nào kèm theo.';
       section.appendChild(note);
       detailContent.appendChild(section);
       return;
@@ -432,11 +432,11 @@ function renderRooms(rooms) {
       const details = document.createElement('p');
       details.className = 'mb-2';
       details.textContent = [
-        'Type: ' + (room.roomType || '—'),
+        'Loại phòng: ' + (room.roomType || '—'),
         'Giá phòng: ' + (room.pricePerNight ? Number(room.pricePerNight).toLocaleString('vi-VN') + ' ₫ / đêm' : '—'),
-        'Maximum guests: ' + (room.maxGuests || '—'),
-        'Beds: ' + (room.bedCount || '—'),
-        'Bathrooms: ' + (room.bathroomCount || '—')
+        'Số khách: ' + (room.maxGuests || '—'),
+        'Giường: ' + (room.bedCount || '—'),
+        'Phòng tắm: ' + (room.bathroomCount || '—')
       ].join(' · ');
       const amenities = document.createElement('p');
       amenities.className = 'small text-muted mb-2';
@@ -482,26 +482,26 @@ function renderRooms(rooms) {
     // The detail view is driven by the selected review record, so keep the current record in state.
     state.selectedApplication = application;
     document.getElementById('host-detail-title').textContent =
-      'Host Application #' + application.id;
+      'Hồ sơ Host #' + application.id;
     detailContent.replaceChildren();
 
-    addDetailSection('Applicant Information', [
-      { label: 'Full name', value: application.applicantName },
+    addDetailSection('Thông tin người nộp đơn', [
+      { label: 'Họ và tên', value: application.applicantName },
       { label: 'Email', value: application.applicantEmail },
-      { label: 'Phone', value: application.applicantPhone },
-      { label: 'User ID', value: application.userId },
-      { label: 'Identification', value: application.identificationType
+      { label: 'Số điện thoại', value: application.applicantPhone },
+      { label: 'Mã người dùng (User ID)', value: application.userId },
+      { label: 'Giấy tờ định danh', value: application.identificationType
         ? application.identificationType + ' · ' + (application.identificationNumber || '')
         : application.identificationNumber }
     ]);
-    addDetailSection('Property Information', [
-      { label: 'Property name', value: application.propertyName },
-      { label: 'Property type', value: application.propertyType },
-      { label: 'Description', value: application.propertyDescription },
-      { label: 'Address', value: application.propertyAddress },
-      { label: 'City', value: application.propertyCity },
-      { label: 'District', value: application.propertyDistrict },
-      { label: 'Ward', value: application.propertyWard },
+    addDetailSection('Thông tin Homestay / Chỗ nghỉ', [
+      { label: 'Tên cơ sở', value: application.propertyName },
+      { label: 'Loại hình', value: application.propertyType },
+      { label: 'Mô tả', value: application.propertyDescription },
+      { label: 'Địa chỉ chi tiết', value: application.propertyAddress },
+      { label: 'Tỉnh / Thành phố', value: application.propertyCity },
+      { label: 'Quận / Huyện', value: application.propertyDistrict },
+      { label: 'Phường / Xã', value: application.propertyWard },
       { label: 'Tọa độ GPS', value: (application.latitude !== null && application.longitude !== null)
         ? application.latitude + ', ' + application.longitude : 'Chưa có',
       href: (application.latitude !== null && application.longitude !== null)
@@ -514,14 +514,14 @@ function renderRooms(rooms) {
     renderVerificationDocuments(application);
 
     const history = [
-      { label: 'Status', value: application.status },
-      { label: 'Submitted date', value: formatDate(application.submittedAt) },
-      { label: 'Reviewed date', value: formatDate(application.reviewedAt) },
-      { label: 'Reviewer', value: application.reviewerName },
-      { label: 'Previous application ID', value: application.supersedesApplicationId },
-      { label: 'Rejection reason', value: application.rejectionReason }
+      { label: 'Trạng thái', value: application.status },
+      { label: 'Ngày gửi hồ sơ', value: formatDate(application.submittedAt) },
+      { label: 'Ngày xét duyệt', value: formatDate(application.reviewedAt) },
+      { label: 'Người xét duyệt', value: application.reviewerName },
+      { label: 'Mã hồ sơ trước đó', value: application.supersedesApplicationId },
+      { label: 'Lý do từ chối', value: application.rejectionReason }
     ];
-    addDetailSection('Application Information', history);
+    addDetailSection('Lịch sử & Trạng thái hồ sơ', history);
 
     const canReview = application.status === 'PENDING';
     document.getElementById('host-detail-approve').classList.toggle('d-none', !canReview);

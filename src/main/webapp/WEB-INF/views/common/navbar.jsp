@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java"  %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
@@ -125,7 +125,7 @@
                                     </c:if>
                                     <c:if test="${isUserHost}">
                                         <a href="${pageContext.request.contextPath}/host/dashboard" class="user-dropdown-item" role="menuitem">
-                                            <i class="fa fa-dashboard"></i> Host Dashboard
+                                            <i class="fa fa-dashboard"></i> Bảng điều khiển Host
                                         </a>
                                         <a href="${pageContext.request.contextPath}/host/vouchers" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-ticket"></i> Quản lý Voucher
@@ -358,7 +358,7 @@
                                             <li class="drawer-nav-item ${activePage == 'host-dashboard' ? 'active' : ''}">
                                                 <a href="${pageContext.request.contextPath}/host/dashboard" class="drawer-nav-link" onclick="closeSiteNavbar()">
                                                     <span class="drawer-nav-icon icon-dashboard"><i class="fa fa-dashboard"></i></span>
-                                                    <span class="drawer-nav-text">Host Dashboard</span>
+                                                    <span class="drawer-nav-text">Bảng Điều Khiển Host</span>
                                                     <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                                 </a>
                                             </li>
@@ -406,7 +406,7 @@
                                 <a href="#" class="drawer-social-btn" title="Youtube"><i class="fa fa-youtube-play"></i></a>
                             </div>
                             <div class="drawer-copyright">
-                                &copy; 2026 Sogo Homestay. All rights reserved.
+                                &copy; 2026 Sogo Homestay. Toàn bộ quyền được bảo lưu.
                             </div>
                         </div>
                     </aside>
