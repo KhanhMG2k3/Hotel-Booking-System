@@ -79,3 +79,4 @@ class WalletDAOTest {
         assertTrue(txs.isEmpty());
     }
 }
+

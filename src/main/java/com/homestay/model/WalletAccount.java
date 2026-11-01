@@ -112,3 +112,4 @@ public class WalletAccount implements Serializable {
         this.createdAt = createdAt;
     }
 }
+

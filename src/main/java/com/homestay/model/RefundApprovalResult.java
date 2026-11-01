@@ -59,3 +59,4 @@ public class RefundApprovalResult implements Serializable {
         return requiredAmount;
     }
 }
+
