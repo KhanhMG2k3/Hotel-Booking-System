@@ -2,6 +2,12 @@
 <web-app version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
     <display-name>Sogo Homestay Booking System</display-name>
 
+    <!-- Enforce Vietnam TimeZone (UTC+7) for all JSTL fmt formatting -->
+    <context-param>
+        <param-name>jakarta.servlet.jsp.jstl.fmt.timeZone</param-name>
+        <param-value>Asia/Ho_Chi_Minh</param-value>
+    </context-param>
+
     <!-- Provide a session-bound logout CSRF token to authenticated requests. -->
     <filter>
         <filter-name>LogoutCsrfFilter</filter-name>
@@ -45,6 +51,35 @@
     <servlet-mapping>
         <servlet-name>FaqController</servlet-name>
         <url-pattern>/faq</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ContactController</servlet-name>
+        <servlet-class>com.homestay.controller.ContactController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ContactController</servlet-name>
+        <url-pattern>/contact</url-pattern>
+        <url-pattern>/contact-us</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>SupportController</servlet-name>
+        <servlet-class>com.homestay.controller.SupportController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SupportController</servlet-name>
+        <url-pattern>/support/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminSupportController</servlet-name>
+        <servlet-class>com.homestay.controller.AdminSupportController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminSupportController</servlet-name>
+        <url-pattern>/admin/support</url-pattern>
+        <url-pattern>/admin/support/*</url-pattern>
     </servlet-mapping>
 
     <!-- Map account pages and authentication actions to their controllers. -->

@@ -145,7 +145,11 @@
                                     </a>
 
                                     <a href="${pageContext.request.contextPath}/wishlist" class="user-dropdown-item" role="menuitem">
-                                        <i class="fa fa-heart text-danger"></i> Danh sách yêu thích
+                                        <i class="fa fa-heart text-danger"></i> Hồ sơ yêu thích
+                                    </a>
+
+                                    <a href="${pageContext.request.contextPath}/support/my-tickets" class="user-dropdown-item" role="menuitem">
+                                        <i class="fa fa-life-ring text-info"></i> Hỗ trợ của tôi
                                     </a>
 
                                     <c:if test="${!isUserAdmin && !isUserHost}">
@@ -167,6 +171,9 @@
                                     <c:if test="${isUserAdmin}">
                                         <a href="${pageContext.request.contextPath}/admin/dashboard" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-cogs"></i> Trang Quản Trị
+                                        </a>
+                                        <a href="${pageContext.request.contextPath}/admin/support" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-life-ring text-danger"></i> Quản Lý Hỗ Trợ
                                         </a>
                                         <a href="${pageContext.request.contextPath}/admin/host-applications" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-file-text-o"></i> Duyệt Đơn Host
@@ -379,6 +386,13 @@
                                                 <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                             </a>
                                         </li>
+                                        <li class="drawer-nav-item ${activePage == 'my-tickets' ? 'active' : ''}">
+                                            <a href="${pageContext.request.contextPath}/support/my-tickets" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                <span class="drawer-nav-icon icon-support"><i class="fa fa-life-ring"></i></span>
+                                                <span class="drawer-nav-text">Hỗ Trợ Của Tôi</span>
+                                                <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                            </a>
+                                        </li>
                                         <c:if test="${!isUserAdmin && !isUserHost}">
                                             <li class="drawer-nav-item">
                                                 <a href="${pageContext.request.contextPath}/become-host" class="drawer-nav-link" onclick="closeSiteNavbar()">
@@ -409,6 +423,13 @@
                                                 <a href="${pageContext.request.contextPath}/admin/dashboard" class="drawer-nav-link" onclick="closeSiteNavbar()">
                                                     <span class="drawer-nav-icon icon-admin"><i class="fa fa-cogs"></i></span>
                                                     <span class="drawer-nav-text">Trang Quản Trị</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
+                                            <li class="drawer-nav-item">
+                                                <a href="${pageContext.request.contextPath}/admin/support" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon icon-admin" style="background:#fee2e2; color:#ef4444;"><i class="fa fa-life-ring"></i></span>
+                                                    <span class="drawer-nav-text">Quản Lý Hỗ Trợ</span>
                                                     <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                                 </a>
                                             </li>

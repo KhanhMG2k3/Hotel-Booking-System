@@ -2056,3 +2056,87 @@ body.menu-open .site-header.scrolled .site-logo a {
   color: #f7a840;
   outline: none;
 }
+
+
+/* ==========================================================================
+   Contact & Customer Support Styles
+   ========================================================================== */
+.contact-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.contact-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+}
+
+.ticket-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ticket-status-new {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border: 1px solid #bbdefb;
+}
+.ticket-status-processing {
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffe0b2;
+}
+.ticket-status-resolved {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.text-content-pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #2c3e50;
+}
+
+.ticket-card-item {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border-radius: 12px;
+}
+.ticket-card-item:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
+}
+
+.ticket-subject-text {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.reply-thread-item {
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  margin-bottom: 20px;
+  transition: box-shadow 0.2s ease;
+}
+.reply-thread-admin {
+  background-color: #fffdf9;
+  border-left: 4px solid #ffba5a;
+}
+.reply-thread-user {
+  background-color: #fcfdff;
+  border-left: 4px solid #3498db;
+}
+
+@media (max-width: 767.98px) {
+  .ticket-card-item .card-body {
+    padding: 16px !important;
+  }
+  .contact-section .bg-white {
+    padding: 20px !important;
+  }
+}

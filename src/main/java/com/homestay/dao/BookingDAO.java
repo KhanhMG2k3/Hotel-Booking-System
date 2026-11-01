@@ -289,6 +289,78 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
         return 0;
     }
 
+    /**
+     * Retrieves all bookings for a specific customer user.
+     */
+    public List<Booking> findBookingsByUserId(int userId) throws SQLException {
+        String sql = "SELECT * FROM bookings WHERE user_id = ? ORDER BY check_in_date DESC";
+        List<Booking> list = new ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToBooking(rs));
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Verifies if a booking belongs to a specific customer user.
+     */
+    public boolean isBookingOwnedByUser(int bookingId, int userId) throws SQLException {
+        String sql = "SELECT 1 FROM bookings WHERE id = ? AND user_id = ? LIMIT 1";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            ps.setInt(2, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    /**
+     * Retrieves all bookings for homestay rooms belonging to a host.
+     */
+    public List<Booking> findBookingsByHostProperties(int hostUserId) throws SQLException {
+        String sql = "SELECT b.* FROM bookings b "
+                   + "JOIN rooms r ON b.room_id = r.room_id "
+                   + "JOIN properties p ON r.property_id = p.property_id "
+                   + "WHERE p.host_id = ? ORDER BY b.check_in_date DESC";
+        List<Booking> list = new ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hostUserId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToBooking(rs));
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Verifies if a booking is for a room in a property owned by the given host.
+     */
+    public boolean isBookingOwnedByHost(int bookingId, int hostUserId) throws SQLException {
+        String sql = "SELECT 1 FROM bookings b "
+                   + "JOIN rooms r ON b.room_id = r.room_id "
+                   + "JOIN properties p ON r.property_id = p.property_id "
+                   + "WHERE b.id = ? AND p.host_id = ? LIMIT 1";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            ps.setInt(2, hostUserId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     private Booking mapResultSetToBooking(ResultSet rs) throws SQLException {
         Booking booking = new Booking();
         booking.setId(rs.getInt("id"));

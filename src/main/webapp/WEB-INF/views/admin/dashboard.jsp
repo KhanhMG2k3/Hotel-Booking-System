@@ -272,6 +272,9 @@
                 </p>
             </div>
             <div class="mt-3 mt-md-0 d-flex gap-2">
+                <a href="${pageContext.request.contextPath}/admin/support" class="btn btn-outline-danger font-weight-bold" style="border-radius: 8px;">
+                    <i class="fa fa-life-ring mr-1"></i> Quản Lý Hỗ Trợ
+                </a>
                 <a href="${pageContext.request.contextPath}/home" class="btn btn-outline-secondary font-weight-bold" style="border-radius: 8px;">
                     <i class="fa fa-home mr-1"></i> Xem Trang Chủ
                 </a>
