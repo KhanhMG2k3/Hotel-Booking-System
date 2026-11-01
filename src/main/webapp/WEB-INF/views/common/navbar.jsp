@@ -92,6 +92,9 @@
                                         <a href="${pageContext.request.contextPath}/host/dashboard" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-dashboard"></i> Host Dashboard
                                         </a>
+                                        <a href="${pageContext.request.contextPath}/host/refunds" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-undo"></i> Quản lý hoàn tiền
+                                        </a>
                                     </c:if>
                                     <c:if test="${isUserAdmin}">
                                         <a href="${pageContext.request.contextPath}/admin/dashboard" class="user-dropdown-item" role="menuitem">
@@ -282,6 +285,13 @@
                                                 <a href="${pageContext.request.contextPath}/host/dashboard" class="drawer-nav-link" onclick="closeSiteNavbar()">
                                                     <span class="drawer-nav-icon icon-dashboard"><i class="fa fa-dashboard"></i></span>
                                                     <span class="drawer-nav-text">Host Dashboard</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
+                                            <li class="drawer-nav-item">
+                                                <a href="${pageContext.request.contextPath}/host/refunds" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon icon-refunds"><i class="fa fa-undo"></i></span>
+                                                    <span class="drawer-nav-text">Quản Lý Hoàn Tiền</span>
                                                     <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                                 </a>
                                             </li>

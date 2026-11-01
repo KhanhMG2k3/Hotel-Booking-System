@@ -45,6 +45,13 @@ public class Booking implements Serializable {
     private BigDecimal discountAmount;
     private BigDecimal totalAmount;
 
+    // Iteration 3: History & Refund Tracking
+    private String propertyName;
+    private String roomName;
+    private String roomImageUrl;
+    private Refund refund;
+    private Payment payment;
+
     public Booking() {
     }
 
@@ -265,6 +272,46 @@ public class Booking implements Serializable {
 
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    public void setPropertyName(String propertyName) {
+        this.propertyName = propertyName;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
+    }
+
+    public String getRoomImageUrl() {
+        return roomImageUrl;
+    }
+
+    public void setRoomImageUrl(String roomImageUrl) {
+        this.roomImageUrl = roomImageUrl;
+    }
+
+    public Refund getRefund() {
+        return refund;
+    }
+
+    public void setRefund(Refund refund) {
+        this.refund = refund;
+    }
+
+    public Payment getPayment() {
+        return payment;
+    }
+
+    public void setPayment(Payment payment) {
+        this.payment = payment;
     }
 
     @Override

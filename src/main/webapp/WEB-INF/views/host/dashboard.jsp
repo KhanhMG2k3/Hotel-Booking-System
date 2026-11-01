@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <jsp:include page="../common/header.jsp">
@@ -9,7 +10,31 @@
 <jsp:include page="../common/navbar.jsp" />
 
 <style>
-    .host-dash { padding-top: 110px; padding-bottom: 80px; background: #f2f4fb; min-height: 70vh; }
+    .site-header {
+        position: fixed !important;
+        background: #ffffff !important;
+        padding: 16px 0 !important;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+        z-index: 1000 !important;
+    }
+    .site-header .site-logo a,
+    .site-logo a {
+        color: #1a1a1a !important;
+    }
+    .site-header .user-name {
+        color: #1a1a1a !important;
+    }
+    .site-header .user-caret {
+        color: #64748b !important;
+    }
+    .site-header .user-menu-toggle {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    .site-header .site-menu-toggle span {
+        background: #1a1a1a !important;
+    }
+    .host-dash { padding-top: 100px; padding-bottom: 80px; background: #f2f4fb; min-height: 70vh; }
     .host-dash .page-title {
         font-family: "Playfair Display", serif;
         font-weight: 700;
@@ -17,7 +42,7 @@
         margin-bottom: 0.25rem;
     }
     .host-dash .page-sub { color: #6c757d; font-size: 0.95rem; }
-    .stat-card, .profile-card, .property-card {
+    .stat-card, .profile-card, .property-card, .wallet-card {
         background: #fff;
         border-radius: 12px;
         box-shadow: 0 2px 12px rgba(0,0,0,.06);
@@ -30,11 +55,22 @@
     }
     .stat-card { padding: 1.25rem 1.5rem; height: 100%; }
     .stat-card .stat-label { font-size: .8rem; color: #6c757d; text-transform: uppercase; letter-spacing: .04em; margin-bottom: .35rem; }
-    .stat-card .stat-value { font-family: "Playfair Display", serif; font-size: 1.75rem; font-weight: 700; color: #1a1a1a; line-height: 1.2; }
+    .stat-card .stat-value { font-family: "Playfair Display", serif; font-size: 1.6rem; font-weight: 700; color: #1a1a1a; line-height: 1.2; }
     .stat-card .stat-icon {
         width: 44px; height: 44px; border-radius: 10px;
         display: flex; align-items: center; justify-content: center;
         background: rgba(255,186,90,.15); color: #e09a2e; font-size: 1.15rem;
+    }
+    .stat-card.wallet-stat-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+        border: 1px solid #bbf7d0;
+    }
+    .stat-card.wallet-stat-card .stat-icon {
+        background: #dcfce7;
+        color: #15803d;
+    }
+    .stat-card.wallet-stat-card .stat-value {
+        color: #15803d;
     }
     .profile-card { padding: 1.5rem; height: 100%; }
     .profile-card h5 {
@@ -56,11 +92,6 @@
         font-weight: 600; border-radius: 6px; padding: .6rem 1.25rem;
     }
     .btn-host-primary:hover { background: #e09a2e; border-color: #e09a2e; color: #fff; }
-    .btn-host-outline {
-        border: 1.5px solid #ffba5a; color: #e09a2e; background: transparent;
-        font-weight: 600; border-radius: 6px; padding: .55rem 1.1rem;
-    }
-    .btn-host-outline:hover { background: #ffba5a; color: #fff; }
     .property-card { overflow: hidden; height: 100%; display: flex; flex-direction: column; }
     .property-card .card-img-wrap {
         height: 160px; background: #e9ecef; position: relative; overflow: hidden;
@@ -98,6 +129,9 @@
     .section-label {
         font-family: "Playfair Display", serif; font-weight: 700; font-size: 1.25rem; margin-bottom: 1rem;
     }
+    .badge-tx-credit { background: #dcfce7; color: #15803d; font-weight: 600; }
+    .badge-tx-debit { background: #fee2e2; color: #b91c1c; font-weight: 600; }
+    .badge-tx-topup { background: #e0f2fe; color: #0369a1; font-weight: 600; }
 </style>
 
 <section class="host-dash">
@@ -113,9 +147,14 @@
                     — quản lý homestay và property của bạn
                 </p>
             </div>
-            <a href="${pageContext.request.contextPath}/host/property/create" class="btn btn-host-primary">
-                <i class="fa fa-plus mr-1"></i> Tạo property mới
-            </a>
+            <div class="d-flex flex-wrap">
+                <a href="${pageContext.request.contextPath}/host/refunds" class="btn btn-outline-danger mr-2 shadow-sm font-weight-bold">
+                    <i class="fa fa-undo mr-1"></i> Quản lý hoàn tiền
+                </a>
+                <a href="${pageContext.request.contextPath}/host/property/create" class="btn btn-host-primary shadow-sm">
+                    <i class="fa fa-plus mr-1"></i> Tạo property mới
+                </a>
+            </div>
         </div>
 
         <c:if test="${not empty error}">
@@ -127,20 +166,42 @@
         <c:if test="${not empty hostProfile}">
             <!-- Stats -->
             <div class="row mb-4">
+                <!-- SỐ DƯ VÍ KHẢ DỤNG (Model 2) -->
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="stat-card wallet-stat-card d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-label text-success font-weight-bold">
+                                <i class="fa fa-shield mr-1"></i> Số dư ví Host
+                            </div>
+                            <div class="stat-value">
+                                <fmt:formatNumber value="${hostBalance}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
+                            </div>
+                            <small class="text-muted" style="font-size: 11px;">
+                                <i class="fa fa-check-circle text-success mr-1"></i>Khả dụng hoàn tiền
+                            </small>
+                        </div>
+                        <div class="stat-icon"><i class="fa fa-credit-card"></i></div>
+                    </div>
+                </div>
+
+                <!-- Properties -->
                 <div class="col-6 col-md-3 mb-3">
                     <div class="stat-card d-flex align-items-center justify-content-between">
                         <div>
-                            <div class="stat-label">Property</div>
+                            <div class="stat-label">Homestay / Property</div>
                             <div class="stat-value">
                                 <c:choose>
                                     <c:when test="${empty properties}">0</c:when>
                                     <c:otherwise>${fn:length(properties)}</c:otherwise>
                                 </c:choose>
                             </div>
+                            <small class="text-muted" style="font-size: 11px;">Cơ sở đang vận hành</small>
                         </div>
                         <div class="stat-icon"><i class="fa fa-building"></i></div>
                     </div>
                 </div>
+
+                <!-- Trạng thái Host -->
                 <div class="col-6 col-md-3 mb-3">
                     <div class="stat-card d-flex align-items-center justify-content-between">
                         <div>
@@ -161,28 +222,21 @@
                                     </c:otherwise>
                                 </c:choose>
                             </div>
+                            <small class="text-muted" style="font-size: 11px;">Xác minh danh tính</small>
                         </div>
                         <div class="stat-icon"><i class="fa fa-check-circle"></i></div>
                     </div>
                 </div>
+
+                <!-- Liên hệ -->
                 <div class="col-6 col-md-3 mb-3">
                     <div class="stat-card d-flex align-items-center justify-content-between">
                         <div>
-                            <div class="stat-label">Loại hình</div>
-                            <div class="stat-value" style="font-size:1.15rem;">
-                                <c:out value="${empty hostProfile.businessType ? '—' : hostProfile.businessType}" />
+                            <div class="stat-label">Hotline Liên hệ</div>
+                            <div class="stat-value" style="font-size:1.1rem;word-break:break-all;">
+                                <c:out value="${empty hostProfile.phone ? '0912345678' : hostProfile.phone}" />
                             </div>
-                        </div>
-                        <div class="stat-icon"><i class="fa fa-home"></i></div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3 mb-3">
-                    <div class="stat-card d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="stat-label">Liên hệ</div>
-                            <div class="stat-value" style="font-size:1rem;word-break:break-all;">
-                                <c:out value="${empty hostProfile.phone ? '—' : hostProfile.phone}" />
-                            </div>
+                            <small class="text-muted" style="font-size: 11px;">Hỗ trợ khách hàng</small>
                         </div>
                         <div class="stat-icon"><i class="fa fa-phone"></i></div>
                     </div>
@@ -196,17 +250,17 @@
                         <h5><i class="fa fa-id-card-o mr-2" style="color:#ffba5a;"></i>Hồ sơ Host</h5>
                         <div class="profile-meta">
                             <span class="label">Tên doanh nghiệp / Homestay</span>
-                            <strong><c:out value="${hostProfile.businessName}" /></strong>
+                            <strong><c:out value="${empty hostProfile.businessName ? '—' : hostProfile.businessName}" /></strong>
                         </div>
                         <div class="profile-meta">
                             <span class="label">Loại hình</span>
-                            <c:out value="${empty hostProfile.businessType ? 'Chưa cập nhật' : hostProfile.businessType}" />
+                            <strong><c:out value="${empty hostProfile.businessType ? '—' : hostProfile.businessType}" /></strong>
                         </div>
                         <div class="profile-meta">
                             <span class="label">Số điện thoại</span>
-                            <c:out value="${empty hostProfile.phone ? 'Chưa cập nhật' : hostProfile.phone}" />
+                            <strong><c:out value="${empty hostProfile.phone ? '—' : hostProfile.phone}" /></strong>
                         </div>
-                        <div class="profile-meta mb-0">
+                        <div class="profile-meta">
                             <span class="label">Trạng thái xác minh</span>
                             <c:choose>
                                 <c:when test="${hostProfile.verificationStatus == 'APPROVED'}">
@@ -215,61 +269,54 @@
                                 <c:when test="${hostProfile.verificationStatus == 'PENDING'}">
                                     <span class="badge-status badge-pending">PENDING</span>
                                 </c:when>
+                                <c:when test="${hostProfile.verificationStatus == 'REJECTED'}">
+                                    <span class="badge-status badge-rejected">REJECTED</span>
+                                </c:when>
                                 <c:otherwise>
                                     <span class="badge-status badge-draft"><c:out value="${hostProfile.verificationStatus}" /></span>
                                 </c:otherwise>
                             </c:choose>
                         </div>
-                        <hr class="my-3">
-                        <a href="${pageContext.request.contextPath}/host/property/create" class="btn btn-host-outline btn-block btn-sm">
+                        <hr>
+                        <a href="${pageContext.request.contextPath}/host/property/create" class="btn btn-outline-warning btn-block font-weight-bold" style="color:#e09a2e; border-color:#ffba5a;">
                             <i class="fa fa-plus mr-1"></i> Thêm property
                         </a>
                     </div>
                 </div>
 
-                <!-- Property list -->
+                <!-- Properties side -->
                 <div class="col-lg-8 mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h3 class="section-label mb-0">Danh sách property</h3>
-                    </div>
-
+                    <h5 class="section-label">Danh sách property</h5>
                     <c:choose>
                         <c:when test="${empty properties}">
                             <div class="empty-state">
-                                <div class="empty-icon"><i class="fa fa-building-o"></i></div>
+                                <div class="empty-icon"><i class="fa fa-home"></i></div>
                                 <h5 class="mb-2" style="font-family:'Playfair Display',serif;">Chưa có property nào</h5>
-                                <p class="text-muted mb-3">Tạo property đầu tiên để bắt đầu nhận đặt phòng từ khách.</p>
+                                <p class="text-muted mb-3">Bắt đầu bằng việc thêm homestay hoặc property đầu tiên của bạn.</p>
                                 <a href="${pageContext.request.contextPath}/host/property/create" class="btn btn-host-primary">
-                                    <i class="fa fa-plus mr-1"></i> Tạo property đầu tiên
+                                    <i class="fa fa-plus mr-1"></i> Tạo property mới
                                 </a>
                             </div>
                         </c:when>
                         <c:otherwise>
                             <div class="row">
-                                <c:forEach var="property" items="${properties}" varStatus="st">
+                                <c:forEach var="property" items="${properties}">
                                     <div class="col-md-6 mb-3">
                                         <div class="property-card">
                                             <div class="card-img-wrap">
-                                                <%-- Chưa có ảnh property → placeholder theo theme --%>
                                                 <div class="card-img-placeholder">
-                                                    <i class="fa fa-image"></i>
+                                                    <i class="fa fa-picture-o"></i>
                                                 </div>
-                                                <div style="position:absolute;top:10px;left:10px;">
-                                                    <c:choose>
-                                                        <c:when test="${property.status == 'ACTIVE' || property.status == 'PUBLISHED'}">
-                                                            <span class="badge-status badge-active"><c:out value="${property.status}" /></span>
-                                                        </c:when>
-                                                        <c:when test="${property.status == 'DRAFT'}">
-                                                            <span class="badge-status badge-draft">DRAFT</span>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <span class="badge-status badge-pending"><c:out value="${property.status}" /></span>
-                                                        </c:otherwise>
-                                                    </c:choose>
+                                                <div class="position-absolute" style="top:10px;left:10px;">
+                                                    <span class="badge-status badge-approved">
+                                                        <c:out value="${property.status}" />
+                                                    </span>
                                                 </div>
                                             </div>
                                             <div class="card-body">
-                                                <div class="card-title"><c:out value="${property.name}" /></div>
+                                                <h6 class="card-title">
+                                                    <c:out value="${property.propertyName}" />
+                                                </h6>
                                                 <div class="card-loc">
                                                     <i class="fa fa-map-marker"></i>
                                                     <c:out value="${property.address}" />
@@ -292,6 +339,83 @@
                             </div>
                         </c:otherwise>
                     </c:choose>
+
+                    <!-- Recent Wallet Transactions (Model 2) -->
+                    <div class="card border-0 shadow-sm rounded-12 mt-4" style="border-radius: 12px; overflow: hidden;">
+                        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="font-weight-bold mb-0 text-dark">
+                                <i class="fa fa-history text-primary mr-2"></i>Biến động số dư Ví Host gần đây
+                            </h6>
+                            <a href="${pageContext.request.contextPath}/host/refunds" class="btn btn-sm btn-link text-primary font-weight-bold p-0">
+                                Quản lý hoàn tiền & Chi tiết ví <i class="fa fa-angle-right ml-1"></i>
+                            </a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0" style="font-size: 13px;">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>Thời gian</th>
+                                            <th>Loại GD</th>
+                                            <th>Số tiền</th>
+                                            <th>Số dư sau GD</th>
+                                            <th>Nội dung</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:choose>
+                                            <c:when test="${empty recentTransactions}">
+                                                <tr>
+                                                    <td colspan="5" class="text-center py-4 text-muted">
+                                                        Chưa có biến động số dư nào trong ví.
+                                                    </td>
+                                                </tr>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:forEach var="tx" items="${recentTransactions}">
+                                                    <tr>
+                                                        <td class="text-muted text-nowrap">
+                                                            <fmt:formatDate value="${tx.createdAt}" pattern="dd/MM/yyyy HH:mm"/>
+                                                        </td>
+                                                        <td>
+                                                            <c:choose>
+                                                                <c:when test="${tx.transactionType == 'CREDIT_BOOKING'}">
+                                                                    <span class="badge badge-tx-credit px-2 py-1">Doanh thu phòng</span>
+                                                                </c:when>
+                                                                <c:when test="${tx.transactionType == 'DEBIT_REFUND'}">
+                                                                    <span class="badge badge-tx-debit px-2 py-1">Hoàn tiền khách</span>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <span class="badge badge-tx-topup px-2 py-1">Nạp tiền ký quỹ</span>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </td>
+                                                        <td class="font-weight-bold">
+                                                            <c:choose>
+                                                                <c:when test="${tx.transactionType == 'DEBIT_REFUND'}">
+                                                                    <span class="text-danger">-<fmt:formatNumber value="${tx.amount}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/></span>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <span class="text-success">+<fmt:formatNumber value="${tx.amount}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/></span>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </td>
+                                                        <td class="text-muted">
+                                                            <fmt:formatNumber value="${tx.balanceAfter}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
+                                                        </td>
+                                                        <td>
+                                                            <c:out value="${tx.description}"/>
+                                                        </td>
+                                                    </tr>
+                                                </c:forEach>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </c:if>

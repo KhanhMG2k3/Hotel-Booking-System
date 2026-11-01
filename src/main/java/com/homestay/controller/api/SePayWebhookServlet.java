@@ -7,6 +7,7 @@ import com.homestay.dao.BookingDAO;
 import com.homestay.dao.PaymentDAO;
 import com.homestay.dao.PaymentQrCodeDAO;
 import com.homestay.dao.RoomDAO;
+import com.homestay.dao.WalletDAO;
 import com.homestay.model.Booking;
 import com.homestay.model.Payment;
 import com.homestay.model.Room;
@@ -55,6 +56,7 @@ public class SePayWebhookServlet extends HttpServlet {
     private RoomDAO roomDAO;
     private PaymentAllocationService paymentAllocationService;
     private EmailService emailService;
+    private WalletDAO walletDAO;
     private ObjectMapper objectMapper;
 
     @Override
@@ -66,6 +68,7 @@ public class SePayWebhookServlet extends HttpServlet {
         roomDAO = new RoomDAO();
         paymentAllocationService = new PaymentAllocationService();
         emailService = EmailService.getInstance();
+        walletDAO = new WalletDAO();
         objectMapper = new ObjectMapper();
     }
 
@@ -311,6 +314,14 @@ public class SePayWebhookServlet extends HttpServlet {
                 try {
                     paymentQrCodeDAO.markPaidByPaymentId(conn, paymentId);
                 } catch (Exception ignored) {
+                }
+
+                // 8. Model 2: Credit revenue to Host's wallet
+                try {
+                    walletDAO.creditBookingToHost(conn, booking.getPropertyId(),
+                            booking.getTotalAmount(), booking.getId(), bookingCode);
+                } catch (Exception walletEx) {
+                    LOGGER.warning(() -> "Could not credit host wallet: " + walletEx.getMessage());
                 }
 
                 conn.commit();

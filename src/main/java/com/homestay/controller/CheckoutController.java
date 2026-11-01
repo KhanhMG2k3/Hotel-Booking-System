@@ -6,6 +6,7 @@ import com.homestay.dao.PaymentDAO;
 import com.homestay.dao.PaymentQrCodeDAO;
 import com.homestay.dao.RoomDAO;
 import com.homestay.dao.SystemBankAccountDAO;
+import com.homestay.dao.WalletDAO;
 import com.homestay.model.Booking;
 import com.homestay.model.Payment;
 import com.homestay.model.PaymentQrCode;
@@ -53,6 +54,7 @@ public class CheckoutController extends HttpServlet {
     private PaymentService paymentService;
     private PaymentAllocationService paymentAllocationService;
     private EmailService emailService;
+    private WalletDAO walletDAO;
 
     @Override
     public void init() throws ServletException {
@@ -65,6 +67,7 @@ public class CheckoutController extends HttpServlet {
         paymentService = new PaymentService();
         paymentAllocationService = new PaymentAllocationService();
         emailService = EmailService.getInstance();
+        walletDAO = new WalletDAO();
     }
 
     @Override
@@ -454,7 +457,15 @@ public class CheckoutController extends HttpServlet {
                     } catch (Exception ignored) {
                     }
 
-                    // 7. Commit transaction
+                    // 7. Model 2: Credit revenue to Host's wallet
+                    try {
+                        walletDAO.creditBookingToHost(conn, booking.getPropertyId(),
+                                booking.getTotalAmount(), bookingId, booking.getBookingCode());
+                    } catch (Exception walletEx) {
+                        System.err.println("Could not credit host wallet: " + walletEx.getMessage());
+                    }
+
+                    // 8. Commit transaction
                     conn.commit();
 
                     // 8. Trigger booking confirmation email (asynchronous)

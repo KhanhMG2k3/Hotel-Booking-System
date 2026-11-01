@@ -70,6 +70,113 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
         return Optional.empty();
     }
 
+    /**
+     * Finds all bookings for a user, joined with property and room details.
+     */
+    public List<Booking> findByUserId(int userId) {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = """
+                SELECT b.*,
+                       COALESCE(p.property_name, p.name, 'Sogo Homestay') AS joined_property_name,
+                       COALESCE(r.room_name, rt.room_name, 'Phòng tiêu chuẩn') AS joined_room_name,
+                       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') AS joined_image_url
+                FROM bookings b
+                LEFT JOIN properties p ON b.property_id = p.property_id
+                LEFT JOIN rooms r ON b.room_id = r.room_id
+                LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id
+                LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri
+                       ON rt.room_type_id = ri.room_type_id
+                WHERE b.user_id = ?
+                ORDER BY b.booking_id DESC
+                """;
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                bookings.add(mapResultSetToBooking(rs));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding bookings for user: " + userId, e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+
+        return bookings;
+    }
+
+    /**
+     * Finds a booking by ID with joined property and room details.
+     */
+    public Optional<Booking> findByIdWithDetails(int id) {
+        String sql = """
+                SELECT b.*,
+                       COALESCE(p.property_name, p.name, 'Sogo Homestay') AS joined_property_name,
+                       COALESCE(r.room_name, rt.room_name, 'Phòng tiêu chuẩn') AS joined_room_name,
+                       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') AS joined_image_url
+                FROM bookings b
+                LEFT JOIN properties p ON b.property_id = p.property_id
+                LEFT JOIN rooms r ON b.room_id = r.room_id
+                LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id
+                LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri
+                       ON rt.room_type_id = ri.room_type_id
+                WHERE b.booking_id = ?
+                """;
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, id);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return Optional.of(mapResultSetToBooking(rs));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding booking with details for id: " + id, e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Updates booking status and optional cancellation reason.
+     */
+    public boolean updateBookingStatus(long bookingId, String bookingStatus, String cancellationReason) {
+        String sql = "UPDATE bookings SET booking_status = ?, status = ?, cancellation_reason = ? WHERE booking_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, bookingStatus);
+            ps.setString(2, bookingStatus);
+            ps.setString(3, cancellationReason);
+            ps.setLong(4, bookingId);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating status for booking id: " + bookingId, e);
+            return false;
+        } finally {
+            closeResources(conn, ps, null);
+        }
+    }
+
     public Booking findByBookingCodeForUpdate(Connection conn, String bookingCode)
             throws SQLException {
         requireTransaction(conn, "findByBookingCodeForUpdate");
@@ -513,6 +620,30 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
         booking.setStatus(rs.getString("booking_status"));
         booking.setCancellationReason(rs.getString("cancellation_reason"));
         booking.setCreatedAt(rs.getTimestamp("created_at"));
+
+        try {
+            String propName = rs.getString("joined_property_name");
+            if (propName != null) {
+                booking.setPropertyName(propName);
+            }
+        } catch (SQLException ignored) {
+        }
+
+        try {
+            String rName = rs.getString("joined_room_name");
+            if (rName != null) {
+                booking.setRoomName(rName);
+            }
+        } catch (SQLException ignored) {
+        }
+
+        try {
+            String imgUrl = rs.getString("joined_image_url");
+            if (imgUrl != null) {
+                booking.setRoomImageUrl(imgUrl);
+            }
+        } catch (SQLException ignored) {
+        }
 
         return booking;
     }
