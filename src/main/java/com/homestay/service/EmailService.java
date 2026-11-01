@@ -121,13 +121,13 @@ public class EmailService {
 
         String recipientName = booking.getCustomerName() != null && !booking.getCustomerName().isBlank()
                 ? booking.getCustomerName()
-                : "QuÃ½ khÃ¡ch";
+                : "Quý khách";
 
         String bookingCode = booking.getBookingCode() != null && !booking.getBookingCode().isBlank()
                 ? booking.getBookingCode()
                 : "BK-" + booking.getId();
 
-        String subject = "Sogo Homestay - XÃ¡c Nháº­n Äáº·t PhÃ²ng ThÃ nh CÃ´ng [" + bookingCode + "]";
+        String subject = "Sogo Homestay - Xác Nhận Đặt Phòng Thành Công [" + bookingCode + "]";
         String htmlBody = buildConfirmationHtml(booking, payment, room, recipientName, bookingCode);
 
         return sendHtmlEmail(recipientEmail, recipientName, subject, htmlBody);
@@ -206,7 +206,11 @@ public class EmailService {
 
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(fromEmail, fromName, "UTF-8"));
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(toEmail, toName, "UTF-8"));
+            if (toName != null && !toName.isBlank()) {
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(toEmail, toName, "UTF-8"));
+            } else {
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
+            }
             message.setSubject(subject, "UTF-8");
             message.setContent(htmlContent, "text/html; charset=UTF-8");
 
@@ -239,24 +243,24 @@ public class EmailService {
         BigDecimal amount = booking.getTotalAmount() != null
                 ? booking.getTotalAmount()
                 : (booking.getTotalPrice() != null ? booking.getTotalPrice() : BigDecimal.ZERO);
-        String amountFormatted = currencyFormat.format(amount) + " VNÄ";
+        String amountFormatted = currencyFormat.format(amount) + " VNĐ";
 
-        String roomName = room != null && room.getRoomName() != null ? room.getRoomName() : "PhÃ²ng tiÃªu chuáº©n";
+        String roomName = room != null && room.getRoomName() != null ? room.getRoomName() : "Phòng tiêu chuẩn";
         String propertyName = room != null && room.getPropertyName() != null ? room.getPropertyName() : "Sogo Homestay";
-        String address = room != null && room.getAddress() != null ? room.getAddress() : "Viá»‡t Nam";
+        String address = room != null && room.getAddress() != null ? room.getAddress() : "Việt Nam";
 
         String trxId = payment != null && payment.getTransactionId() != null
                 ? payment.getTransactionId()
                 : "TRX-" + System.currentTimeMillis();
 
-        String guests = booking.getAdults() + " ngÆ°á»i lá»›n" + (booking.getChildren() > 0 ? ", " + booking.getChildren() + " tráº» em" : "");
+        String guests = booking.getAdults() + " người lớn" + (booking.getChildren() > 0 ? ", " + booking.getChildren() + " trẻ em" : "");
 
         String template = """
                 <!DOCTYPE html>
                 <html lang="vi">
                 <head>
                     <meta charset="UTF-8">
-                    <title>XÃ¡c Nháº­n Äáº·t PhÃ²ng ThÃ nh CÃ´ng</title>
+                    <title>Xác Nhận Đặt Phòng Thành Công</title>
                 </head>
                 <body style="margin: 0; padding: 20px; background-color: #f4f6f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333333;">
                     <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
@@ -264,22 +268,22 @@ public class EmailService {
                         <tr>
                             <td align="center" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 35px 20px; color: #ffffff;">
                                 <h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 0.5px;">SOGO HOMESTAY</h1>
-                                <p style="margin: 8px 0 0 0; font-size: 15px; opacity: 0.95;">XÃC NHáº¬N Äáº¶T PHÃ’NG THÃ€NH CÃ”NG</p>
+                                <p style="margin: 8px 0 0 0; font-size: 15px; opacity: 0.95;">XÁC NHẬN ĐẶT PHÒNG THÀNH CÔNG</p>
                             </td>
                         </tr>
                         <!-- BODY -->
                         <tr>
                             <td style="padding: 30px 25px;">
-                                <p style="font-size: 16px; margin: 0 0 15px 0;">KÃ­nh gá»­i <strong>{{CUSTOMER_NAME}}</strong>,</p>
+                                <p style="font-size: 16px; margin: 0 0 15px 0;">Kính gửi <strong>{{CUSTOMER_NAME}}</strong>,</p>
                                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 20px 0;">
-                                    Cáº£m Æ¡n báº¡n Ä‘Ã£ lá»±a chá»n dá»‹ch vá»¥ cá»§a <strong>Sogo Homestay</strong>. ÄÆ¡n Ä‘áº·t phÃ²ng vÃ  giao dá»‹ch thanh toÃ¡n cá»§a quÃ½ khÃ¡ch Ä‘Ã£ Ä‘Æ°á»£c há»‡ thá»‘ng xÃ¡c nháº­n thÃ nh cÃ´ng!
+                                    Cảm ơn bạn đã lựa chọn dịch vụ của <strong>Sogo Homestay</strong>. Đơn đặt phòng và giao dịch thanh toán của quý khách đã được hệ thống xác nhận thành công!
                                 </p>
 
                                 <!-- BOOKING CODE BADGE -->
                                 <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; margin-bottom: 25px;">
                                     <tr>
                                         <td align="center" style="padding: 15px;">
-                                            <span style="font-size: 13px; color: #065f46; display: block; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">MÃ£ Äáº·t PhÃ²ng</span>
+                                            <span style="font-size: 13px; color: #065f46; display: block; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Mã Đặt Phòng</span>
                                             <strong style="font-size: 22px; color: #047857; letter-spacing: 1px;">{{BOOKING_CODE}}</strong>
                                         </td>
                                     </tr>
@@ -292,31 +296,31 @@ public class EmailService {
                                         <td style="color: #0f172a; font-weight: 600;">{{PROPERTY_NAME}}</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #f1f5f9;">
-                                        <td style="color: #64748b;">Háº¡ng phÃ²ng:</td>
+                                        <td style="color: #64748b;">Hạng phòng:</td>
                                         <td style="color: #0f172a; font-weight: 600;">{{ROOM_NAME}}</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #f1f5f9;">
-                                        <td style="color: #64748b;">Äá»‹a chá»‰:</td>
+                                        <td style="color: #64748b;">Địa chỉ:</td>
                                         <td style="color: #0f172a;">{{ADDRESS}}</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #f1f5f9;">
-                                        <td style="color: #64748b;">Thá»i gian lÆ°u trÃº:</td>
+                                        <td style="color: #64748b;">Thời gian lưu trú:</td>
                                         <td style="color: #0f172a; font-weight: 600;">{{CHECK_IN}} &rarr; {{CHECK_OUT}}</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #f1f5f9;">
-                                        <td style="color: #64748b;">Sá»‘ lÆ°á»£ng khÃ¡ch:</td>
+                                        <td style="color: #64748b;">Số lượng khách:</td>
                                         <td style="color: #0f172a;">{{GUESTS}}</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #f1f5f9;">
-                                        <td style="color: #64748b;">PhÆ°Æ¡ng thá»©c thanh toÃ¡n:</td>
-                                        <td style="color: #2563eb; font-weight: 600;">Chuyá»ƒn khoáº£n NgÃ¢n hÃ ng (VietQR / SePay)</td>
+                                        <td style="color: #64748b;">Phương thức thanh toán:</td>
+                                        <td style="color: #2563eb; font-weight: 600;">Chuyển khoản Ngân hàng (VietQR / SePay)</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #f1f5f9;">
-                                        <td style="color: #64748b;">MÃ£ giao dá»‹ch:</td>
+                                        <td style="color: #64748b;">Mã giao dịch:</td>
                                         <td style="color: #0f172a; font-family: monospace;">{{TRX_ID}}</td>
                                     </tr>
                                     <tr style="background-color: #f8fafc;">
-                                        <td style="color: #0f172a; font-weight: 700; font-size: 15px; padding-top: 12px; padding-bottom: 12px;">Tá»•ng tiá»n Ä‘Ã£ thanh toÃ¡n:</td>
+                                        <td style="color: #0f172a; font-weight: 700; font-size: 15px; padding-top: 12px; padding-bottom: 12px;">Tổng tiền đã thanh toán:</td>
                                         <td style="color: #dc2626; font-weight: 700; font-size: 18px; padding-top: 12px; padding-bottom: 12px;">{{AMOUNT}}</td>
                                     </tr>
                                 </table>
@@ -325,16 +329,16 @@ public class EmailService {
                                 <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 0 6px 6px 0; margin-bottom: 25px;">
                                     <tr>
                                         <td style="padding: 12px 15px; font-size: 13px; color: #1e40af; line-height: 1.5;">
-                                            <strong>LÆ°u Ã½ nháº­n phÃ²ng:</strong><br/>
-                                            &bull; Giá» nháº­n phÃ²ng (Check-in): tá»« <strong>14:00</strong><br/>
-                                            &bull; Giá» tráº£ phÃ²ng (Check-out): trÆ°á»›c <strong>12:00</strong><br/>
-                                            &bull; QuÃ½ khÃ¡ch vui lÃ²ng mang theo CÄƒn cÆ°á»›c cÃ´ng dÃ¢n hoáº·c Há»™ chiáº¿u Ä‘á»ƒ lÃ m thá»§ tá»¥c nháº­n phÃ²ng.
+                                            <strong>Lưu ý nhận phòng:</strong><br/>
+                                            &bull; Giờ nhận phòng (Check-in): từ <strong>14:00</strong><br/>
+                                            &bull; Giờ trả phòng (Check-out): trước <strong>12:00</strong><br/>
+                                            &bull; Quý khách vui lòng mang theo Căn cước công dân hoặc Hộ chiếu để làm thủ tục nhận phòng.
                                         </td>
                                     </tr>
                                 </table>
 
                                 <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin: 0;">
-                                    Náº¿u báº¡n cáº§n há»— trá»£ thÃªm, vui lÃ²ng liÃªn há»‡ hotline: <strong>090 123 4567</strong> hoáº·c pháº£n há»“i trá»±c tiáº¿p email nÃ y.
+                                    Nếu bạn cần hỗ trợ thêm, vui lòng liên hệ hotline: <strong>090 123 4567</strong> hoặc phản hồi trực tiếp email này.
                                 </p>
                             </td>
                         </tr>
@@ -342,7 +346,7 @@ public class EmailService {
                         <tr>
                             <td align="center" style="background-color: #f8fafc; padding: 20px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
                                 &copy; 2026 Sogo Homestay Booking System. All rights reserved.<br/>
-                                ChÃºc quÃ½ khÃ¡ch cÃ³ má»™t ká»³ nghá»‰ tháº­t tuyá»‡t vá»i!
+                                Chúc quý khách có một kỳ nghỉ thật tuyệt vời!
                             </td>
                         </tr>
                     </table>
