@@ -20,9 +20,11 @@ public class ServerRunner {
     private static final int PORT = 8080;
 
     public static void main(String[] args) throws Exception {
+        System.setProperty("file.encoding", "UTF-8");
         Tomcat tomcat = new Tomcat();
         tomcat.setPort(PORT);
-        tomcat.getConnector(); // Initialize HTTP connector
+        org.apache.catalina.connector.Connector connector = tomcat.getConnector(); // Initialize HTTP connector
+        connector.setURIEncoding("UTF-8");
 
         File baseDir = new File("target/tomcat-base");
         baseDir.mkdirs();

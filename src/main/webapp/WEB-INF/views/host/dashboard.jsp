@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -315,7 +315,7 @@
                                             </div>
                                             <div class="card-body">
                                                 <h6 class="card-title">
-                                                    <c:out value="${property.propertyName}" />
+                                                    <c:out value="${property.name}" />
                                                 </h6>
                                                 <div class="card-loc">
                                                     <i class="fa fa-map-marker"></i>

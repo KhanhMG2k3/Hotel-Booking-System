@@ -61,6 +61,14 @@ public class Property {
         this.name = name;
     }
 
+    public String getPropertyName() {
+        return name;
+    }
+
+    public void setPropertyName(String propertyName) {
+        this.name = propertyName;
+    }
+
     public String getDescription() {
         return description;
     }
