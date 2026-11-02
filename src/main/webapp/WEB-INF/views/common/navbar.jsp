@@ -3,6 +3,211 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- Shared responsive site header: brand logo, quick actions, collapsible desktop links, user menu, and side drawer. --%>
+
+<%-- Scoped Dark Mode Styles for Header Notification Bell & Dropdown --%>
+<style>
+/* Notification Bell Button */
+[data-theme="dark"] .header-notification-link,
+html.dark-mode .header-notification-link,
+body.dark-mode .header-notification-link,
+[data-theme="dark"] .site-header .header-notification-link,
+html.dark-mode .site-header .header-notification-link,
+body.dark-mode .site-header .header-notification-link,
+[data-theme="dark"] .site-header.scrolled .header-notification-link,
+html.dark-mode .site-header.scrolled .header-notification-link,
+body.dark-mode .site-header.scrolled .header-notification-link,
+[data-theme="dark"] .site-header.header-solid .header-notification-link,
+html.dark-mode .site-header.header-solid .header-notification-link,
+body.dark-mode .site-header.header-solid .header-notification-link {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(251, 191, 36, 0.35) !important;
+    color: #fbbf24 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
+[data-theme="dark"] .header-notification-link .fa-bell,
+[data-theme="dark"] .header-notification-link i,
+html.dark-mode .header-notification-link .fa-bell,
+html.dark-mode .header-notification-link i,
+body.dark-mode .header-notification-link .fa-bell,
+body.dark-mode .header-notification-link i,
+[data-theme="dark"] .site-header .header-notification-link .fa-bell,
+[data-theme="dark"] .site-header .header-notification-link i,
+html.dark-mode .site-header .header-notification-link .fa-bell,
+html.dark-mode .site-header .header-notification-link i {
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .header-notification-link:hover,
+html.dark-mode .header-notification-link:hover,
+body.dark-mode .header-notification-link:hover,
+[data-theme="dark"] .site-header .header-notification-link:hover,
+html.dark-mode .site-header .header-notification-link:hover,
+[data-theme="dark"] .site-header.scrolled .header-notification-link:hover,
+html.dark-mode .site-header.scrolled .header-notification-link:hover,
+[data-theme="dark"] .site-header.header-solid .header-notification-link:hover,
+html.dark-mode .site-header.header-solid .header-notification-link:hover {
+    background: #fbbf24 !important;
+    color: #0f172a !important;
+    border-color: #fbbf24 !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.5) !important;
+}
+
+[data-theme="dark"] .header-notification-link:hover .fa-bell,
+[data-theme="dark"] .header-notification-link:hover i,
+html.dark-mode .header-notification-link:hover .fa-bell,
+html.dark-mode .header-notification-link:hover i {
+    color: #0f172a !important;
+}
+
+[data-theme="dark"] .header-notification-badge,
+html.dark-mode .header-notification-badge,
+body.dark-mode .header-notification-badge {
+    background: #dc3545 !important;
+    color: #ffffff !important;
+    border-color: #0f172a !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Notification Dropdown Box */
+[data-theme="dark"] .notification-header-dropdown,
+html.dark-mode .notification-header-dropdown,
+body.dark-mode .notification-header-dropdown {
+    background: #162032 !important;
+    border: 1px solid #243247 !important;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="dark"] .header-notification-list,
+html.dark-mode .header-notification-list,
+body.dark-mode .header-notification-list {
+    background: #162032 !important;
+}
+
+/* Dropdown Header & Footer Bars */
+[data-theme="dark"] .notification-header-dropdown .notif-header-box,
+html.dark-mode .notification-header-dropdown .notif-header-box,
+body.dark-mode .notification-header-dropdown .notif-header-box,
+[data-theme="dark"] .notification-header-dropdown .notif-footer-box,
+html.dark-mode .notification-header-dropdown .notif-footer-box,
+body.dark-mode .notification-header-dropdown .notif-footer-box,
+[data-theme="dark"] .notification-header-dropdown .bg-light,
+html.dark-mode .notification-header-dropdown .bg-light,
+body.dark-mode .notification-header-dropdown .bg-light {
+    background: #111827 !important;
+    border-color: #243247 !important;
+}
+
+[data-theme="dark"] .notif-dropdown-title,
+html.dark-mode .notif-dropdown-title,
+body.dark-mode .notif-dropdown-title,
+[data-theme="dark"] .notif-dropdown-title.text-dark,
+html.dark-mode .notif-dropdown-title.text-dark {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .notif-mark-read-btn,
+html.dark-mode .notif-mark-read-btn,
+body.dark-mode .notif-mark-read-btn,
+[data-theme="dark"] .notif-footer-link,
+html.dark-mode .notif-footer-link,
+body.dark-mode .notif-footer-link {
+    color: #ffba5a !important;
+}
+
+[data-theme="dark"] .notif-mark-read-btn:hover,
+html.dark-mode .notif-mark-read-btn:hover,
+[data-theme="dark"] .notif-footer-link:hover,
+html.dark-mode .notif-footer-link:hover {
+    color: #ffd285 !important;
+}
+
+/* Notification Items inside Dropdown */
+[data-theme="dark"] .dropdown-notif-item,
+html.dark-mode .dropdown-notif-item,
+body.dark-mode .dropdown-notif-item {
+    background: #162032 !important;
+    border-bottom: 1px solid #243247 !important;
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .dropdown-notif-item:hover,
+html.dark-mode .dropdown-notif-item:hover,
+body.dark-mode .dropdown-notif-item:hover {
+    background: #1c2a42 !important;
+}
+
+[data-theme="dark"] .dropdown-notif-item.unread,
+html.dark-mode .dropdown-notif-item.unread,
+body.dark-mode .dropdown-notif-item.unread {
+    background: #1a273f !important;
+    border-left: 3px solid #3b82f6 !important;
+}
+
+[data-theme="dark"] .dropdown-notif-item.unread:hover,
+html.dark-mode .dropdown-notif-item.unread:hover,
+body.dark-mode .dropdown-notif-item.unread:hover {
+    background: #223352 !important;
+}
+
+[data-theme="dark"] .dropdown-notif-item .text-dark,
+html.dark-mode .dropdown-notif-item .text-dark,
+body.dark-mode .dropdown-notif-item .text-dark,
+[data-theme="dark"] .dropdown-notif-item .notif-item-title,
+html.dark-mode .dropdown-notif-item .notif-item-title,
+body.dark-mode .dropdown-notif-item .notif-item-title {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .dropdown-notif-item .text-muted,
+html.dark-mode .dropdown-notif-item .text-muted,
+body.dark-mode .dropdown-notif-item .text-muted,
+[data-theme="dark"] .dropdown-notif-item .notif-item-message,
+html.dark-mode .dropdown-notif-item .notif-item-message,
+[data-theme="dark"] .dropdown-notif-item .notif-item-time,
+html.dark-mode .dropdown-notif-item .notif-item-time,
+[data-theme="dark"] .header-notification-list .text-muted,
+html.dark-mode .header-notification-list .text-muted,
+body.dark-mode .header-notification-list .text-muted {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .header-notification-list .text-center,
+html.dark-mode .header-notification-list .text-center,
+body.dark-mode .header-notification-list .text-center,
+[data-theme="dark"] .notif-empty-state,
+html.dark-mode .notif-empty-state,
+body.dark-mode .notif-empty-state {
+    background: #162032 !important;
+    color: #94a3b8 !important;
+}
+
+/* Category Icons inside Notification Items */
+[data-theme="dark"] .dropdown-notif-item .text-primary,
+html.dark-mode .dropdown-notif-item .text-primary {
+    color: #60a5fa !important;
+}
+[data-theme="dark"] .dropdown-notif-item .text-warning,
+html.dark-mode .dropdown-notif-item .text-warning {
+    color: #fbbf24 !important;
+}
+[data-theme="dark"] .dropdown-notif-item .text-info,
+html.dark-mode .dropdown-notif-item .text-info {
+    color: #38bdf8 !important;
+}
+[data-theme="dark"] .dropdown-notif-item .text-success,
+html.dark-mode .dropdown-notif-item .text-success {
+    color: #34d399 !important;
+}
+[data-theme="dark"] .dropdown-notif-item .text-danger,
+html.dark-mode .dropdown-notif-item .text-danger {
+    color: #f87171 !important;
+}
+</style>
+
 <header class="site-header js-site-header">
     <div class="container-fluid">
         <div class="header-bar-row">
@@ -41,9 +246,7 @@
 
                                 <!-- Danh sách 5 thông báo nạp động qua AJAX -->
                                 <div id="headerNotificationList" class="header-notification-list">
-                                    <div class="text-center py-4 text-muted small">
-                                        <i class="fa fa-spinner fa-spin mr-1"></i> Đang tải thông báo...
-                                    </div>
+                                    <div class="text-center py-4 text-muted small notif-empty-state"><i class="fa fa-spinner fa-spin mr-1"></i> Đang tải thông báo...</div>
                                 </div>
 
                                 <!-- Footer dẫn sang trang đầy đủ -->
@@ -789,7 +992,7 @@
                         })
                         .then(function (data) {
                             if (!data.success || !data.notifications || data.notifications.length === 0) {
-                                notifList.innerHTML = '<div class="text-center py-4 text-muted small"><i class="fa fa-bell-slash-o d-block mb-2" style="font-size:1.8rem;"></i>Không có thông báo mới</div>';
+                                notifList.innerHTML = '<div class="text-center py-4 text-muted small notif-empty-state"><i class="fa fa-bell-slash-o d-block mb-2" style="font-size:1.8rem;"></i>Không có thông báo mới</div>';
                                 return;
                             }
                             if (data.unreadCount > 0) {
@@ -807,9 +1010,9 @@
                                         '<div class="d-flex align-items-start">' +
                                         '<i class="' + item.iconClass + ' mr-2 mt-1" style="font-size:1.1rem;"></i>' +
                                         '<div class="flex-grow-1" style="min-width:0; overflow-wrap:break-word;">' +
-                                        '<div class="text-dark small font-weight-bold mb-1">' + item.title + '</div>' +
-                                        '<div class="text-muted" style="font-size: 0.78rem; line-height: 1.35; max-height: 2.7em; overflow: hidden;">' + item.message + '</div>' +
-                                        '<div class="text-muted mt-1" style="font-size: 0.72rem;"><i class="fa fa-clock-o mr-1"></i>' + item.timeAgo + '</div>' +
+                                        '<div class="text-dark small font-weight-bold mb-1 notif-item-title">' + item.title + '</div>' +
+                                        '<div class="text-muted notif-item-message" style="font-size: 0.78rem; line-height: 1.35; max-height: 2.7em; overflow: hidden;">' + item.message + '</div>' +
+                                        '<div class="text-muted mt-1 notif-item-time" style="font-size: 0.72rem;"><i class="fa fa-clock-o mr-1"></i>' + item.timeAgo + '</div>' +
                                         '</div>' +
                                         (!item.isRead ? '<span class="ml-2 flex-shrink-0" style="width:8px;height:8px;background:#0d6efd;border-radius:50%;display:inline-block;"></span>' : '') +
                                         '</div>' +
