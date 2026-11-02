@@ -2400,3 +2400,105 @@ html.dark-mode .table-refunds td {
     color: #cbd5e1 !important;
     border-top: 1px solid #243247 !important;
 }
+
+
+/* ==========================================================================
+   FAQ PAGE IN DARK MODE
+   ========================================================================== */
+[data-theme="dark"] .faq-page-wrap,
+html.dark-mode .faq-page-wrap,
+body.dark-mode .faq-page-wrap {
+  background-color: #0b0f19 !important;
+}
+[data-theme="dark"] .admin-manage-bar,
+html.dark-mode .admin-manage-bar,
+body.dark-mode .admin-manage-bar {
+  background: #162032 !important;
+  border-color: rgba(251, 191, 36, 0.4) !important;
+}
+[data-theme="dark"] .admin-manage-bar .admin-manage-sub,
+html.dark-mode .admin-manage-bar .admin-manage-sub {
+  color: #94a3b8 !important;
+}
+[data-theme="dark"] .faq-search-wrapper,
+html.dark-mode .faq-search-wrapper,
+body.dark-mode .faq-search-wrapper {
+  background-color: #162032 !important;
+  border-color: #243247 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+[data-theme="dark"] .faq-search-wrapper:focus-within,
+html.dark-mode .faq-search-wrapper:focus-within {
+  border-color: #ffba5a !important;
+}
+[data-theme="dark"] .faq-search-input,
+html.dark-mode .faq-search-input,
+body.dark-mode .faq-search-input {
+  color: #f8fafc !important;
+}
+[data-theme="dark"] .faq-search-input::placeholder,
+html.dark-mode .faq-search-input::placeholder {
+  color: #64748b;
+}
+[data-theme="dark"] .faq-cat-btn,
+html.dark-mode .faq-cat-btn,
+body.dark-mode .faq-cat-btn {
+  background: #1e293b !important;
+  color: #94a3b8 !important;
+  border-color: #334155 !important;
+}
+[data-theme="dark"] .faq-cat-btn:hover,
+html.dark-mode .faq-cat-btn:hover {
+  background: #334155 !important;
+  color: #f8fafc !important;
+}
+[data-theme="dark"] .faq-cat-btn.active,
+html.dark-mode .faq-cat-btn.active {
+  background: #ffba5a !important;
+  border-color: #ffba5a !important;
+  color: #0f172a !important;
+  font-weight: 700;
+}
+[data-theme="dark"] .faq-card,
+html.dark-mode .faq-card,
+body.dark-mode .faq-card {
+  background-color: #162032 !important;
+  border-color: #243247 !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25) !important;
+}
+[data-theme="dark"] .faq-card:hover,
+html.dark-mode .faq-card:hover {
+  background-color: #1c2a42 !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
+}
+[data-theme="dark"] .faq-card-header button,
+html.dark-mode .faq-card-header button,
+body.dark-mode .faq-card-header button {
+  color: #f8fafc !important;
+}
+[data-theme="dark"] .faq-card-header button:hover,
+html.dark-mode .faq-card-header button:hover {
+  color: #ffba5a !important;
+}
+[data-theme="dark"] .faq-category-badge,
+html.dark-mode .faq-category-badge {
+  background-color: #111827 !important;
+  color: #94a3b8 !important;
+  border-color: #243247 !important;
+}
+[data-theme="dark"] .faq-answer,
+html.dark-mode .faq-answer,
+body.dark-mode .faq-answer {
+  color: #cbd5e1 !important;
+  border-color: #243247 !important;
+}
+[data-theme="dark"] .faq-empty-state,
+html.dark-mode .faq-empty-state,
+body.dark-mode .faq-empty-state {
+  background-color: #162032 !important;
+  border-color: #243247 !important;
+}
+[data-theme="dark"] .faq-empty-state h5,
+html.dark-mode .faq-empty-state h5 {
+  color: #f8fafc !important;
+}
