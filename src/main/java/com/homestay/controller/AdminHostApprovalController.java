@@ -16,8 +16,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Optional;
 
-@WebServlet(name = "AdminHostApprovalServlet", urlPatterns = {"/admin/host/approve", "/admin/host/reject"})
-public class AdminHostApprovalServlet extends HttpServlet {
+@WebServlet(name = "AdminHostApprovalController", urlPatterns = { "/admin/host/approve", "/admin/host/reject" })
+public class AdminHostApprovalController extends HttpServlet {
 
     private static final int ROLE_HOST_ID = 3;
     private final HostProfileDAO hostProfileDAO = new HostProfileDAO();
@@ -64,15 +64,18 @@ public class AdminHostApprovalServlet extends HttpServlet {
                     if (reviewed) {
                         session.setAttribute("messageSuccess", "Đã từ chối đơn đăng ký Host #" + applicationId + ".");
                     } else {
-                        session.setAttribute("messageError", "Không thể từ chối đơn #" + applicationId + ". Vui lòng kiểm tra lại trạng thái đơn.");
+                        session.setAttribute("messageError",
+                                "Không thể từ chối đơn #" + applicationId + ". Vui lòng kiểm tra lại trạng thái đơn.");
                     }
                 } else {
                     boolean reviewed = hostApplicationDAO.review(applicationId, adminUserId,
                             HostApplication.Status.APPROVED, null);
                     if (reviewed) {
-                        session.setAttribute("messageSuccess", "Phê duyệt đơn đăng ký Host #" + applicationId + " thành công! Tài khoản đã được nâng cấp lên Host và chỗ nghỉ đã được tạo.");
+                        session.setAttribute("messageSuccess", "Phê duyệt đơn đăng ký Host #" + applicationId
+                                + " thành công! Tài khoản đã được nâng cấp lên Host và chỗ nghỉ đã được tạo.");
                     } else {
-                        session.setAttribute("messageError", "Không thể phê duyệt đơn #" + applicationId + ". Đơn có thể không ở trạng thái chờ duyệt hoặc thiếu thông tin hợp lệ.");
+                        session.setAttribute("messageError", "Không thể phê duyệt đơn #" + applicationId
+                                + ". Đơn có thể không ở trạng thái chờ duyệt hoặc thiếu thông tin hợp lệ.");
                     }
                 }
             } catch (NumberFormatException e) {
@@ -97,12 +100,13 @@ public class AdminHostApprovalServlet extends HttpServlet {
                         boolean approved = hostProfileDAO.approveAndAssignHostRole(
                                 profile.getId(),
                                 profile.getUserId(),
-                                ROLE_HOST_ID
-                        );
+                                ROLE_HOST_ID);
                         if (approved) {
-                            session.setAttribute("messageSuccess", "Phê duyệt hồ sơ Host #" + profile.getId() + " thành công!");
+                            session.setAttribute("messageSuccess",
+                                    "Phê duyệt hồ sơ Host #" + profile.getId() + " thành công!");
                         } else {
-                            session.setAttribute("messageError", "Không thể phê duyệt hồ sơ Host #" + profile.getId() + ".");
+                            session.setAttribute("messageError",
+                                    "Không thể phê duyệt hồ sơ Host #" + profile.getId() + ".");
                         }
                     }
                 }

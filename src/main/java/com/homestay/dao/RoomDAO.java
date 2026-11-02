@@ -467,4 +467,45 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         }
         return amenities;
     }
+
+    /**
+     * Retrieves all rooms belonging to all properties of a specific host.
+     */
+    public List<Room> findRoomsByHostId(int hostId) {
+        List<Room> rooms = new ArrayList<>();
+        String sql = "SELECT r.room_id, r.property_id, r.room_number, r.room_name, r.price_per_night, "
+                + "r.capacity, r.bed_count, r.bathroom_count, r.status, r.image_url, r.description, "
+                + "p.property_name, p.address, p.city "
+                + "FROM rooms r "
+                + "JOIN properties p ON r.property_id = p.property_id "
+                + "WHERE p.host_id = ? "
+                + "ORDER BY p.property_id, r.room_id";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hostId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Room room = new Room();
+                    room.setId(rs.getInt("room_id"));
+                    room.setPropertyId(rs.getInt("property_id"));
+                    room.setRoomNumber(rs.getString("room_number"));
+                    room.setRoomName(rs.getString("room_name"));
+                    room.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                    room.setCapacity(rs.getInt("capacity"));
+                    room.setBedCount(rs.getInt("bed_count"));
+                    room.setBathroomCount(rs.getInt("bathroom_count"));
+                    room.setStatus(rs.getString("status"));
+                    room.setImageUrl(rs.getString("image_url"));
+                    room.setDescription(rs.getString("description"));
+                    room.setPropertyName(rs.getString("property_name"));
+                    room.setAddress(rs.getString("address"));
+                    rooms.add(room);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding rooms by host id: " + hostId, e);
+        }
+        return rooms;
+    }
 }

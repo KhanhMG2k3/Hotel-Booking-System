@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java"  %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
@@ -85,7 +85,7 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
             <div>
                 <a href="${pageContext.request.contextPath}/host/dashboard" class="text-primary font-weight-bold text-decoration-none small d-inline-flex align-items-center mb-1">
-                    <i class="fa fa-arrow-left mr-1"></i> Quay lại Host Dashboard
+                    <i class="fa fa-arrow-left mr-1"></i> Quay lại Bảng điều khiển Host
                 </a>
                 <h1 class="h2 mb-2">Quản lý voucher</h1>
                 <p class="text-muted mb-0">

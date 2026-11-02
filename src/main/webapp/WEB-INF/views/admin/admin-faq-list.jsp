@@ -1,16 +1,16 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java"  %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <jsp:include page="../common/header.jsp">
   <jsp:param name="pageTitle" value="Quản Trị FAQ - Sogo Homestay" />
 </jsp:include>
 
-<div class="container py-5 my-5">
+<div class="container py-5" style="padding-top: 120px !important; min-height: 80vh;">
   <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
     <h2 class="font-weight-bold text-dark">Quản Lý Câu Hỏi Thường Gặp (FAQ)</h2>
     <div>
-      <a href="${pageContext.request.contextPath}/admin/pages/edit?slug=about-us" class="btn btn-outline-secondary mr-2">Sửa About Us</a>
-      <a href="${pageContext.request.contextPath}/admin/pages/edit?slug=terms-and-conditions" class="btn btn-outline-secondary mr-2">Sửa Chính Sách</a>
+      <a href="${pageContext.request.contextPath}/admin/pages/edit?slug=about-us" class="btn btn-outline-secondary mr-2">Sửa Trang Về Chúng Tôi</a>
+      <a href="${pageContext.request.contextPath}/admin/pages/edit?slug=terms-and-conditions" class="btn btn-outline-secondary mr-2">Sửa Trang Điều Khoản</a>
       <button class="btn btn-primary" data-toggle="modal" data-target="#modalAddFaq">
         <span class="fa fa-plus mr-1"></span> Thêm Câu Hỏi Mới
       </button>
@@ -46,7 +46,7 @@
             <td class="small text-muted text-truncate" style="max-width: 250px;">${faq.answer}</td>
             <td>
               <span class="badge ${faq.status == 'ACTIVE' ? 'badge-success' : 'badge-secondary'}">
-                ${faq.status}
+                
               </span>
             </td>
             <td>

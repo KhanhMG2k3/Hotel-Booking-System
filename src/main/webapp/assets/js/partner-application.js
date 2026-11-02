@@ -57,8 +57,8 @@
   };
 
   const roomAmenities = [
-    'Wi-Fi', 'Air conditioning', 'Kitchen', 'Private bathroom',
-    'Television', 'Washer', 'Parking', 'Workspace'
+    'Wi-Fi', 'Điều hòa', 'Bếp nấu', 'Phòng tắm riêng',
+    'Tivi', 'Máy giặt', 'Chỗ đỗ xe', 'Bàn làm việc'
   ];
   const maxMediaSize = 50 * 1024 * 1024;
   let alertTimeout;
@@ -71,9 +71,9 @@
   };
 
   const documentTypes = [
-    { key: 'identity', label: 'Identity document', field: 'identityDocumentUrl', required: true },
-    { key: 'ownership', label: 'Property ownership / authorization document', field: 'ownershipDocumentUrl', required: true },
-    { key: 'business', label: 'Business document', field: 'businessDocumentUrl', required: false }
+    { key: 'identity', label: 'Giấy tờ tùy thân (CCCD / Hộ chiếu)', field: 'identityDocumentUrl', required: true },
+    { key: 'ownership', label: 'Giấy tờ sở hữu / Hợp đồng ủy quyền chỗ nghỉ', field: 'ownershipDocumentUrl', required: true },
+    { key: 'business', label: 'Giấy phép kinh doanh (nếu có)', field: 'businessDocumentUrl', required: false }
   ];
 
 /**
@@ -400,7 +400,7 @@
     term.className = 'col-sm-4';
     description.className = 'col-sm-8';
     term.textContent = label;
-    description.textContent = value || 'Not provided';
+    description.textContent = value || 'Chưa cung cấp';
     list.append(term, description);
   }
 
@@ -419,28 +419,28 @@
     document.getElementById('partner-host-dashboard').classList.add('d-none');
 
     const status = application.status;
-    const title = status === 'PENDING' ? 'Application under review'
-      : status === 'APPROVED' ? 'Application approved'
-        : 'Application not approved';
+    const title = status === 'PENDING' ? 'Hồ sơ đang chờ xét duyệt'
+      : status === 'APPROVED' ? 'Hồ sơ đã được phê duyệt'
+        : 'Hồ sơ chưa được phê duyệt';
     const message = status === 'PENDING'
-      ? 'Your application has been submitted. We will contact you after the review is complete.'
+      ? 'Hồ sơ của bạn đã được gửi. Chúng tôi sẽ thông báo cho bạn sau khi xét duyệt hoàn tất.'
       : status === 'APPROVED'
-        ? 'Your property application has been approved. Your account now has Host access.'
-        : 'Your application was rejected. Review the feedback, make changes, and submit it again.';
+        ? 'Hồ sơ homestay của bạn đã được phê duyệt! Bạn hiện đã có quyền Host.'
+        : 'Hồ sơ của bạn bị từ chối. Vui lòng xem lý do bên dưới, chỉnh sửa và gửi lại.';
     document.getElementById('partner-status-title').textContent = title;
     document.getElementById('partner-status-message').textContent = message;
 
     const badge = document.getElementById('partner-status-badge');
     badge.textContent = status.charAt(0) + status.slice(1).toLowerCase();
     badge.className = 'partner-status-badge ' + status.toLowerCase();
-    addStatusDetail('Property', application.propertyName);
-    addStatusDetail('Submitted', formatDate(application.submittedAt));
-    addStatusDetail('Reviewed', formatDate(application.reviewedAt));
-    addStatusDetail('Reviewed by', application.reviewerName);
+    addStatusDetail('Tên Homestay', application.propertyName);
+    addStatusDetail('Thời gian nộp', formatDate(application.submittedAt));
+    addStatusDetail('Thời gian duyệt', formatDate(application.reviewedAt));
+    addStatusDetail('Người duyệt', application.reviewerName);
 
     if (status === 'REJECTED') {
       document.getElementById('partner-rejection-reason').textContent =
-        application.rejectionReason || 'No reason was provided.';
+        application.rejectionReason || 'Không có lý do cụ thể.';
       document.getElementById('partner-rejection').classList.remove('d-none');
       document.getElementById('partner-edit-rejected').classList.remove('d-none');
       document.getElementById('partner-resubmit-rejected').classList.remove('d-none');
@@ -462,33 +462,33 @@
     card.dataset.roomId = room.id || temporaryKey;
     card.innerHTML =
       '<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">' +
-        '<h3 class="h5 mb-2">Room details</h3>' +
-        '<button class="btn btn-sm btn-outline-danger" type="button" data-room-action="remove">Remove room</button>' +
+        '<h3 class="h5 mb-2">Chi tiết phòng</h3>' +
+        '<button class="btn btn-sm btn-outline-danger" type="button" data-room-action="remove">Xóa phòng</button>' +
       '</div>' +
       '<div class="form-row">' +
-        '<div class="form-group col-md-6"><label>Room name <span class="text-danger">*</span></label><input class="form-control" data-room-field="roomName" maxlength="120" required></div>' +
-        '<div class="form-group col-md-6"><label>Room type <span class="text-danger">*</span></label><select class="form-control" data-room-field="roomType" required>' +
-          '<option value="">Choose a type</option><option value="SINGLE">Single</option><option value="DOUBLE">Double</option><option value="TWIN">Twin</option><option value="FAMILY">Family</option><option value="SUITE">Suite</option><option value="OTHER">Other</option>' +
+        '<div class="form-group col-md-6"><label>Tên phòng <span class="text-danger">*</span></label><input class="form-control" data-room-field="roomName" maxlength="120" required></div>' +
+        '<div class="form-group col-md-6"><label>Loại phòng <span class="text-danger">*</span></label><select class="form-control" data-room-field="roomType" required>' +
+          '<option value="">Chọn loại phòng</option><option value="SINGLE">Phòng đơn</option><option value="DOUBLE">Phòng đôi</option><option value="TWIN">Phòng 2 giường đơn</option><option value="FAMILY">Phòng gia đình</option><option value="SUITE">Phòng Suite cao cấp</option><option value="OTHER">Khác</option>' +
         '</select></div>' +
       '</div>' +
       '<div class="form-row">' +
-        '<div class="form-group col-md-3"><label>Price per night <strong>(VNĐ)</strong> <span class="text-danger">*</span></label>' +
+        '<div class="form-group col-md-3"><label>Giá mỗi đêm <strong>(VNĐ)</strong> <span class="text-danger">*</span></label>' +
           '<div class="input-group">' +
             '<input class="form-control" data-room-field="pricePerNight" type="number" min="1000" max="99999999" step="1000" placeholder="VD: 500000" required>' +
             '<div class="input-group-append"><span class="input-group-text font-weight-bold">₫</span></div>' +
           '</div>' +
           '<small class="form-text text-muted">Nhập giá số nguyên (VNĐ)</small>' +
         '</div>' +
-        '<div class="form-group col-md-3"><label>Maximum guests <span class="text-danger">*</span></label><input class="form-control" data-room-field="maxGuests" type="number" min="1" max="65535" step="1" required></div>' +
-        '<div class="form-group col-md-3"><label>Number of beds <span class="text-danger">*</span></label><input class="form-control" data-room-field="bedCount" type="number" min="1" max="65535" step="1" required></div>' +
-        '<div class="form-group col-md-3"><label>Bathrooms <span class="text-danger">*</span></label><input class="form-control" data-room-field="bathroomCount" type="number" min="1" max="65535" step="1" required></div>' +
+        '<div class="form-group col-md-3"><label>Số khách tối đa <span class="text-danger">*</span></label><input class="form-control" data-room-field="maxGuests" type="number" min="1" max="65535" step="1" required></div>' +
+        '<div class="form-group col-md-3"><label>Số lượng giường <span class="text-danger">*</span></label><input class="form-control" data-room-field="bedCount" type="number" min="1" max="65535" step="1" required></div>' +
+        '<div class="form-group col-md-3"><label>Số phòng tắm <span class="text-danger">*</span></label><input class="form-control" data-room-field="bathroomCount" type="number" min="1" max="65535" step="1" required></div>' +
       '</div>' +
-      '<fieldset class="form-group"><legend class="h6">Amenities</legend><div class="partner-amenities" data-room-amenities></div>' +
-        '<label class="mt-3">Other amenities <span class="text-muted">(comma-separated)</span></label><input class="form-control" data-room-field="customAmenities" maxlength="500"></fieldset>' +
-      '<div class="form-group"><label>Room photos and videos <span class="text-muted">(JPG/PNG/MP4/WebM, up to 10 files, 50 MB each)</span></label>' +
+      '<fieldset class="form-group"><legend class="h6">Tiện nghi phòng</legend><div class="partner-amenities" data-room-amenities></div>' +
+        '<label class="mt-3">Tiện nghi khác <span class="text-muted">(cách nhau bằng dấu phẩy)</span></label><input class="form-control" data-room-field="customAmenities" maxlength="500"></fieldset>' +
+      '<div class="form-group"><label>Hình ảnh & video phòng <span class="text-muted">(JPG/PNG/MP4/WebM, tối đa 10 tệp, 50 MB mỗi tệp)</span></label>' +
         '<input class="form-control-file" data-room-images type="file" accept=".jpg,.jpeg,.png,.mp4,.webm,image/jpeg,image/png,video/mp4,video/webm" multiple>' +
         '<small class="form-text text-muted" data-image-upload-status></small><div class="partner-room-images mt-2" data-room-image-list></div></div>' +
-      '<button class="btn btn-outline-primary" type="button" data-room-action="save">Save Room</button>';
+      '<button class="btn btn-outline-primary" type="button" data-room-action="save">Lưu thông tin phòng</button>';
 
     const selectedAmenities = room.amenities || [];
     const amenityContainer = card.querySelector('[data-room-amenities]');
@@ -575,7 +575,7 @@
     if (state.rooms.length === 0) {
       const message = document.createElement('p');
       message.className = 'text-muted';
-      message.textContent = 'No rooms added yet.';
+      message.textContent = 'Chưa có phòng nào được thêm.';
       roomList.appendChild(message);
     }
     state.rooms.forEach(function (room) {
@@ -598,7 +598,7 @@
       const stateText = document.createElement('small');
       stateText.className = 'form-text text-muted';
       const url = state.application && state.application[documentType.field];
-      stateText.textContent = url ? 'Uploaded' : documentType.required ? 'Required before submission' : 'Optional';
+      stateText.textContent = url ? 'Đã tải lên' : documentType.required ? 'Bắt buộc trước khi nộp' : 'Không bắt buộc';
       description.append(title, stateText);
 
       const controls = document.createElement('div');
@@ -609,19 +609,19 @@
         view.target = '_blank';
         view.rel = 'noopener';
         view.className = 'btn btn-sm btn-outline-secondary partner-document-action';
-        view.textContent = 'View file';
+        view.textContent = 'Xem tệp';
         controls.appendChild(view);
         const remove = document.createElement('button');
         remove.type = 'button';
         remove.className = 'btn btn-sm btn-outline-danger partner-document-action';
-        remove.textContent = 'Remove';
+        remove.textContent = 'Xóa';
         remove.dataset.documentAction = 'remove';
         remove.dataset.documentType = documentType.key;
         controls.appendChild(remove);
       }
       const upload = document.createElement('label');
       upload.className = 'btn btn-sm btn-outline-primary mb-0 partner-document-action';
-      upload.textContent = url ? 'Replace file' : 'Upload file';
+      upload.textContent = url ? 'Đổi tệp khác' : 'Tải tệp lên';
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'application/pdf,image/png,image/jpeg';
@@ -670,34 +670,34 @@
     // Assemble the final confirmation summary from the active wizard state.
     const summary = document.getElementById('partner-review-summary');
     summary.replaceChildren();
-    addReviewSection('Applicant', [
-      ['Full name', formValue('applicantName')],
-      ['Email', formValue('applicantEmail')],
-      ['Phone', formValue('applicantPhone')],
-      ['Identification', formValue('identificationType') + ' — ' + formValue('identificationNumber')]
+    addReviewSection('Thông tin người nộp', [
+      ['Họ và tên', formValue('applicantName')],
+      ['Địa chỉ Email', formValue('applicantEmail')],
+      ['Số điện thoại', formValue('applicantPhone')],
+      ['Giấy tờ định danh', formValue('identificationType') + ' — ' + formValue('identificationNumber')]
     ]);
-    addReviewSection('Property', [
-      ['Name', formValue('propertyName')],
-      ['Type', formValue('propertyType')],
-      ['Description', formValue('propertyDescription')],
-      ['Address', [formValue('propertyAddress'), formValue('propertyWard'),
+    addReviewSection('Thông tin Homestay', [
+      ['Tên cơ sở', formValue('propertyName')],
+      ['Loại hình', formValue('propertyType')],
+      ['Mô tả', formValue('propertyDescription')],
+      ['Địa chỉ', [formValue('propertyAddress'), formValue('propertyWard'),
         formValue('propertyDistrict'), formValue('propertyCity')].filter(Boolean).join(', ')],
-      ['Coordinates', formValue('latitude') && formValue('longitude')
+      ['Tọa độ GPS', formValue('latitude') && formValue('longitude')
         ? formValue('latitude') + ', ' + formValue('longitude') : 'Not provided']
     ]);
     state.rooms.forEach(function (room, index) {
-      addReviewSection('Room ' + (index + 1) + ': ' + (room.roomName || 'Room'), [
+      addReviewSection('Phòng ' + (index + 1) + ': ' + (room.roomName || 'Phòng'), [
         ['Type', room.roomType],
-        ['Price per night', room.pricePerNight],
-        ['Maximum guests', room.maxGuests],
-        ['Beds / bathrooms', room.bedCount + ' / ' + room.bathroomCount],
-        ['Amenities', (room.amenities || []).join(', ')],
-        ['Images', String((room.images || []).length)]
+        ['Giá mỗi đêm', room.pricePerNight ? room.pricePerNight.toLocaleString('vi-VN') + ' ₫' : 'Chưa nhập'],
+        ['Số khách tối đa', room.maxGuests],
+        ['Giường / Phòng tắm', room.bedCount + ' / ' + room.bathroomCount],
+        ['Tiện nghi', (room.amenities || []).join(', ')],
+        ['Số lượng ảnh', String((room.images || []).length)]
       ]);
     });
-    addReviewSection('Verification documents', documentTypes.map(function (documentType) {
+    addReviewSection('Tài liệu xác thực', documentTypes.map(function (documentType) {
       return [documentType.label, state.application && state.application[documentType.field]
-        ? 'Uploaded' : documentType.required ? 'Missing' : 'Not provided'];
+        ? 'Đã tải lên' : documentType.required ? 'Còn thiếu' : 'Chưa tải lên'];
     }));
   }
 

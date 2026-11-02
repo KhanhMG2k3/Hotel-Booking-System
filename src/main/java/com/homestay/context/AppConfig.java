@@ -37,8 +37,11 @@ public final class AppConfig {
     /** Loads application properties from the classpath and returns the settings. */
     private static Properties loadProperties() {
         Properties properties = new Properties();
-        // Check primary classpath location, then fallback to resources package prefix
+        // Check primary classpath location, then fallback to config/ or resources package prefix
         InputStream input = AppConfig.class.getClassLoader().getResourceAsStream(CONFIG_FILE);
+        if (input == null) {
+            input = AppConfig.class.getClassLoader().getResourceAsStream("config/" + CONFIG_FILE);
+        }
         if (input == null) {
             input = AppConfig.class.getClassLoader().getResourceAsStream("resources/" + CONFIG_FILE);
         }
