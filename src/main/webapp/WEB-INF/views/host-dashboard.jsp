@@ -404,7 +404,7 @@
     
     <%-- Top Welcome & Header Banner --%>
     <div class="row align-items-center mb-4">
-      <div class="col-md-8">
+      <div class="col-md-6">
         <span class="badge badge-warning text-uppercase px-3 py-1 mb-2 font-weight-bold" style="background:#fef3c7; color:#92400e;">
           Đối tác Homestay chính thức
         </span>
@@ -415,8 +415,11 @@
           Xin chào, <strong><c:out value="${hostName}" /></strong>! Dưới đây là phân tích doanh thu và các đơn đặt phòng mới nhất của bạn.
         </p>
       </div>
-      <div class="col-md-4 text-md-right mt-3 mt-md-0 d-flex flex-column align-items-md-end justify-content-center">
+      <div class="col-md-6 text-md-right mt-3 mt-md-0 d-flex flex-column align-items-md-end justify-content-center">
         <div class="d-flex flex-wrap justify-content-md-end mb-2">
+          <a href="${pageContext.request.contextPath}/host/refunds" class="btn btn-outline-danger font-weight-bold px-3 py-2 shadow-sm mr-2 mb-1">
+            <i class="fa fa-undo mr-1"></i> Quản lý Hoàn tiền
+          </a>
           <a href="${pageContext.request.contextPath}/host/calendar" class="btn btn-primary font-weight-bold px-3 py-2 shadow-sm mr-2 mb-1" style="background:#2563eb; border-color:#1d4ed8; color:#ffffff;">
             <i class="fa fa-calendar-check-o mr-1"></i> Lịch Đặt Phòng
           </a>
@@ -424,20 +427,28 @@
             <i class="fa fa-ticket mr-1"></i> Quản lý Voucher
           </a>
         </div>
-        <div>
-          <span class="text-muted small">Dữ liệu năm: </span>
-          <span class="font-weight-bold text-primary"><c:out value="${currentYear}" /></span>
+        <div class="d-flex align-items-center flex-wrap justify-content-md-end">
+          <c:if test="${walletBalance != null}">
+            <div class="mr-3 mb-1">
+              <span class="badge badge-success px-3 py-2 font-weight-bold shadow-sm" style="font-size: 13px;">
+                <i class="fa fa-shield mr-1"></i> Số dư ví Host: <fmt:formatNumber value="${walletBalance}" pattern="#,##0" /> ₫
+              </span>
+            </div>
+          </c:if>
+          <div class="mb-1">
+            <span class="text-muted small">Dữ liệu năm: </span>
+            <span class="font-weight-bold text-primary"><c:out value="${currentYear}" /></span>
+          </div>
         </div>
       </div>
     </div>
 
-    
     <%-- Thông Báo Trạng Thái Thao Tác --%>
-    <c:if test="${not empty sessionScope.messageSuccess}">
+    <c:if test="${not empty sessionScope.messageSuccess or not empty successMessage}">
       <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
         <div class="d-flex align-items-center">
           <i class="fa fa-check-circle fa-lg mr-2 text-success"></i>
-          <div><c:out value="${sessionScope.messageSuccess}" /></div>
+          <div><c:out value="${not empty successMessage ? successMessage : sessionScope.messageSuccess}" /></div>
         </div>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
           <span aria-hidden="true">&times;</span>
@@ -446,11 +457,11 @@
       <c:remove var="messageSuccess" scope="session" />
     </c:if>
 
-    <c:if test="${not empty sessionScope.messageError}">
+    <c:if test="${not empty sessionScope.messageError or not empty errorMessage}">
       <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
         <div class="d-flex align-items-center">
           <i class="fa fa-exclamation-triangle fa-lg mr-2 text-danger"></i>
-          <div><c:out value="${sessionScope.messageError}" /></div>
+          <div><c:out value="${not empty errorMessage ? errorMessage : sessionScope.messageError}" /></div>
         </div>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
           <span aria-hidden="true">&times;</span>
@@ -894,6 +905,9 @@
               <h3 class="h5 font-weight-bold mb-1">Danh Sách Cơ Sở & Phòng</h3>
               <p class="text-muted small mb-0">Các cơ sở homestay và danh sách phòng thuộc quyền sở hữu của bạn</p>
             </div>
+            <a href="${pageContext.request.contextPath}/host/property/create" class="btn btn-outline-primary btn-sm font-weight-bold shadow-sm">
+              <i class="fa fa-plus mr-1"></i> Tạo Cơ Sở Mới
+            </a>
           </div>
 
           <c:forEach var="property" items="${properties}">

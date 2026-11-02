@@ -39,7 +39,7 @@ import java.util.Optional;
 @WebServlet(name = "HostDashboardController", urlPatterns = {"/host/dashboard"})
 public class HostDashboardController extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private static final String VIEW = "/WEB-INF/views/host/dashboard.jsp";
+    private static final String VIEW = "/WEB-INF/views/host-dashboard.jsp";
 
     private final UserDAO userDAO = new UserDAO();
     private final HostApplicationDAO applicationDAO = new HostApplicationDAO();
@@ -75,6 +75,10 @@ public class HostDashboardController extends HttpServlet {
 
             HostApplication application = applicationDAO.findLatestByUserId(userId);
             request.setAttribute("application", application);
+            boolean isApproved = (application != null && application.getStatus() == HostApplication.Status.APPROVED)
+                    || (user.getRole() != null && "HOST".equalsIgnoreCase(user.getRole().getName()))
+                    || (hostProfileOptional.isPresent() && "APPROVED".equalsIgnoreCase(hostProfileOptional.get().getVerificationStatus()));
+            request.setAttribute("applicationApproved", isApproved);
 
             List<Property> properties = propertyDAO.findByOwnerId(userId);
             if (properties == null || properties.isEmpty()) {
