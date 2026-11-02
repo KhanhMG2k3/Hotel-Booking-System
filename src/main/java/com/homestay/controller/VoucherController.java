@@ -369,7 +369,7 @@ public class VoucherController extends HttpServlet {
 
     /**
      * Check that the session belongs to a logged-in Host.
-     * Uses the same session attributes as LoginServlet and HostFilter.
+     * Uses the same session attributes as LoginController and HostFilter.
      */
     private boolean isAuthenticatedHost(HttpSession session) {
         if (session == null) {

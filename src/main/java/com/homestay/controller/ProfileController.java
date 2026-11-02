@@ -53,7 +53,15 @@ public class ProfileController extends HttpServlet {
             "homestay", "sogo", "official", "info", "security"
     );
 
-    private final UserDAO userDAO = new UserDAO();
+    private final UserDAO userDAO;
+
+    public ProfileController() {
+        this(new UserDAO());
+    }
+
+    ProfileController(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
 
     /**
      * Purpose: Loads the active account profile and forwards it to the JSP.
