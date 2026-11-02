@@ -127,6 +127,409 @@
     .badge-tx-credit { background: #dcfce7; color: #15803d; font-weight: 600; }
     .badge-tx-debit { background: #fee2e2; color: #b91c1c; font-weight: 600; }
     .badge-tx-topup { background: #e0f2fe; color: #0369a1; font-weight: 600; }
+
+    /* ==========================================================================
+       DARK MODE OVERRIDES (Host Refunds & Wallet Ledger)
+       ========================================================================== */
+    [data-theme="dark"] .site-header,
+    html.dark-mode .site-header,
+    body.dark-mode .site-header {
+        position: fixed !important;
+        background: #0f172a !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+        border-bottom: 1px solid #1e293b !important;
+    }
+    [data-theme="dark"] .site-header .site-logo a,
+    html.dark-mode .site-header .site-logo a,
+    [data-theme="dark"] .site-logo a,
+    html.dark-mode .site-logo a {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .site-header .user-name,
+    html.dark-mode .site-header .user-name {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .site-header .user-caret,
+    html.dark-mode .site-header .user-caret {
+        color: #94a3b8 !important;
+    }
+    [data-theme="dark"] .site-header .user-menu-toggle,
+    html.dark-mode .site-header .user-menu-toggle {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }
+    [data-theme="dark"] .site-header .site-menu-toggle span,
+    html.dark-mode .site-header .site-menu-toggle span {
+        background: #f8fafc !important;
+    }
+
+    /* Page Background & Typography */
+    [data-theme="dark"] .host-refund-page,
+    html.dark-mode .host-refund-page,
+    body.dark-mode .host-refund-page {
+        background: #0b0f19 !important;
+        color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .host-page-title,
+    html.dark-mode .host-page-title,
+    body.dark-mode .host-page-title {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .host-refund-page .text-muted,
+    html.dark-mode .host-refund-page .text-muted,
+    body.dark-mode .host-refund-page .text-muted {
+        color: #94a3b8 !important;
+    }
+    [data-theme="dark"] .host-refund-page a.text-muted:hover,
+    html.dark-mode .host-refund-page a.text-muted:hover {
+        color: #ffba5a !important;
+    }
+
+    /* Top Action Buttons */
+    [data-theme="dark"] .host-refund-page .btn-outline-success,
+    html.dark-mode .host-refund-page .btn-outline-success {
+        border-color: #10b981 !important;
+        color: #34d399 !important;
+        background: rgba(16, 185, 129, 0.12) !important;
+    }
+    [data-theme="dark"] .host-refund-page .btn-outline-success:hover,
+    html.dark-mode .host-refund-page .btn-outline-success:hover {
+        background: #10b981 !important;
+        color: #0f172a !important;
+    }
+    [data-theme="dark"] .host-refund-page .btn-outline-secondary,
+    html.dark-mode .host-refund-page .btn-outline-secondary {
+        border-color: #334155 !important;
+        color: #cbd5e1 !important;
+        background: #1e293b !important;
+    }
+    [data-theme="dark"] .host-refund-page .btn-outline-secondary:hover,
+    html.dark-mode .host-refund-page .btn-outline-secondary:hover {
+        background: #334155 !important;
+        color: #f8fafc !important;
+    }
+
+    /* Stat Cards */
+    [data-theme="dark"] .stat-card,
+    html.dark-mode .stat-card,
+    body.dark-mode .stat-card {
+        background: #162032 !important;
+        border: 1px solid #243247 !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+        color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .stat-card:hover,
+    html.dark-mode .stat-card:hover {
+        background: #1c2a42 !important;
+        transform: translateY(-2px);
+    }
+    [data-theme="dark"] .stat-card .stat-label,
+    html.dark-mode .stat-card .stat-label {
+        color: #94a3b8 !important;
+    }
+    [data-theme="dark"] .stat-card .stat-value,
+    html.dark-mode .stat-card .stat-value {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .stat-card.wallet-card,
+    html.dark-mode .stat-card.wallet-card {
+        background: linear-gradient(135deg, #162032 0%, #064e3b 100%) !important;
+        border: 1.5px solid #059669 !important;
+        box-shadow: 0 4px 20px rgba(5, 150, 105, 0.25) !important;
+    }
+    [data-theme="dark"] .stat-card.wallet-card .stat-label,
+    html.dark-mode .stat-card.wallet-card .stat-label {
+        color: #34d399 !important;
+    }
+    [data-theme="dark"] .stat-card.wallet-card .stat-value,
+    html.dark-mode .stat-card.wallet-card .stat-value {
+        color: #4ade80 !important;
+    }
+    [data-theme="dark"] .stat-card .border-top,
+    html.dark-mode .stat-card .border-top {
+        border-color: #243247 !important;
+    }
+    [data-theme="dark"] .stat-icon-wallet,
+    html.dark-mode .stat-icon-wallet {
+        background: rgba(16, 185, 129, 0.2) !important;
+        color: #34d399 !important;
+    }
+    [data-theme="dark"] .stat-icon-warning,
+    html.dark-mode .stat-icon-warning {
+        background: rgba(245, 158, 11, 0.2) !important;
+        color: #fbbf24 !important;
+    }
+    [data-theme="dark"] .stat-icon-success,
+    html.dark-mode .stat-icon-success {
+        background: rgba(34, 197, 94, 0.2) !important;
+        color: #4ade80 !important;
+    }
+    [data-theme="dark"] .stat-icon-danger,
+    html.dark-mode .stat-icon-danger {
+        background: rgba(239, 68, 68, 0.2) !important;
+        color: #f87171 !important;
+    }
+
+    /* Refund Table Card & Filter Tabs */
+    [data-theme="dark"] .refund-table-card,
+    html.dark-mode .refund-table-card {
+        background: #162032 !important;
+        border: 1px solid #243247 !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+    }
+    [data-theme="dark"] .refund-filter-tabs,
+    html.dark-mode .refund-filter-tabs {
+        background: #111827 !important;
+        border-bottom: 1px solid #243247 !important;
+    }
+    [data-theme="dark"] .filter-tab-btn,
+    html.dark-mode .filter-tab-btn {
+        background: #1e293b !important;
+        color: #94a3b8 !important;
+        border: 1px solid #334155 !important;
+    }
+    [data-theme="dark"] .filter-tab-btn:hover,
+    html.dark-mode .filter-tab-btn:hover {
+        background: #334155 !important;
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .filter-tab-btn.active,
+    html.dark-mode .filter-tab-btn.active {
+        background: #ffba5a !important;
+        color: #0f172a !important;
+        border-color: #ffba5a !important;
+    }
+    [data-theme="dark"] .refund-filter-tabs .form-control,
+    html.dark-mode .refund-filter-tabs .form-control {
+        background: #0b0f19 !important;
+        border-color: #334155 !important;
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .refund-filter-tabs .form-control:focus,
+    html.dark-mode .refund-filter-tabs .form-control:focus {
+        border-color: #ffba5a !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 186, 90, 0.25) !important;
+    }
+    [data-theme="dark"] .refund-filter-tabs .btn-dark,
+    html.dark-mode .refund-filter-tabs .btn-dark {
+        background: #334155 !important;
+        border-color: #334155 !important;
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .refund-filter-tabs .btn-dark:hover,
+    html.dark-mode .refund-filter-tabs .btn-dark:hover {
+        background: #475569 !important;
+        border-color: #475569 !important;
+    }
+
+    /* Table Refunds */
+    [data-theme="dark"] .table-refunds,
+    html.dark-mode .table-refunds {
+        background: transparent !important;
+        color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .table-refunds thead th,
+    html.dark-mode .table-refunds thead th {
+        background: #111827 !important;
+        color: #94a3b8 !important;
+        border-bottom: 2px solid #243247 !important;
+        border-top: none !important;
+    }
+    [data-theme="dark"] .table-refunds tbody tr,
+    html.dark-mode .table-refunds tbody tr {
+        background: #162032 !important;
+        border-bottom: 1px solid #243247 !important;
+    }
+    [data-theme="dark"] .table-refunds tbody tr:hover td,
+    html.dark-mode .table-refunds tbody tr:hover td {
+        background: #1c2a42 !important;
+    }
+    [data-theme="dark"] .table-refunds td,
+    html.dark-mode .table-refunds td {
+        background: transparent !important;
+        color: #cbd5e1 !important;
+        border-top: 1px solid #243247 !important;
+    }
+    [data-theme="dark"] .table-refunds .text-dark,
+    html.dark-mode .table-refunds .text-dark {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .table-refunds .text-secondary,
+    html.dark-mode .table-refunds .text-secondary {
+        color: #94a3b8 !important;
+    }
+    [data-theme="dark"] .table-refunds .badge-light,
+    html.dark-mode .table-refunds .badge-light {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .table-refunds .fa-folder-open-o,
+    html.dark-mode .table-refunds .fa-folder-open-o {
+        color: #475569 !important;
+    }
+
+    /* Status Badges */
+    [data-theme="dark"] .badge-refund-requested,
+    html.dark-mode .badge-refund-requested {
+        background: rgba(245, 158, 11, 0.2) !important;
+        color: #fbbf24 !important;
+        border: 1px solid rgba(245, 158, 11, 0.35) !important;
+    }
+    [data-theme="dark"] .badge-refund-approved,
+    html.dark-mode .badge-refund-approved {
+        background: rgba(34, 197, 94, 0.2) !important;
+        color: #4ade80 !important;
+        border: 1px solid rgba(34, 197, 94, 0.35) !important;
+    }
+    [data-theme="dark"] .badge-refund-rejected,
+    html.dark-mode .badge-refund-rejected {
+        background: rgba(239, 68, 68, 0.2) !important;
+        color: #f87171 !important;
+        border: 1px solid rgba(239, 68, 68, 0.35) !important;
+    }
+    [data-theme="dark"] .badge-tx-credit,
+    html.dark-mode .badge-tx-credit {
+        background: rgba(34, 197, 94, 0.2) !important;
+        color: #4ade80 !important;
+    }
+    [data-theme="dark"] .badge-tx-debit,
+    html.dark-mode .badge-tx-debit {
+        background: rgba(239, 68, 68, 0.2) !important;
+        color: #f87171 !important;
+    }
+    [data-theme="dark"] .badge-tx-topup,
+    html.dark-mode .badge-tx-topup {
+        background: rgba(14, 165, 233, 0.2) !important;
+        color: #38bdf8 !important;
+    }
+
+    /* Ledger Card (Model 2 Wallet Transactions) */
+    [data-theme="dark"] .card.rounded-12,
+    html.dark-mode .card.rounded-12 {
+        background: #162032 !important;
+        border: 1px solid #243247 !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+    }
+    [data-theme="dark"] .card.rounded-12 .card-header,
+    html.dark-mode .card.rounded-12 .card-header {
+        background: #111827 !important;
+        border-bottom: 1px solid #243247 !important;
+    }
+    [data-theme="dark"] .card.rounded-12 .card-header h5,
+    html.dark-mode .card.rounded-12 .card-header h5 {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .card.rounded-12 .table,
+    html.dark-mode .card.rounded-12 .table {
+        background: transparent !important;
+        color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .card.rounded-12 .thead-light th,
+    html.dark-mode .card.rounded-12 .thead-light th {
+        background: #111827 !important;
+        color: #94a3b8 !important;
+        border-color: #243247 !important;
+    }
+    [data-theme="dark"] .card.rounded-12 .table td,
+    html.dark-mode .card.rounded-12 .table td {
+        background: transparent !important;
+        color: #cbd5e1 !important;
+        border-color: #243247 !important;
+    }
+    [data-theme="dark"] .card.rounded-12 .table tr:hover td,
+    html.dark-mode .card.rounded-12 .table tr:hover td {
+        background: #1c2a42 !important;
+    }
+    [data-theme="dark"] .card.rounded-12 .text-dark,
+    html.dark-mode .card.rounded-12 .text-dark {
+        color: #f8fafc !important;
+    }
+
+    /* Modals */
+    [data-theme="dark"] .modal-content,
+    html.dark-mode .modal-content {
+        background: #162032 !important;
+        border: 1px solid #243247 !important;
+        color: #cbd5e1 !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6) !important;
+    }
+    [data-theme="dark"] .modal-body,
+    html.dark-mode .modal-body {
+        background: #162032 !important;
+        color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .modal-footer.bg-light,
+    html.dark-mode .modal-footer.bg-light {
+        background: #111827 !important;
+        border-top: 1px solid #243247 !important;
+    }
+    [data-theme="dark"] .modal-body .bg-light,
+    html.dark-mode .modal-body .bg-light {
+        background: #111827 !important;
+        border-color: #243247 !important;
+    }
+    [data-theme="dark"] .modal-body .bg-white,
+    html.dark-mode .modal-body .bg-white {
+        background: #1a273f !important;
+        border-color: #243247 !important;
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .modal-body .border,
+    html.dark-mode .modal-body .border,
+    [data-theme="dark"] .modal-body .border-top,
+    html.dark-mode .modal-body .border-top {
+        border-color: #243247 !important;
+    }
+    [data-theme="dark"] .modal-body strong.text-dark,
+    html.dark-mode .modal-body strong.text-dark,
+    [data-theme="dark"] .modal-body label.text-dark,
+    html.dark-mode .modal-body label.text-dark {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .modal-body .form-control,
+    html.dark-mode .modal-body .form-control {
+        background: #0b0f19 !important;
+        border-color: #334155 !important;
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] .modal-body .form-control:focus,
+    html.dark-mode .modal-body .form-control:focus {
+        border-color: #ffba5a !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 186, 90, 0.25) !important;
+    }
+    [data-theme="dark"] .modal-body .btn-outline-secondary,
+    html.dark-mode .modal-body .btn-outline-secondary {
+        border-color: #334155 !important;
+        color: #cbd5e1 !important;
+        background: #1e293b !important;
+    }
+    [data-theme="dark"] .modal-body .btn-outline-secondary:hover,
+    html.dark-mode .modal-body .btn-outline-secondary:hover {
+        background: #334155 !important;
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] #approveBankInfo,
+    html.dark-mode #approveBankInfo {
+        background: #1a273f !important;
+        color: #f8fafc !important;
+        border-color: #243247 !important;
+    }
+    [data-theme="dark"] #refundVietQrSection,
+    html.dark-mode #refundVietQrSection {
+        background: #111827 !important;
+        border-color: #243247 !important;
+    }
+    [data-theme="dark"] #refundVietQrSection .font-weight-bold.text-dark,
+    html.dark-mode #refundVietQrSection .font-weight-bold.text-dark {
+        color: #f8fafc !important;
+    }
+    [data-theme="dark"] #refundVietQrImg,
+    html.dark-mode #refundVietQrImg {
+        background: #ffffff !important;
+        padding: 6px;
+    }
+
 </style>
 
 <div class="host-refund-page">

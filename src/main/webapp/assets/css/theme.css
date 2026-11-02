@@ -2336,3 +2336,67 @@ html.dark-mode .dropdown-notif-item .text-danger {
   background: rgba(100, 116, 139, 0.2) !important;
   color: #94a3b8 !important;
 }
+
+/* ==========================================================================
+   HOST REFUNDS & WALLET LEDGER IN DARK MODE
+   ========================================================================== */
+[data-theme="dark"] .host-refund-page,
+html.dark-mode .host-refund-page,
+body.dark-mode .host-refund-page {
+    background: #0b0f19 !important;
+    color: #cbd5e1 !important;
+}
+[data-theme="dark"] .host-page-title,
+html.dark-mode .host-page-title,
+body.dark-mode .host-page-title {
+    color: #f8fafc !important;
+}
+[data-theme="dark"] .refund-table-card,
+html.dark-mode .refund-table-card {
+    background: #162032 !important;
+    border: 1px solid #243247 !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+}
+[data-theme="dark"] .refund-filter-tabs,
+html.dark-mode .refund-filter-tabs {
+    background: #111827 !important;
+    border-bottom: 1px solid #243247 !important;
+}
+[data-theme="dark"] .filter-tab-btn,
+html.dark-mode .filter-tab-btn {
+    background: #1e293b !important;
+    color: #94a3b8 !important;
+    border: 1px solid #334155 !important;
+}
+[data-theme="dark"] .filter-tab-btn:hover,
+html.dark-mode .filter-tab-btn:hover {
+    background: #334155 !important;
+    color: #f8fafc !important;
+}
+[data-theme="dark"] .filter-tab-btn.active,
+html.dark-mode .filter-tab-btn.active {
+    background: #ffba5a !important;
+    color: #0f172a !important;
+    border-color: #ffba5a !important;
+}
+[data-theme="dark"] .table-refunds thead th,
+html.dark-mode .table-refunds thead th {
+    background: #111827 !important;
+    color: #94a3b8 !important;
+    border-bottom: 2px solid #243247 !important;
+}
+[data-theme="dark"] .table-refunds tbody tr,
+html.dark-mode .table-refunds tbody tr {
+    background: #162032 !important;
+    border-bottom: 1px solid #243247 !important;
+}
+[data-theme="dark"] .table-refunds tbody tr:hover td,
+html.dark-mode .table-refunds tbody tr:hover td {
+    background: #1c2a42 !important;
+}
+[data-theme="dark"] .table-refunds td,
+html.dark-mode .table-refunds td {
+    background: transparent !important;
+    color: #cbd5e1 !important;
+    border-top: 1px solid #243247 !important;
+}
