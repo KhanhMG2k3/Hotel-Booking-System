@@ -351,6 +351,58 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
                     bookings.add(b);
                 }
             }
+        } catch (SQLException e) {
+            if (e.getMessage() != null && e.getMessage().contains("bookingrooms")) {
+                logger.log(Level.WARNING, "bookingrooms table missing, falling back to direct rooms query for calendar", e);
+                return findBookingsForCalendarFallback(hostId, propertyId, roomId, startDate, endDate);
+            }
+            throw e;
+        }
+        return bookings;
+    }
+
+    private List<Booking> findBookingsForCalendarFallback(int hostId, int propertyId, int roomId, LocalDate startDate, LocalDate endDate) throws SQLException {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT DISTINCT b.*, r.room_name, r.room_number, p.property_name, " +
+                     "       COALESCE(p.address, '') as property_address, " +
+                     "       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') as room_image_url, " +
+                     "       b.room_id as calendar_room_id " +
+                     "FROM bookings b " +
+                     "JOIN rooms r ON r.room_id = b.room_id " +
+                     "JOIN properties p ON r.property_id = p.property_id " +
+                     "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
+                     "WHERE p.host_id = ? " +
+                     "  AND (? = 0 OR p.property_id = ?) " +
+                     "  AND (? = 0 OR r.room_id = ?) " +
+                     "  AND b.status IN ('PENDING', 'CONFIRMED', 'COMPLETED') " +
+                     "  AND (b.check_in_date < ? AND b.check_out_date > ?) " +
+                     "ORDER BY b.check_in_date ASC, b.id ASC";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hostId);
+            ps.setInt(2, propertyId);
+            ps.setInt(3, propertyId);
+            ps.setInt(4, roomId);
+            ps.setInt(5, roomId);
+            ps.setDate(6, java.sql.Date.valueOf(endDate));
+            ps.setDate(7, java.sql.Date.valueOf(startDate));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Booking b = mapResultSetToBooking(rs);
+                    b.setRoomName(rs.getString("room_name"));
+                    b.setRoomNumber(rs.getString("room_number"));
+                    b.setPropertyName(rs.getString("property_name"));
+                    b.setPropertyAddress(rs.getString("property_address"));
+                    try {
+                        b.setRoomImageUrl(rs.getString("room_image_url"));
+                    } catch (SQLException ignored) {}
+                    b.setRoomId(rs.getInt("calendar_room_id"));
+                    bookings.add(b);
+                }
+            }
         }
         return bookings;
     }

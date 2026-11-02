@@ -440,6 +440,21 @@ CREATE TABLE `bookings` (
     CONSTRAINT `fk_bookings_room` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`room_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `bookingrooms` (
+    `booking_room_id` INT NOT NULL AUTO_INCREMENT,
+    `booking_id` INT NOT NULL,
+    `room_id` INT NOT NULL,
+    `price_per_night` DECIMAL(18, 2) NOT NULL DEFAULT 0.00,
+    `number_of_nights` INT NOT NULL DEFAULT 1,
+    `subtotal` DECIMAL(18, 2) NOT NULL DEFAULT 0.00,
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`booking_room_id`),
+    KEY `idx_bookingrooms_booking` (`booking_id`),
+    KEY `idx_bookingrooms_room` (`room_id`),
+    CONSTRAINT `fk_bookingrooms_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_bookingrooms_room` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`room_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE `vouchers` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `host_id` INT NOT NULL,
