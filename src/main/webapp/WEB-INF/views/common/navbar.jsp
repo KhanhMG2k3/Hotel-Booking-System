@@ -2,24 +2,70 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
+<%-- Shared responsive site header: brand logo, quick actions, collapsible desktop links, user menu, and side drawer. --%>
 <header class="site-header js-site-header">
     <div class="container-fluid">
-        <div class="row align-items-center">
-            <div class="col-6 col-lg-4 site-logo" data-aos="fade">
+        <div class="header-bar-row">
+            <div class="site-logo" data-aos="fade">
                 <a href="${pageContext.request.contextPath}/home">Sogo Homestay</a>
             </div>
-            <div class="col-6 col-lg-8 header-actions-container">
+            <div class="header-actions-container">
                 <div class="auth-actions">
                     <!-- NÚT DANH SÁCH YÊU THÍCH TRÊN HEADER -->
                     <a href="${pageContext.request.contextPath}/wishlist" class="header-wishlist-link" title="Danh sách phòng yêu thích">
                         <i class="fa fa-heart"></i>
                         <span class="header-wishlist-badge" id="navbarWishlistBadge">${not empty wishlistCount ? wishlistCount : (not empty sessionScope.wishlistCount ? sessionScope.wishlistCount : 0)}</span>
                     </a>
-                    <!-- CÁC NÚT ĐIỀU HƯỚNG CHÍNH (Hiển thị cho cả khi chưa đăng nhập và đã đăng nhập) -->
-                    <a class="auth-link ${activePage == 'rooms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/rooms">Danh Sách Phòng</a>
-                    <a class="auth-link ${activePage == 'about' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/about">Về Chúng Tôi</a>
-                    <a class="auth-link ${activePage == 'terms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/terms">Điều Khoản</a>
-                    <a class="auth-link ${activePage == 'faq' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/faq">FAQ</a>
+
+                    <!-- NÚT THÔNG BÁO TRÊN HEADER (IN-APP NOTIFICATIONS) -->
+                    <c:if test="${not empty sessionScope.userId}">
+                        <div class="header-notification-wrapper" id="headerNotificationWrapper">
+                            <!-- Nút chuông dạng tròn đồng bộ với nút Wishlist -->
+                            <a href="javascript:void(0);" class="header-notification-link" id="headerNotificationToggle"
+                               aria-haspopup="true" aria-expanded="false" title="Thông báo của bạn">
+                                <i class="fa fa-bell"></i>
+                                <span class="header-notification-badge" id="navbarNotificationBadge">0</span>
+                            </a>
+
+                            <!-- POPUP DROPDOWN TOP 5 THÔNG BÁO -->
+                            <div class="notification-header-dropdown shadow-lg" id="notificationHeaderDropdown" role="region" aria-label="Thông báo gần đây">
+
+                                <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+                                    <span class="font-weight-bold text-dark notif-dropdown-title">
+                                        <i class="fa fa-bell text-warning mr-1"></i> Thông báo
+                                    </span>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-primary notif-mark-read-btn" id="btnHeaderMarkAllRead">
+                                        Đánh dấu đã đọc
+                                    </button>
+                                </div>
+
+                                <!-- Danh sách 5 thông báo nạp động qua AJAX -->
+                                <div id="headerNotificationList" class="header-notification-list">
+                                    <div class="text-center py-4 text-muted small">
+                                        <i class="fa fa-spinner fa-spin mr-1"></i> Đang tải thông báo...
+                                    </div>
+                                </div>
+
+                                <!-- Footer dẫn sang trang đầy đủ -->
+                                <div class="p-2 text-center border-top bg-light">
+                                    <a href="${pageContext.request.contextPath}/notifications" class="small text-primary font-weight-bold notif-footer-link">
+                                        Xem tất cả thông báo <i class="fa fa-arrow-right ml-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </c:if>
+
+                    <%-- Desktop navigation links: shown inline when space suffices (>= 1200px) and accessible via the side drawer on smaller viewports. --%>
+                    <div class="header-nav-links">
+                        <!-- CÁC NÚT ĐIỀU HƯỚNG CHÍNH (Hiển thị cho cả khi chưa đăng nhập và đã đăng nhập) -->
+                        <a class="auth-link ${activePage == 'rooms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/rooms">Danh Sách Phòng</a>
+                        <a class="auth-link ${activePage == 'about' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/about">Về Chúng Tôi</a>
+                        <a class="auth-link ${activePage == 'terms' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/terms">Điều Khoản</a>
+                        <a class="auth-link ${activePage == 'faq' ? 'font-weight-bold text-warning' : ''}" href="${pageContext.request.contextPath}/faq">FAQ</a>
+                        <!-- Dấu gạch đứng phân cách nhẹ -->
+                        <span class="auth-divider" aria-hidden="true">|</span>
+                    </div>
 
                     <!-- NÚT GẠT CHUYỂN ĐỔI LIGHT / DARK MODE (DESKTOP) -->
                     <div class="theme-toggle-wrapper" title="Chuyển đổi giao diện Sáng / Tối">
@@ -92,10 +138,10 @@
                                         <c:if test="${not empty sessionScope.userEmail or not empty sessionScope.email}">
                                             <span class="user-dropdown-email"><c:out value="${not empty sessionScope.userEmail ? sessionScope.userEmail : sessionScope.email}" /></span>
                                         </c:if>
-                                        <c:set var="uRoleName" value="${not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : (not empty sessionScope.user.role.name ? sessionScope.user.role.name : (not empty sessionScope.role ? sessionScope.role : ''))}" />
+                                        <c:set var="uRoleName" value="${fn:toUpperCase(not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : (not empty sessionScope.user.role.name ? sessionScope.user.role.name : (not empty sessionScope.role ? sessionScope.role : '')))}" />
                                         <c:set var="uRoleId" value="${not empty sessionScope.roleId ? sessionScope.roleId : (not empty sessionScope.user.roleId ? sessionScope.user.roleId : (not empty sessionScope.user.role.id ? sessionScope.user.role.id : 0))}" />
-                                        <c:set var="isUserAdmin" value="${uRoleId == 1 || uRoleId == 5 || uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN'}" />
-                                        <c:set var="isUserHost" value="${uRoleId == 3 || uRoleName == 'HOST' || uRoleName == 'ROLE_HOST' || uRoleName == 'HOTEL_OWNER'}" />
+                                        <c:set var="isUserAdmin" value="${uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN' || uRoleName == 'ADMINISTRATOR' || uRoleId == 1 || uRoleId == 5}" />
+                                        <c:set var="isUserHost" value="${uRoleName == 'HOST' || uRoleName == 'ROLE_HOST' || uRoleName == 'HOTEL_OWNER' || uRoleId == 3}" />
                                         <c:choose>
                                             <c:when test="${isUserAdmin}">
                                                 <span class="user-role-badge"><i class="fa fa-shield mr-1"></i> Quản trị viên</span>
@@ -115,9 +161,19 @@
                                     <a href="${pageContext.request.contextPath}/my-bookings" class="user-dropdown-item" role="menuitem">
                                         <i class="fa fa-calendar-check-o"></i> Lịch sử đặt phòng
                                     </a>
-                                    <a href="${pageContext.request.contextPath}/wishlist" class="user-dropdown-item" role="menuitem">
-                                        <i class="fa fa-heart text-danger"></i> Danh sách yêu thích
+
+                                    <a href="${pageContext.request.contextPath}/notifications" class="user-dropdown-item" role="menuitem">
+                                        <i class="fa fa-bell text-warning"></i> Thông báo của tôi
                                     </a>
+
+                                    <a href="${pageContext.request.contextPath}/wishlist" class="user-dropdown-item" role="menuitem">
+                                        <i class="fa fa-heart text-danger"></i> Hồ sơ yêu thích
+                                    </a>
+
+                                    <a href="${pageContext.request.contextPath}/support/my-tickets" class="user-dropdown-item" role="menuitem">
+                                        <i class="fa fa-life-ring text-info"></i> Hỗ trợ của tôi
+                                    </a>
+
                                     <c:if test="${!isUserAdmin && !isUserHost}">
                                         <a href="${pageContext.request.contextPath}/become-host" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-home"></i> Trở thành Host
@@ -133,10 +189,31 @@
                                         <a href="${pageContext.request.contextPath}/host/vouchers" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-ticket"></i> Quản lý Voucher
                                         </a>
+                                        <a href="${pageContext.request.contextPath}/host/reviews" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-comments-o"></i> Quản lý Đánh giá
+                                        </a>
                                     </c:if>
                                     <c:if test="${isUserAdmin}">
                                         <a href="${pageContext.request.contextPath}/admin/dashboard" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-cogs"></i> Trang Quản Trị
+                                        </a>
+                                        <a href="${pageContext.request.contextPath}/admin/support" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-life-ring text-danger"></i> Quản Lý Hỗ Trợ
+                                        </a>
+                                        <a href="${pageContext.request.contextPath}/admin/host-applications" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-file-text-o"></i> Duyệt Đơn Host
+                                        </a>
+                                    </c:if>
+                                    <%-- Shared content management shortcuts for both Admin and Host --%>
+                                    <c:if test="${isUserAdmin || isUserHost}">
+                                        <a href="${pageContext.request.contextPath}/admin/about/edit" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-pencil-square-o text-warning"></i> Chỉnh Sửa About Us
+                                        </a>
+                                        <a href="${pageContext.request.contextPath}/admin/terms" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-file-text-o text-info"></i> Quản Lý Điều Khoản
+                                        </a>
+                                        <a href="${pageContext.request.contextPath}/admin/faqs" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-question-circle text-primary"></i> Quản Lý FAQ
                                         </a>
                                     </c:if>
                                     <div class="user-dropdown-divider"></div>
@@ -147,13 +224,22 @@
                             </div>
                         </c:when>
                         <c:otherwise>
-                            <!-- Nút Đăng nhập & Đăng ký -->
-                            <a class="auth-link" href="${pageContext.request.contextPath}/login">Đăng nhập</a>
-                            <a class="auth-link auth-link-primary" href="${pageContext.request.contextPath}/register">Đăng ký</a>
+                            <%-- Guest auth controls: inline buttons on >= 480px and compact login icon on narrow phones (full actions also in drawer). --%>
+                            <div class="header-guest-auth">
+                                <!-- Nút Đăng nhập & Đăng ký -->
+                                <a class="auth-link" href="${pageContext.request.contextPath}/login">Đăng nhập</a>
+                                <a class="auth-link auth-link-primary" href="${pageContext.request.contextPath}/register">Đăng ký</a>
+                            </div>
+                            <a class="header-guest-mobile-login" href="${pageContext.request.contextPath}/login" title="Đăng nhập" aria-label="Đăng nhập">
+                                <i class="fa fa-user"></i>
+                            </a>
                         </c:otherwise>
                     </c:choose>
                 </div>
-                <div class="site-menu-toggle js-site-menu-toggle" data-aos="fade" title="Menu điều hướng">
+                <%-- Keyboard-accessible drawer menu toggle button. --%>
+                <div class="site-menu-toggle js-site-menu-toggle" role="button" tabindex="0"
+                     aria-label="Menu điều hướng" aria-expanded="false" aria-controls="siteNavbarOverlay"
+                     data-aos="fade" title="Menu điều hướng">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -348,6 +434,13 @@
                                                 <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                             </a>
                                         </li>
+                                        <li class="drawer-nav-item ${activePage == 'my-tickets' ? 'active' : ''}">
+                                            <a href="${pageContext.request.contextPath}/support/my-tickets" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                <span class="drawer-nav-icon icon-support"><i class="fa fa-life-ring"></i></span>
+                                                <span class="drawer-nav-text">Hỗ Trợ Của Tôi</span>
+                                                <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                            </a>
+                                        </li>
                                         <c:if test="${!isUserAdmin && !isUserHost}">
                                             <li class="drawer-nav-item">
                                                 <a href="${pageContext.request.contextPath}/become-host" class="drawer-nav-link" onclick="closeSiteNavbar()">
@@ -385,6 +478,44 @@
                                                 <a href="${pageContext.request.contextPath}/admin/dashboard" class="drawer-nav-link" onclick="closeSiteNavbar()">
                                                     <span class="drawer-nav-icon icon-admin"><i class="fa fa-cogs"></i></span>
                                                     <span class="drawer-nav-text">Trang Quản Trị</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
+                                            <li class="drawer-nav-item">
+                                                <a href="${pageContext.request.contextPath}/admin/support" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon icon-admin" style="background:#fee2e2; color:#ef4444;"><i class="fa fa-life-ring"></i></span>
+                                                    <span class="drawer-nav-text">Quản Lý Hỗ Trợ</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
+                                            <li class="drawer-nav-item">
+                                                <a href="${pageContext.request.contextPath}/admin/host-applications" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon icon-admin"><i class="fa fa-file-text-o"></i></span>
+                                                    <span class="drawer-nav-text">Duyệt Đơn Host</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
+                                        </c:if>
+                                        <%-- Shared content management links in drawer for both Admin and Host --%>
+                                        <c:if test="${isUserAdmin || isUserHost}">
+                                            <li class="drawer-nav-item">
+                                                <a href="${pageContext.request.contextPath}/admin/about/edit" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fa fa-pencil"></i></span>
+                                                    <span class="drawer-nav-text">Chỉnh Sửa About Us</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
+                                            <li class="drawer-nav-item">
+                                                <a href="${pageContext.request.contextPath}/admin/terms" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon" style="background:#ecfeff; color:#0891b2;"><i class="fa fa-file-text-o"></i></span>
+                                                    <span class="drawer-nav-text">Quản Lý Điều Khoản</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
+                                            <li class="drawer-nav-item">
+                                                <a href="${pageContext.request.contextPath}/admin/faqs" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon" style="background:#eef2ff; color:#4f46e5;"><i class="fa fa-question-circle"></i></span>
+                                                    <span class="drawer-nav-text">Quản Lý FAQ</span>
                                                     <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                                 </a>
                                             </li>
@@ -482,47 +613,127 @@
 </c:if>
 
 <script>
+    /**
+     * Close the responsive side drawer and synchronize toggle accessibility attributes.
+     */
     function closeSiteNavbar() {
+        var toggleEl = document.querySelector('.site-menu-toggle');
+        if (toggleEl) {
+            toggleEl.setAttribute('aria-expanded', 'false');
+        }
         if (typeof $ !== 'undefined') {
             $('.site-menu-toggle').removeClass('open');
             $('.js-site-navbar').fadeOut(280);
             $('body').removeClass('menu-open');
         } else {
             var nav = document.getElementById('siteNavbarOverlay');
-            if (nav)
+            if (nav) {
                 nav.style.display = 'none';
-            var toggle = document.querySelector('.site-menu-toggle');
-            if (toggle)
-                toggle.classList.remove('open');
+            }
+            if (toggleEl) {
+                toggleEl.classList.remove('open');
+            }
             document.body.classList.remove('menu-open');
         }
     }
-    // Đóng drawer khi nhấn phím Escape
+
+    // Close open overlays (drawer, user dropdown, notification dropdown) when pressing Escape.
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' || e.keyCode === 27) {
             closeSiteNavbar();
+            var userDrop = document.getElementById('userDropdown');
+            var userMenu = document.getElementById('userMenuContainer');
+            var userBtn = document.getElementById('userMenuToggle');
+            if (userDrop && userDrop.classList.contains('show')) {
+                userDrop.classList.remove('show');
+                if (userMenu) userMenu.classList.remove('open');
+                if (userBtn) userBtn.setAttribute('aria-expanded', 'false');
+            }
+            var notifDrop = document.getElementById('notificationHeaderDropdown');
+            var notifBtn = document.getElementById('headerNotificationToggle');
+            if (notifDrop && notifDrop.classList.contains('show')) {
+                notifDrop.classList.remove('show');
+                if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
+            }
         }
     });
+
     document.addEventListener('DOMContentLoaded', function () {
+        // Step 1: Dynamically track actual fixed header height & optional top admin toolbar offset
+        // so hero content, non-hero pages, and mobile dropdowns adapt at every viewport and zoom level.
+        var siteHeader = document.querySelector('.js-site-header');
+        var adminBar = document.querySelector('.about-admin-bar');
+
+        if (!document.querySelector('.site-hero')) {
+            document.body.classList.add('no-hero-banner');
+            if (siteHeader) {
+                siteHeader.classList.add('header-solid', 'scrolled');
+            }
+        }
+
+        function syncHeaderMetrics() {
+            var root = document.documentElement;
+            if (siteHeader) {
+                var headerH = Math.ceil(siteHeader.getBoundingClientRect().height);
+                if (headerH > 0) {
+                    root.style.setProperty('--site-header-height', headerH + 'px');
+                }
+            }
+            if (adminBar) {
+                var barBottom = Math.max(0, Math.round(adminBar.getBoundingClientRect().bottom));
+                root.style.setProperty('--admin-bar-offset', barBottom + 'px');
+            } else {
+                root.style.setProperty('--admin-bar-offset', '0px');
+            }
+        }
+
+        syncHeaderMetrics();
+        window.addEventListener('resize', syncHeaderMetrics, { passive: true });
+        window.addEventListener('scroll', syncHeaderMetrics, { passive: true });
+        if (typeof ResizeObserver !== 'undefined') {
+            var headerObserver = new ResizeObserver(syncHeaderMetrics);
+            if (siteHeader) headerObserver.observe(siteHeader);
+            if (adminBar) headerObserver.observe(adminBar);
+        }
+
+        // Step 2: Wire User Account dropdown toggle, mutual exclusion with notifications, and outside-click close.
         var menuContainer = document.getElementById('userMenuContainer');
-        var toggle = document.getElementById('userMenuToggle');
-        var dropdown = document.getElementById('userDropdown');
-        if (toggle && dropdown && menuContainer) {
-            toggle.addEventListener('click', function (e) {
+        var userToggle = document.getElementById('userMenuToggle');
+        var userDropdown = document.getElementById('userDropdown');
+        var notifToggle = document.getElementById('headerNotificationToggle');
+        var notifDropdown = document.getElementById('notificationHeaderDropdown');
+        var notifBadge = document.getElementById('navbarNotificationBadge');
+        var notifList = document.getElementById('headerNotificationList');
+        var markAllBtn = document.getElementById('btnHeaderMarkAllRead');
+
+        function closeUserDropdown() {
+            if (userDropdown) userDropdown.classList.remove('show');
+            if (menuContainer) menuContainer.classList.remove('open');
+            if (userToggle) userToggle.setAttribute('aria-expanded', 'false');
+        }
+
+        function closeNotifDropdown() {
+            if (notifDropdown) notifDropdown.classList.remove('show');
+            if (notifToggle) notifToggle.setAttribute('aria-expanded', 'false');
+        }
+
+        if (userToggle && userDropdown && menuContainer) {
+            userToggle.addEventListener('click', function (e) {
                 e.stopPropagation();
-                var isOpen = dropdown.classList.toggle('show');
+                closeNotifDropdown();
+                var isOpen = userDropdown.classList.toggle('show');
                 menuContainer.classList.toggle('open', isOpen);
-                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                userToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             });
+
             document.addEventListener('click', function (e) {
                 if (!menuContainer.contains(e.target)) {
-                    dropdown.classList.remove('show');
-                    menuContainer.classList.remove('open');
-                    toggle.setAttribute('aria-expanded', 'false');
+                    closeUserDropdown();
                 }
             });
         }
-        // Tự động ẩn toast logout sau 4.5s
+
+        // Step 3: Auto-dismiss logout confirmation toast after 4.5 seconds.
         var toast = document.getElementById('logoutSuccessToast');
         if (toast) {
             setTimeout(function () {
@@ -535,12 +746,129 @@
                 }
             }, 4500);
         }
-        // Tự động bật nền solid cho trang không có hero banner để tránh đè giao diện
-        if (!document.querySelector('.site-hero')) {
-            var header = document.querySelector('.site-header');
-            if (header) {
-                header.classList.add('header-solid', 'scrolled');
+
+        // ================= XỬ LÝ NÚT CHUÔNG THÔNG BÁO (NOTIFICATION) =================
+        if (notifToggle && notifDropdown) {
+            // 1. Tự động lấy số lượng chưa đọc khi tải trang
+            function fetchUnreadBadge() {
+                fetch('${pageContext.request.contextPath}/api/notifications/count')
+                        .then(function (res) {
+                            return res.json();
+                        })
+                        .then(function (data) {
+                            if (data.success && data.loggedIn) {
+                                if (data.unreadCount > 0) {
+                                    notifBadge.textContent = data.unreadCount > 99 ? '99+' : data.unreadCount;
+                                    notifBadge.style.display = 'inline-block';
+                                } else {
+                                    notifBadge.style.display = 'none';
+                                }
+                            }
+                        })
+                        .catch(function (err) {
+                            console.warn('Lỗi lấy unread count:', err);
+                        });
             }
+
+            // 2. Tải 5 thông báo mới nhất khi mở dropdown
+            function loadRecentNotifs() {
+                notifList.innerHTML = '<div class="text-center py-4 text-muted small"><i class="fa fa-spinner fa-spin mr-1"></i> Đang tải...</div>';
+                fetch('${pageContext.request.contextPath}/api/notifications/recent')
+                        .then(function (res) {
+                            return res.json();
+                        })
+                        .then(function (data) {
+                            if (!data.success || !data.notifications || data.notifications.length === 0) {
+                                notifList.innerHTML = '<div class="text-center py-4 text-muted small"><i class="fa fa-bell-slash-o d-block mb-2" style="font-size:1.8rem;"></i>Không có thông báo mới</div>';
+                                return;
+                            }
+                            if (data.unreadCount > 0) {
+                                notifBadge.textContent = data.unreadCount;
+                                notifBadge.style.display = 'inline-block';
+                            } else {
+                                notifBadge.style.display = 'none';
+                            }
+
+                            var html = '';
+                            data.notifications.forEach(function (item) {
+                                var unreadStyle = !item.isRead ? 'background: #f4f8ff; font-weight: 500;' : 'background: #fff;';
+                                html += '<div class="p-3 border-bottom dropdown-notif-item" style="cursor:pointer; transition:background 0.2s; ' + unreadStyle + '" ' +
+                                        'onclick="onDropdownNotifClick(' + item.id + ', \'' + (item.targetUrl || '') + '\', ' + item.isRead + ');">' +
+                                        '<div class="d-flex align-items-start">' +
+                                        '<i class="' + item.iconClass + ' mr-2 mt-1" style="font-size:1.1rem;"></i>' +
+                                        '<div class="flex-grow-1" style="min-width:0; overflow-wrap:break-word;">' +
+                                        '<div class="text-dark small font-weight-bold mb-1">' + item.title + '</div>' +
+                                        '<div class="text-muted" style="font-size: 0.78rem; line-height: 1.35; max-height: 2.7em; overflow: hidden;">' + item.message + '</div>' +
+                                        '<div class="text-muted mt-1" style="font-size: 0.72rem;"><i class="fa fa-clock-o mr-1"></i>' + item.timeAgo + '</div>' +
+                                        '</div>' +
+                                        (!item.isRead ? '<span class="ml-2 flex-shrink-0" style="width:8px;height:8px;background:#0d6efd;border-radius:50%;display:inline-block;"></span>' : '') +
+                                        '</div>' +
+                                        '</div>';
+                            });
+                            notifList.innerHTML = html;
+                        })
+                        .catch(function (err) {
+                            notifList.innerHTML = '<div class="text-center py-3 text-danger small">Lỗi tải thông báo</div>';
+                        });
+            }
+
+            // 3. Sự kiện bấm vào nút chuông để bật/tắt Dropdown
+            notifToggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                closeUserDropdown();
+                var isOpening = !notifDropdown.classList.contains('show');
+                notifDropdown.classList.toggle('show', isOpening);
+                notifToggle.setAttribute('aria-expanded', isOpening ? 'true' : 'false');
+                if (isOpening) {
+                    loadRecentNotifs();
+                }
+            });
+
+            // 4. Bấm ra ngoài màn hình thì tự đóng dropdown
+            document.addEventListener('click', function (e) {
+                var wrapper = document.getElementById('headerNotificationWrapper');
+                if (wrapper && !wrapper.contains(e.target)) {
+                    closeNotifDropdown();
+                }
+            });
+
+            // 5. Bấm nút "Đánh dấu đã đọc" trong dropdown
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    fetch('${pageContext.request.contextPath}/api/notifications/mark-all-read', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
+                        body: 'ajax=true'
+                    }).then(function () {
+                        notifBadge.style.display = 'none';
+                        loadRecentNotifs();
+                    });
+                });
+            }
+
+            // 6. Hàm click vào 1 thông báo
+            window.onDropdownNotifClick = function (id, targetUrl, isRead) {
+                if (!isRead) {
+                    fetch('${pageContext.request.contextPath}/api/notifications/mark-read', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: 'id=' + encodeURIComponent(id)
+                    }).then(function () {
+                        fetchUnreadBadge();
+                    });
+                }
+                if (targetUrl && targetUrl !== '') {
+                    var fullUrl = targetUrl;
+                    if (!fullUrl.startsWith('http') && !fullUrl.startsWith('${pageContext.request.contextPath}')) {
+                        fullUrl = '${pageContext.request.contextPath}' + (fullUrl.startsWith('/') ? '' : '/') + fullUrl;
+                    }
+                    window.location.href = fullUrl;
+                }
+            };
+
+            // Chạy kiểm tra unread badge ngay khi tải trang
+            fetchUnreadBadge();
         }
     });
 </script>

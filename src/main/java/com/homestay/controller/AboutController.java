@@ -1,15 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 
 package com.homestay.controller;
 
-import com.homestay.dao.StaticPageDAO;
-import com.homestay.model.StaticPage;
+import com.homestay.dao.AboutUsDAO;
+import com.homestay.model.AboutUs;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,17 +14,20 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author admin
  */
+@WebServlet(name = "AboutController", urlPatterns = {"/about", "/about-us"})
 public class AboutController extends HttpServlet {
    
-    private final StaticPageDAO staticPageDAO = new StaticPageDAO();
-
+    private static final long serialVersionUID = 1L;
+    private final AboutUsDAO aboutUsDAO = new AboutUsDAO();
+    
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        StaticPage page = staticPageDAO.getPageBySlug("about-us");
-        
-        request.setAttribute("page", page);
+        AboutUs aboutData = aboutUsDAO.getAboutUs();
+        request.setAttribute("about", aboutData);
+        request.setAttribute("page", aboutData); // Tương thích ngược
         request.setAttribute("activePage", "about");
         request.setAttribute("pageTitle", "Về Chúng Tôi | Sogo Homestay");
-        request.getRequestDispatcher("/WEB-INF/views/about.jsp").forward(request, response);    } 
+        request.getRequestDispatcher("/WEB-INF/views/about.jsp").forward(request, response); 
+    } 
 }

@@ -23,7 +23,11 @@ import java.io.IOException;
         "/profile",
         "/profile/*",
         "/my-bookings",
-        "/my-bookings/*"
+        "/my-bookings/*",
+        "/booking",
+        "/booking/*",
+        "/support",
+        "/support/*"
 })
 public class AuthFilter implements Filter {
 
@@ -57,7 +61,6 @@ public class AuthFilter implements Filter {
 
         if (user == null) {
             // Chưa đăng nhập → chuyển về trang login
-            // Có thể thêm ?redirect=... nếu muốn quay lại trang cũ sau khi login
             httpResponse.sendRedirect(httpRequest.getContextPath() + "/login");
             return;
         }

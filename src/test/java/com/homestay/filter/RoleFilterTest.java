@@ -67,6 +67,75 @@ class RoleFilterTest {
         verify(response, never()).sendRedirect(org.mockito.ArgumentMatchers.anyString());
     }
 
+    @Test
+    void allowsHostOnAboutEditPage() throws Exception {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        HttpSession session = mock(HttpSession.class);
+        FilterChain chain = mock(FilterChain.class);
+
+        when(request.getSession(false)).thenReturn(session);
+        when(request.getRequestURI()).thenReturn("/app/admin/about/edit");
+        when(session.getAttribute("user")).thenReturn(userWithRole("ROLE_HOST"));
+
+        filter.doFilter(request, response, chain);
+
+        verify(chain).doFilter(request, response);
+        verify(response, never()).sendRedirect(org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
+    void allowsHostOnTermsManagementPage() throws Exception {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        HttpSession session = mock(HttpSession.class);
+        FilterChain chain = mock(FilterChain.class);
+
+        when(request.getSession(false)).thenReturn(session);
+        when(request.getRequestURI()).thenReturn("/app/admin/terms");
+        when(session.getAttribute("user")).thenReturn(userWithRole("ROLE_HOST"));
+
+        filter.doFilter(request, response, chain);
+
+        verify(chain).doFilter(request, response);
+        verify(response, never()).sendRedirect(org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
+    void allowsHostOnFaqManagementPages() throws Exception {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        HttpSession session = mock(HttpSession.class);
+        FilterChain chain = mock(FilterChain.class);
+
+        when(request.getSession(false)).thenReturn(session);
+        when(request.getRequestURI()).thenReturn("/app/admin/faqs/edit");
+        when(session.getAttribute("user")).thenReturn(userWithRole("ROLE_HOST"));
+
+        filter.doFilter(request, response, chain);
+
+        verify(chain).doFilter(request, response);
+        verify(response, never()).sendRedirect(org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
+    void redirectsHostFromAdminOnlyPagesToHome() throws Exception {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        HttpSession session = mock(HttpSession.class);
+        FilterChain chain = mock(FilterChain.class);
+
+        when(request.getSession(false)).thenReturn(session);
+        when(request.getContextPath()).thenReturn("/app");
+        when(request.getRequestURI()).thenReturn("/app/admin/dashboard");
+        when(session.getAttribute("user")).thenReturn(userWithRole("ROLE_HOST"));
+
+        filter.doFilter(request, response, chain);
+
+        verify(response).sendRedirect("/app/home?error=no_permission");
+        verifyNoInteractions(chain);
+    }
+
     private User userWithRole(String roleName) {
         User user = new User();
         user.setRole(new Role(1, roleName, ""));

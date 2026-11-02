@@ -10,17 +10,29 @@
     hero.style.backgroundImage = 'url("' + hero.dataset.heroImage + '")';
   });
 
-  // Drawer menu toggle for responsive navigation
-  $('.site-menu-toggle').click(function () {
-    var $this = $(this);
+  // Drawer menu toggle for responsive navigation (supports mouse click and Enter/Space keyboard activation)
+  function toggleSiteDrawer($toggle, focusCloseBtn) {
     if ($('body').hasClass('menu-open')) {
-      $this.removeClass('open');
-      $('.js-site-navbar').fadeOut(400);
+      $toggle.removeClass('open').attr('aria-expanded', 'false');
+      $('.js-site-navbar').fadeOut(320);
       $('body').removeClass('menu-open');
     } else {
-      $this.addClass('open');
-      $('.js-site-navbar').fadeIn(400);
+      $toggle.addClass('open').attr('aria-expanded', 'true');
+      $('.js-site-navbar').fadeIn(320, function () {
+        if (focusCloseBtn) {
+          $('.drawer-close-btn').first().trigger('focus');
+        }
+      });
       $('body').addClass('menu-open');
+    }
+  }
+
+  $('.site-menu-toggle').on('click', function () {
+    toggleSiteDrawer($(this), false);
+  }).on('keydown', function (event) {
+    if (event.key === 'Enter' || event.key === ' ' || event.keyCode === 13 || event.keyCode === 32) {
+      event.preventDefault();
+      toggleSiteDrawer($(this), true);
     }
   });
 
@@ -150,12 +162,19 @@
   };
   siteStellar();
 
-  // Smooth scroll
+  // Smooth scroll with dynamic fixed-header height compensation so section headings are never covered
   var smoothScroll = function () {
     var $root = $('html, body');
-    $('a.smoothscroll[href^="#"]').click(function () {
+    $('a.smoothscroll[href^="#"]').on('click', function () {
+      var targetSelector = $.attr(this, 'href');
+      var $target = $(targetSelector);
+      if (!$target.length) {
+        return false;
+      }
+      var headerHeight = $('.js-site-header').outerHeight() || 0;
+      var scrollDest = Math.max(0, $target.offset().top - headerHeight - 12);
       $root.animate({
-        scrollTop: $($.attr(this, 'href')).offset().top
+        scrollTop: scrollDest
       }, 500);
       return false;
     });
