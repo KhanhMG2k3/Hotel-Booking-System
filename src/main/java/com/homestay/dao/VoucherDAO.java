@@ -75,6 +75,29 @@ public class VoucherDAO extends BaseDAO
     }
 
     /**
+     * Find active public vouchers for booking checkout.
+     */
+    public List<Voucher> findActivePublicVouchers() {
+        List<Voucher> list = new ArrayList<>();
+        String sql = "SELECT * FROM vouchers WHERE (status = 'ACTIVE' OR status IS NULL) AND (end_date IS NULL OR end_date >= CURRENT_TIMESTAMP) ORDER BY id DESC";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapResultSetToVoucher(rs));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Error finding active vouchers, falling back to findAll()", e);
+            for (Voucher v : findAll()) {
+                if ("ACTIVE".equalsIgnoreCase(v.getStatus())) {
+                    list.add(v);
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
      * List vouchers belonging to a specific Host.
      */
     public List<Voucher> findByHostId(int hostId) {
@@ -105,6 +128,8 @@ public class VoucherDAO extends BaseDAO
 
         return vouchers;
     }
+
+
 
     /**
      * Find a voucher only if it belongs to the given Host.

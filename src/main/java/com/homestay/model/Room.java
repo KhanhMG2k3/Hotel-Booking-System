@@ -40,6 +40,7 @@ public class Room implements Serializable {
     private String provinceName;
     private String propertyName;
     private String address;
+    private Property property;
     private Timestamp createdAt;
 
     public Room() {
@@ -314,6 +315,24 @@ public class Room implements Serializable {
         }
         java.text.DecimalFormat df = new java.text.DecimalFormat("#,###");
         return df.format(pricePerNight);
+    }
+
+    public Property getProperty() {
+        if (property == null && (propertyName != null || propertyId > 0)) {
+            Property p = new Property();
+            p.setId(propertyId);
+            p.setName(propertyName != null ? propertyName : "Sogo Homestay");
+            return p;
+        }
+        return property;
+    }
+
+    public void setProperty(Property property) {
+        this.property = property;
+        if (property != null) {
+            this.propertyId = property.getId();
+            this.propertyName = property.getName();
+        }
     }
 
     @Override

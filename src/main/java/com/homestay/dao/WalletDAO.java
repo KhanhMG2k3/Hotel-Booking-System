@@ -115,6 +115,14 @@ public class WalletDAO {
     /**
      * Gets current balance of host wallet.
      */
+        public BigDecimal getWalletBalance(int hostUserId) {
+        return getHostBalance(hostUserId);
+    }
+
+    public List<WalletTransaction> findTransactionsByUserId(int hostUserId) {
+        return getTransactionsByUserId(hostUserId, 50);
+    }
+
     public BigDecimal getHostBalance(long hostUserId) {
         WalletAccount wallet = getOrCreateHostWallet(hostUserId);
         return wallet != null && wallet.getBalance() != null ? wallet.getBalance() : BigDecimal.ZERO;
@@ -204,7 +212,7 @@ public class WalletDAO {
             txPs.setBigDecimal(3, amount);
             txPs.setBigDecimal(4, currentBal);
             txPs.setBigDecimal(5, newBal);
-            txPs.setString(6, note != null && !note.isBlank() ? note.trim() : "Nạp tiền vào Ví Host");
+            txPs.setString(6, note != null && !note.isBlank() ? note.trim() : "Náº¡p tiá»n vĂ o VĂ­ Host");
             txPs.executeUpdate();
 
             conn.commit();
@@ -264,7 +272,7 @@ public class WalletDAO {
 
             if (!bookingRs.next()) {
                 conn.rollback();
-                throw new IllegalArgumentException("Không tìm thấy đơn đặt phòng #" + bookingId);
+                throw new IllegalArgumentException("KhĂ´ng tĂ¬m tháº¥y Ä‘Æ¡n Ä‘áº·t phĂ²ng #" + bookingId);
             }
 
             long ownerId = bookingRs.getLong("owner_id");
@@ -291,22 +299,22 @@ public class WalletDAO {
 
             if (!isOwner) {
                 conn.rollback();
-                throw new SecurityException("Bạn không có quyền rút tiền cho đơn đặt phòng này.");
+                throw new SecurityException("Báº¡n khĂ´ng cĂ³ quyá»n rĂºt tiá»n cho Ä‘Æ¡n Ä‘áº·t phĂ²ng nĂ y.");
             }
 
             if (!"CONFIRMED".equalsIgnoreCase(bookingStatus) && !"COMPLETED".equalsIgnoreCase(bookingStatus)) {
                 conn.rollback();
-                throw new IllegalStateException("Chỉ có thể rút tiền cho đơn đặt phòng đã thanh toán thành công (CONFIRMED). Trạng thái hiện tại: " + bookingStatus);
+                throw new IllegalStateException("Chá»‰ cĂ³ thá»ƒ rĂºt tiá»n cho Ä‘Æ¡n Ä‘áº·t phĂ²ng Ä‘Ă£ thanh toĂ¡n thĂ nh cĂ´ng (CONFIRMED). Tráº¡ng thĂ¡i hiá»‡n táº¡i: " + bookingStatus);
             }
 
             if ("WITHDRAWN".equalsIgnoreCase(payoutStatus)) {
                 conn.rollback();
-                throw new IllegalStateException("Đơn đặt phòng này đã được rút tiền về tài khoản ngân hàng trước đó.");
+                throw new IllegalStateException("ÄÆ¡n Ä‘áº·t phĂ²ng nĂ y Ä‘Ă£ Ä‘Æ°á»£c rĂºt tiá»n vá» tĂ i khoáº£n ngĂ¢n hĂ ng trÆ°á»›c Ä‘Ă³.");
             }
 
             if (totalAmount == null || totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
                 conn.rollback();
-                throw new IllegalStateException("Số tiền doanh thu đơn phòng không hợp lệ.");
+                throw new IllegalStateException("Sá»‘ tiá»n doanh thu Ä‘Æ¡n phĂ²ng khĂ´ng há»£p lá»‡.");
             }
 
             // 2. Lock and verify host wallet balance
@@ -322,7 +330,7 @@ public class WalletDAO {
 
             if (!walletRs.next()) {
                 conn.rollback();
-                throw new IllegalStateException("Không tìm thấy ví Host của bạn.");
+                throw new IllegalStateException("KhĂ´ng tĂ¬m tháº¥y vĂ­ Host cá»§a báº¡n.");
             }
 
             long walletAccountId = walletRs.getLong("wallet_account_id");
@@ -333,7 +341,7 @@ public class WalletDAO {
 
             if (currentBal.compareTo(totalAmount) < 0) {
                 conn.rollback();
-                throw new IllegalStateException(String.format("Số dư ví hiện tại (%,.0f VNĐ) không đủ để rút số tiền đơn phòng (%,.0f VNĐ).",
+                throw new IllegalStateException(String.format("Sá»‘ dÆ° vĂ­ hiá»‡n táº¡i (%,.0f VNÄ) khĂ´ng Ä‘á»§ Ä‘á»ƒ rĂºt sá»‘ tiá»n Ä‘Æ¡n phĂ²ng (%,.0f VNÄ).",
                         currentBal, totalAmount));
             }
 
@@ -363,7 +371,7 @@ public class WalletDAO {
             insertTxPs.setBigDecimal(4, currentBal);
             insertTxPs.setBigDecimal(5, newBal);
             insertTxPs.setLong(6, bookingId);
-            insertTxPs.setString(7, "Rút tiền doanh thu phòng đơn #" + bookingCode + " về ngân hàng " + cleanBank + " (" + cleanAcc + " - " + cleanHolder + ")");
+            insertTxPs.setString(7, "RĂºt tiá»n doanh thu phĂ²ng Ä‘Æ¡n #" + bookingCode + " vá» ngĂ¢n hĂ ng " + cleanBank + " (" + cleanAcc + " - " + cleanHolder + ")");
             insertTxPs.executeUpdate();
 
             // 5. Record into host_payouts if hostProfile exists
@@ -382,7 +390,7 @@ public class WalletDAO {
                 insertPayoutPs.setString(4, cleanBank);
                 insertPayoutPs.setString(5, cleanAcc);
                 insertPayoutPs.setString(6, cleanHolder);
-                insertPayoutPs.setString(7, (notes != null && !notes.isBlank()) ? notes.trim() : ("Rút tiền doanh thu đơn phòng #" + bookingCode));
+                insertPayoutPs.setString(7, (notes != null && !notes.isBlank()) ? notes.trim() : ("RĂºt tiá»n doanh thu Ä‘Æ¡n phĂ²ng #" + bookingCode));
                 insertPayoutPs.setLong(8, hostUserId);
                 insertPayoutPs.executeUpdate();
             }
@@ -458,7 +466,7 @@ public class WalletDAO {
                     txPs.setBigDecimal(4, currentBal);
                     txPs.setBigDecimal(5, newBal);
                     txPs.setLong(6, bookingId);
-                    txPs.setString(7, "Doanh thu phòng từ đơn #" + (bookingCode != null ? bookingCode : String.valueOf(bookingId)));
+                    txPs.setString(7, "Doanh thu phĂ²ng tá»« Ä‘Æ¡n #" + (bookingCode != null ? bookingCode : String.valueOf(bookingId)));
                     txPs.executeUpdate();
                 }
                 return true;

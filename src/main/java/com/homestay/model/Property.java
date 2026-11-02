@@ -116,14 +116,6 @@ public class Property implements Serializable {
         this.propertyType = propertyType;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public String getAddress() {
         return address;
     }

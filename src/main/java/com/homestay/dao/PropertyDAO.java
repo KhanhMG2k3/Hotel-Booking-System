@@ -621,6 +621,29 @@ public class PropertyDAO {
         }
     }
 
+    /**
+     * Updates direct room details from host modal.
+     */
+    public boolean updateRoomDetails(Room room) {
+        if (room == null || room.getId() <= 0) {
+            return false;
+        }
+        String sql = "UPDATE rooms SET room_name = ?, price_per_night = ?, capacity = ?, bed_count = ?, bathroom_count = ?, status = ? WHERE room_id = ?";
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, room.getRoomName());
+            ps.setBigDecimal(2, room.getPricePerNight());
+            ps.setInt(3, room.getCapacity());
+            ps.setInt(4, room.getBedCount());
+            ps.setInt(5, room.getBathroomCount());
+            ps.setString(6, room.getStatus());
+            ps.setInt(7, room.getId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
     /** Deletes an owned room and refreshes property capacity in one transaction. */
     public boolean deleteRoom(int ownerId, int propertyId, int roomId) throws SQLException {
         // Keep deletion and derived property capacity synchronized if either step fails.
