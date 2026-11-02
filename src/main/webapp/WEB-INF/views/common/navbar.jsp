@@ -30,7 +30,7 @@
                             <!-- POPUP DROPDOWN TOP 5 THÔNG BÁO -->
                             <div class="notification-header-dropdown shadow-lg" id="notificationHeaderDropdown" role="region" aria-label="Thông báo gần đây">
 
-                                <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+                                <div class="d-flex justify-content-between align-items-center p-3 border-bottom notif-header-box bg-light">
                                     <span class="font-weight-bold text-dark notif-dropdown-title">
                                         <i class="fa fa-bell text-warning mr-1"></i> Thông báo
                                     </span>
@@ -47,7 +47,7 @@
                                 </div>
 
                                 <!-- Footer dẫn sang trang đầy đủ -->
-                                <div class="p-2 text-center border-top bg-light">
+                                <div class="p-2 text-center border-top notif-footer-box bg-light">
                                     <a href="${pageContext.request.contextPath}/notifications" class="small text-primary font-weight-bold notif-footer-link">
                                         Xem tất cả thông báo <i class="fa fa-arrow-right ml-1"></i>
                                     </a>
@@ -801,8 +801,8 @@
 
                             var html = '';
                             data.notifications.forEach(function (item) {
-                                var unreadStyle = !item.isRead ? 'background: #f4f8ff; font-weight: 500;' : 'background: #fff;';
-                                html += '<div class="p-3 border-bottom dropdown-notif-item" style="cursor:pointer; transition:background 0.2s; ' + unreadStyle + '" ' +
+                                var unreadClass = !item.isRead ? ' unread' : '';
+                                html += '<div class="p-3 border-bottom dropdown-notif-item' + unreadClass + '" style="cursor:pointer; transition:background 0.2s;" ' +
                                         'onclick="onDropdownNotifClick(' + item.id + ', \'' + (item.targetUrl || '') + '\', ' + item.isRead + ');">' +
                                         '<div class="d-flex align-items-start">' +
                                         '<i class="' + item.iconClass + ' mr-2 mt-1" style="font-size:1.1rem;"></i>' +

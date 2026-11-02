@@ -233,6 +233,22 @@
   overflow-y: auto;
 }
 
+.dropdown-notif-item {
+  cursor: pointer;
+  transition: background 0.2s ease;
+  background: #ffffff;
+}
+.dropdown-notif-item:hover {
+  background: #f8fafc;
+}
+.dropdown-notif-item.unread {
+  background: #f4f8ff;
+  font-weight: 500;
+}
+.dropdown-notif-item.unread:hover {
+  background: #eef5ff;
+}
+
 .notif-footer-link {
   text-decoration: none !important;
 }

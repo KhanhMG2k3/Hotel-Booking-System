@@ -101,6 +101,85 @@
     color: #ced4da;
     margin-bottom: 15px;
   }
+  /* Scoped Dark Mode Overrides */
+  [data-theme="dark"] .bg-light {
+    background-color: #0b0f19 !important;
+  }
+  [data-theme="dark"] .notification-page-card {
+    background-color: #162032 !important;
+    border: 1px solid #243247 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+  }
+  [data-theme="dark"] .card-header.bg-white,
+  [data-theme="dark"] .card-footer.bg-white {
+    background-color: #111827 !important;
+    border-color: #243247 !important;
+  }
+  [data-theme="dark"] .card-header h4,
+  [data-theme="dark"] .card-header .text-dark {
+    color: #f8fafc !important;
+  }
+  [data-theme="dark"] .px-4.pt-2.border-bottom.bg-white {
+    background-color: #111827 !important;
+    border-color: #243247 !important;
+  }
+  [data-theme="dark"] .nav-tabs-notifications .nav-link {
+    color: #94a3b8 !important;
+  }
+  [data-theme="dark"] .nav-tabs-notifications .nav-link:hover {
+    color: #ffba5a !important;
+  }
+  [data-theme="dark"] .nav-tabs-notifications .nav-link.active {
+    color: #ffba5a !important;
+    border-bottom-color: #ffba5a !important;
+  }
+  [data-theme="dark"] .notification-item {
+    background: #162032 !important;
+    border-color: #243247 !important;
+    color: #cbd5e1 !important;
+  }
+  [data-theme="dark"] .notification-item:hover {
+    background: #1c2a42 !important;
+    box-shadow: inset 3px 0 0 #ffba5a !important;
+  }
+  [data-theme="dark"] .notification-item.unread {
+    background: #1a273f !important;
+  }
+  [data-theme="dark"] .notification-item.unread:hover {
+    background: #223352 !important;
+    box-shadow: inset 4px 0 0 #3b82f6 !important;
+  }
+  [data-theme="dark"] .notification-item h6.text-dark {
+    color: #f8fafc !important;
+  }
+  [data-theme="dark"] .notification-item .text-muted {
+    color: #94a3b8 !important;
+  }
+  [data-theme="dark"] .empty-notification-box .empty-notification-icon {
+    color: #475569 !important;
+  }
+  [data-theme="dark"] .empty-notification-box h5.text-dark {
+    color: #f8fafc !important;
+  }
+  [data-theme="dark"] .empty-notification-box .text-muted {
+    color: #94a3b8 !important;
+  }
+  [data-theme="dark"] .notification-icon-box.BOOKING {
+    background: rgba(13, 110, 253, 0.2) !important;
+    color: #60a5fa !important;
+  }
+  [data-theme="dark"] .notification-icon-box.PROMOTION {
+    background: rgba(220, 53, 69, 0.2) !important;
+    color: #f87171 !important;
+  }
+  [data-theme="dark"] .notification-icon-box.REVIEW {
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+  }
+  [data-theme="dark"] .notification-icon-box.SYSTEM {
+    background: rgba(100, 116, 139, 0.2) !important;
+    color: #94a3b8 !important;
+  }
 </style>
 
 <!-- HERO BANNER -->
