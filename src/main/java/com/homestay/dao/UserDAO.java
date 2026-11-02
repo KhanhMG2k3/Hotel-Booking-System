@@ -24,6 +24,10 @@ import java.util.logging.Level;
  */
 public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
 
+    public static final int ROLE_ADMIN_ID = 1;
+    public static final int ROLE_CUSTOMER_ID = 2;
+    public static final int ROLE_HOST_ID = 3;
+
     private static final String BASE_SELECT =
             "SELECT u.user_id as id, u.username, u.full_name, u.display_name, u.email, "
             + "u.password_hash as password, u.phone, u.avatar_url, u.status, "
@@ -256,7 +260,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
                     int newUserId = rs.getInt(1);
                     user.setId(newUserId);
 
-                    int roleId = user.getRoleId() > 0 ? user.getRoleId() : 2; // 2 = ROLE_CUSTOMER
+                    int roleId = user.getRoleId() > 0 ? user.getRoleId() : ROLE_CUSTOMER_ID; // 2 = ROLE_CUSTOMER
                     psRole = conn.prepareStatement(sqlRole);
                     psRole.setInt(1, newUserId);
                     psRole.setInt(2, roleId);
@@ -440,7 +444,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         u.setDisplayName(fullName);
         u.setPhone(phone);
         u.setPassword(hashedPassword);
-        u.setRoleId(2); // 2 = ROLE_CUSTOMER
+        u.setRoleId(ROLE_CUSTOMER_ID); // 2 = ROLE_CUSTOMER
         u.setStatus("ACTIVE");
         u.setAuthProvider("local");
 
@@ -459,7 +463,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         u.setPassword(null);
         u.setGoogleId(googleId);
         u.setAvatarUrl(avatarUrl);
-        u.setRoleId(2); // 2 = ROLE_CUSTOMER
+        u.setRoleId(ROLE_CUSTOMER_ID); // 2 = ROLE_CUSTOMER
         u.setStatus("ACTIVE");
         u.setAuthProvider("google");
 

@@ -183,6 +183,32 @@
 
   // Date and time pickers
   var dateAndTime = function () {
+    if ($.fn.datepicker) {
+      $('#m_date').datepicker({
+        'format': 'm/d/yyyy',
+        'autoclose': true
+      });
+      $('#checkin_date').datepicker({
+        'format': 'd MM, yyyy',
+        'autoclose': true,
+        'startDate': new Date()
+      }).on('changeDate', function (e) {
+        if (e.date) {
+          var nextDay = new Date(e.date);
+          nextDay.setDate(nextDay.getDate() + 1);
+          $('#checkout_date').datepicker('setStartDate', nextDay);
+          var checkoutDate = $('#checkout_date').datepicker('getDate');
+          if (checkoutDate && checkoutDate <= e.date) {
+            $('#checkout_date').datepicker('setDate', nextDay);
+          }
+        }
+      });
+      $('#checkout_date').datepicker({
+        'format': 'd MM, yyyy',
+        'autoclose': true,
+        'startDate': '+1d'
+      });
+    }
     if ($.fn.timepicker) {
       $('#m_time').timepicker();
     }

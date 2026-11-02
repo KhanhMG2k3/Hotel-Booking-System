@@ -45,7 +45,11 @@ public class Room implements Serializable {
     public Room() {
     }
 
-    public Room(int id, int typeId, String roomNumber, String roomName, BigDecimal pricePerNight, int capacity, String imageUrl, String description, String status, boolean isFeatured, Timestamp createdAt) {
+    public Room(int id, int typeId, String roomNumber, String roomName,
+                BigDecimal pricePerNight, int capacity, String imageUrl,
+                String description, String status, boolean isFeatured,
+                Timestamp createdAt) {
+
         this.id = id;
         this.typeId = typeId;
         this.roomNumber = roomNumber;
@@ -81,6 +85,10 @@ public class Room implements Serializable {
 
     public void setPropertyId(int propertyId) {
         this.propertyId = propertyId;
+    }
+
+    public void setPropertyId(Long propertyId) {
+        this.propertyId = propertyId != null ? propertyId.intValue() : 0;
     }
 
     public RoomType getRoomType() {

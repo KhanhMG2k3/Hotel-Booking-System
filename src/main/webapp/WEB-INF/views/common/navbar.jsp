@@ -1,4 +1,4 @@
-<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java"  %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
@@ -191,6 +191,9 @@
                                         </a>
                                         <a href="${pageContext.request.contextPath}/host/reviews" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-comments-o"></i> Quản lý Đánh giá
+                                        </a>
+                                        <a href="${pageContext.request.contextPath}/host/refunds" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-undo"></i> Quản lý hoàn tiền
                                         </a>
                                     </c:if>
                                     <c:if test="${isUserAdmin}">
@@ -469,6 +472,13 @@
                                                 <a href="${pageContext.request.contextPath}/host/vouchers" class="drawer-nav-link" onclick="closeSiteNavbar()">
                                                     <span class="drawer-nav-icon" style="background:#fef3c7; color:#d97706;"><i class="fa fa-ticket"></i></span>
                                                     <span class="drawer-nav-text">Quản Lý Voucher</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
+                                            <li class="drawer-nav-item">
+                                                <a href="${pageContext.request.contextPath}/host/refunds" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon icon-refunds"><i class="fa fa-undo"></i></span>
+                                                    <span class="drawer-nav-text">Quản Lý Hoàn Tiền</span>
                                                     <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                                 </a>
                                             </li>

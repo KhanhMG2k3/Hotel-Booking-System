@@ -11,6 +11,10 @@ import java.io.File;
 
 /**
  * ServerRunner - Standalone Embedded Tomcat runner for Sogo Homestay.
+ *
+ * Features:
+ * - Hot reload enabled (ctx.setReloadable(true))
+ * - Dynamic static / JSP reload directly from src/main/webapp
  */
 public class ServerRunner {
 
@@ -27,7 +31,6 @@ public class ServerRunner {
             System.setErr(new java.io.PrintStream(System.err, true, java.nio.charset.StandardCharsets.UTF_8));
         } catch (Exception ignored) {
         }
-
         Tomcat tomcat = new Tomcat();
         tomcat.setPort(PORT);
         org.apache.catalina.connector.Connector connector = tomcat.getConnector(); // Initialize HTTP connector
@@ -41,6 +44,10 @@ public class ServerRunner {
         File webappDir = new File("src/main/webapp");
         StandardContext ctx = (StandardContext) tomcat.addWebapp("", webappDir.getAbsolutePath());
         ctx.setParentClassLoader(ServerRunner.class.getClassLoader());
+
+        // Bật tự động reload (Hot-Reload) khi class thay đổi trong target/classes
+        ctx.setReloadable(true);
+        tomcat.getHost().setBackgroundProcessorDelay(2); // Quét thay đổi class mỗi 2 giây
 
         // Configure DefaultServlet to read static assets with UTF-8
         ctx.addLifecycleListener(event -> {
@@ -63,6 +70,7 @@ public class ServerRunner {
 
         System.out.println("===============================================================");
         System.out.println("🚀 Sogo Homestay Server is starting...");
+        System.out.println("⚡ Hot-Reload (Auto Reload): ENABLED (Quét class mỗi 2s)");
         System.out.println("👉 Access Website at: http://localhost:" + PORT + "/");
         System.out.println("👉 Rooms Page at:     http://localhost:" + PORT + "/rooms");
         System.out.println("👉 Reservation Page:  http://localhost:" + PORT + "/reservation");
