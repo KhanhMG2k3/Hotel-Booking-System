@@ -59,6 +59,48 @@
     background-color: #fcfdff;
     border-left: 4px solid #3498db;
   }
+  /* Scoped Dark Mode Overrides */
+  [data-theme="dark"] .bg-light {
+    background-color: #0b0f19 !important;
+  }
+  [data-theme="dark"] .card {
+    background-color: #162032 !important;
+    border-color: #243247 !important;
+  }
+  [data-theme="dark"] .text-content-pre {
+    color: #cbd5e1 !important;
+  }
+  [data-theme="dark"] .reply-thread-item {
+    border-color: #243247 !important;
+  }
+  [data-theme="dark"] .reply-thread-admin {
+    background-color: #172554 !important;
+    border-left-color: #ffba5a !important;
+  }
+  [data-theme="dark"] .reply-thread-user {
+    background-color: #111827 !important;
+    border-left-color: #3b82f6 !important;
+  }
+  [data-theme="dark"] .ticket-status-new {
+    background-color: rgba(2, 132, 199, 0.2) !important;
+    color: #38bdf8 !important;
+    border-color: rgba(2, 132, 199, 0.35) !important;
+  }
+  [data-theme="dark"] .ticket-status-processing {
+    background-color: rgba(217, 119, 6, 0.2) !important;
+    color: #fbbf24 !important;
+    border-color: rgba(217, 119, 6, 0.35) !important;
+  }
+  [data-theme="dark"] .ticket-status-resolved {
+    background-color: rgba(22, 163, 74, 0.2) !important;
+    color: #4ade80 !important;
+    border-color: rgba(22, 163, 74, 0.35) !important;
+  }
+  [data-theme="dark"] .badge-light {
+    background-color: #1e293b !important;
+    color: #cbd5e1 !important;
+    border-color: #334155 !important;
+  }
 </style>
 
 <section class="site-hero inner-page overlay" style="background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.65)), url('${pageContext.request.contextPath}/assets/images/hero_4.jpg'); min-height: 240px; height: 260px;" data-stellar-background-ratio="0.5">
