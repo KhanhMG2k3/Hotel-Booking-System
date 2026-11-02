@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%-- Shared document head: metadata, page title, and site stylesheets. --%>
@@ -23,7 +23,7 @@
         } catch (e) {}
       })();
     </script>
-    <title>${not empty pageTitle ? pageTitle : 'Sogo Homestay - Đặt Phòng Homestay Nhanh Chóng'}</title>
+    <title>${not empty param.pageTitle ? param.pageTitle : (not empty pageTitle ? pageTitle : 'Sogo Homestay - Đặt Phòng Homestay Nhanh Chóng')}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Google Fonts: Light Mode & Dark Mode Contextual Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,10 +41,10 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/fonts/fontawesome/css/font-awesome.min.css">
 
     <!-- Theme Style -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css?v=20261011-eye-fix">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/_custom.css?v=3.4">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css?v=20261103-v5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/_custom.css?v=20261103-v5">
     <!-- Light / Dark Mode & Dynamic Typography -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css?v=20261028-1">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css?v=20261103-v5">
 
     <style>
       .password-input-wrap {

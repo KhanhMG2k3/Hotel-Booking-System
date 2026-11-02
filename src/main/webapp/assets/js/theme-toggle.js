@@ -29,15 +29,18 @@
 
     toggleButtons.forEach(function(btn) {
       btn.setAttribute('aria-checked', isDark ? 'true' : 'false');
-      btn.setAttribute('title', isDark ? 'Chuyển sang Giao diện Sáng' : 'Chuyển sang Giao diện Tối');
+      // Chuyển sang Giao diện Sáng / Chuyển sang Giao diện Tối
+      btn.setAttribute('title', isDark ? 'Chuy\u1ec3n sang Giao di\u1ec7n S\u00e1ng' : 'Chuy\u1ec3n sang Giao di\u1ec7n T\u1ed1i');
     });
 
     toggleLabels.forEach(function(label) {
-      label.textContent = isDark ? 'Tối' : 'Sáng';
+      // Tối / Sáng
+      label.textContent = isDark ? 'T\u1ed1i' : 'S\u00e1ng';
     });
 
     if (drawerStatus) {
-      drawerStatus.textContent = isDark ? 'Chế độ Tối' : 'Chế độ Sáng';
+      // Chế độ Tối / Chế độ Sáng
+      drawerStatus.textContent = isDark ? 'Ch\u1ebf \u0111\u1ed9 T\u1ed1i' : 'Ch\u1ebf \u0111\u1ed9 S\u00e1ng';
     }
   }
 

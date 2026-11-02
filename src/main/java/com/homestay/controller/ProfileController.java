@@ -53,7 +53,15 @@ public class ProfileController extends HttpServlet {
             "homestay", "sogo", "official", "info", "security"
     );
 
-    private final UserDAO userDAO = new UserDAO();
+    private final UserDAO userDAO;
+
+    public ProfileController() {
+        this(new UserDAO());
+    }
+
+    ProfileController(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
 
     /**
      * Purpose: Loads the active account profile and forwards it to the JSP.
@@ -394,6 +402,9 @@ public class ProfileController extends HttpServlet {
     private void prepareProfileView(HttpServletRequest request, User user) {
         String loginMethod;
         boolean hasPassword = user.getPassword() != null && !user.getPassword().isEmpty();
+        boolean hasGoogle = (user.getGoogleId() != null && !user.getGoogleId().trim().isEmpty())
+                || "google".equalsIgnoreCase(user.getAuthProvider());
+        boolean isGoogleAccount = hasGoogle && !hasPassword;
 
         if (hasPassword && user.getGoogleId() != null) {
             loginMethod = "Local and Google";
@@ -414,6 +425,8 @@ public class ProfileController extends HttpServlet {
             request.setAttribute("joinDateFormatted", "16/10/2026");
         }
         request.setAttribute("hasPassword", hasPassword);
+
+        request.setAttribute("isGoogleAccount", isGoogleAccount);
         request.setAttribute("accountRole", request.getSession().getAttribute("role"));
         request.setAttribute("loginMethod", loginMethod);
         request.setAttribute("csrfToken", LoginUtil.getOrCreateCsrfToken(request));

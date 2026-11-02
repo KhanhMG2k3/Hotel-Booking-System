@@ -1,3 +1,4 @@
-<%-- Forward the application root request to the homepage view. --%>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<jsp:forward page="/WEB-INF/views/home.jsp" />
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
+<%
+    response.sendRedirect(request.getContextPath() + "/home");
+%>

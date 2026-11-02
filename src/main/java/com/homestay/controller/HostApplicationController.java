@@ -44,7 +44,9 @@ public class HostApplicationController extends HttpServlet {
                 return;
             }
 
-            request.getSession().setAttribute("role", user.getRole().getName());
+            request.getSession().setAttribute("user", user);
+            request.getSession().setAttribute("role", user.getRole() != null ? user.getRole().getName() : "");
+            request.getSession().setAttribute("roleId", user.getRoleId());
             if ("1".equals(request.getParameter("submitted"))) {
                 request.setAttribute("messageSuccess", "Yêu cầu trở thành Host đã được gửi.");
             }

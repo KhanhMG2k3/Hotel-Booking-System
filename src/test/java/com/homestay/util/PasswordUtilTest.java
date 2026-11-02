@@ -8,7 +8,7 @@ import java.security.GeneralSecurityException;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit test suite verifying PBKDF2 password hashing, salt uniqueness, and verification security.
+ * Unit test suite verifying PBKDF2 & BCrypt password hashing, salt uniqueness, and verification security.
  */
 public class PasswordUtilTest {
 
@@ -58,5 +58,41 @@ public class PasswordUtilTest {
         assertNotEquals(hash1, hash2, "Two hashes of the same password must differ due to unique salts");
         assertTrue(PasswordUtil.verify(password, hash1));
         assertTrue(PasswordUtil.verify(password, hash2));
+    }
+
+    @Test
+    @DisplayName("Hashes plain password with BCrypt and verifies successfully with correct password")
+    void testHashAndVerifyPasswordSuccess() {
+        String plain = "Secret@2026";
+        String hashed = PasswordUtil.hashPassword(plain);
+
+        assertNotNull(hashed);
+        assertTrue(hashed.startsWith("$2a$") || hashed.startsWith("$2b$") || hashed.startsWith("pbkdf2-sha256$"));
+        assertTrue(PasswordUtil.verifyPassword(plain, hashed));
+    }
+
+    @Test
+    @DisplayName("Rejects incorrect password against hash in BCrypt")
+    void testVerifyPasswordFailsWithWrongPassword() {
+        String plain = "Secret@2026";
+        String wrong = "WrongPassword123";
+        String hashed = PasswordUtil.hashPassword(plain);
+
+        assertFalse(PasswordUtil.verifyPassword(wrong, hashed));
+    }
+
+    @Test
+    @DisplayName("Returns false when plain or hash is null or empty in BCrypt")
+    void testVerifyPasswordNullOrEmpty() {
+        assertFalse(PasswordUtil.verifyPassword(null, "someHash"));
+        assertFalse(PasswordUtil.verifyPassword("password", null));
+        assertFalse(PasswordUtil.verifyPassword("password", ""));
+    }
+
+    @Test
+    @DisplayName("Throws IllegalArgumentException when hashing null or empty password in BCrypt")
+    void testHashPasswordNullOrEmptyThrowsException() {
+        assertThrows(IllegalArgumentException.class, () -> PasswordUtil.hashPassword(null));
+        assertThrows(IllegalArgumentException.class, () -> PasswordUtil.hashPassword(""));
     }
 }

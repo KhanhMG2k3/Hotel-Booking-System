@@ -19,23 +19,23 @@ public class DBContext {
     private static final Properties appProperties = new Properties();
 
     static {
-        try (InputStream input = DBContext.class.getClassLoader().getResourceAsStream("db.properties")) {
-            if (input != null) {
-                properties.load(input);
-            } else {
-                LOGGER.log(Level.WARNING, "db.properties not found in classpath");
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to load db.properties", e);
-        }
+        loadProperties("db.properties", properties);
+        loadProperties("app.properties", appProperties);
+    }
 
-        // Load application configuration
-        try (InputStream input = DBContext.class.getClassLoader().getResourceAsStream("app.properties")) {
-            if (input != null) {
-                appProperties.load(input);
+    private static void loadProperties(String fileName, Properties targetProps) {
+        InputStream input = DBContext.class.getClassLoader().getResourceAsStream(fileName);
+        if (input == null) {
+            input = DBContext.class.getClassLoader().getResourceAsStream("config/" + fileName);
+        }
+        if (input != null) {
+            try (InputStream in = input) {
+                targetProps.load(in);
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Failed to load " + fileName, e);
             }
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to load app.properties", e);
+        } else {
+            LOGGER.log(Level.WARNING, fileName + " not found in classpath (checked root and config/)");
         }
     }
 
@@ -103,6 +103,11 @@ public class DBContext {
      * Hàm test nhanh kết nối database.
      */
     public static void main(String[] args) {
+        try {
+            System.setOut(new java.io.PrintStream(System.out, true, java.nio.charset.StandardCharsets.UTF_8));
+            System.setErr(new java.io.PrintStream(System.err, true, java.nio.charset.StandardCharsets.UTF_8));
+        } catch (Exception ignored) {
+        }
         try (Connection conn = getConnection()) {
             System.out.println("✅ Kết nối DB thành công: " + !conn.isClosed());
             System.out.println("   URL: " + conn.getMetaData().getURL());

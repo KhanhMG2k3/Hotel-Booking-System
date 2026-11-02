@@ -1,6 +1,7 @@
 package com.homestay.dao;
 
 import com.homestay.context.DBContext;
+import com.homestay.model.HostAccount;
 import com.homestay.model.Role;
 import com.homestay.model.User;
 import com.homestay.model.UserRole;
@@ -23,18 +24,21 @@ import java.util.logging.Level;
  */
 public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
 
+    public static final int ROLE_ADMIN_ID = 1;
+    public static final int ROLE_CUSTOMER_ID = 2;
+    public static final int ROLE_HOST_ID = 3;
+
     private static final String BASE_SELECT =
             "SELECT u.user_id as id, u.username, u.full_name, u.display_name, u.email, "
             + "u.password_hash as password, u.phone, u.avatar_url, u.status, "
             + "COALESCE(u.two_factor_enabled, 0) as two_factor_enabled, "
             + "u.google_id, u.auth_provider, u.created_at, "
             + "u.date_of_birth, u.gender, u.address, "
-            + "COALESCE(r.role_id, 2) as role_id, "
+            + "COALESCE(r.role_id, u.role_id, 2) as role_id, "
             + "COALESCE(r.role_name, 'ROLE_CUSTOMER') as role_name, "
             + "COALESCE(r.description, 'Khách hàng') as role_desc "
             + "FROM users u "
-            + "LEFT JOIN userroles ur ON u.user_id = ur.user_id "
-            + "LEFT JOIN roles r ON ur.role_id = r.role_id ";
+            + "LEFT JOIN roles r ON u.role_id = r.role_id ";
 
     @Override
     public Optional<User> findById(Integer id) {
@@ -256,7 +260,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
                     int newUserId = rs.getInt(1);
                     user.setId(newUserId);
 
-                    int roleId = user.getRoleId() > 0 ? user.getRoleId() : 2; // 2 = ROLE_CUSTOMER
+                    int roleId = user.getRoleId() > 0 ? user.getRoleId() : ROLE_CUSTOMER_ID; // 2 = ROLE_CUSTOMER
                     psRole = conn.prepareStatement(sqlRole);
                     psRole.setInt(1, newUserId);
                     psRole.setInt(2, roleId);
@@ -440,7 +444,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         u.setDisplayName(fullName);
         u.setPhone(phone);
         u.setPassword(hashedPassword);
-        u.setRoleId(2); // 2 = ROLE_CUSTOMER
+        u.setRoleId(ROLE_CUSTOMER_ID); // 2 = ROLE_CUSTOMER
         u.setStatus("ACTIVE");
         u.setAuthProvider("local");
 
@@ -459,7 +463,7 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         u.setPassword(null);
         u.setGoogleId(googleId);
         u.setAvatarUrl(avatarUrl);
-        u.setRoleId(2); // 2 = ROLE_CUSTOMER
+        u.setRoleId(ROLE_CUSTOMER_ID); // 2 = ROLE_CUSTOMER
         u.setStatus("ACTIVE");
         u.setAuthProvider("google");
 
@@ -533,5 +537,152 @@ public class UserDAO extends BaseDAO implements GenericDAO<User, Integer> {
         user.setRole(role);
 
         return user;
+    }
+
+    /**
+     * Updates the status of a user (e.g. ACTIVE, BANNED, INACTIVE).
+     */
+    public boolean updateUserStatus(int userId, String status) {
+        String sql = "UPDATE users SET status = ? WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating status for user: " + userId, e);
+            return false;
+        }
+    }
+
+    /**
+     * Updates user role in both users table and userroles table.
+     */
+    public boolean updateUserRole(int userId, int newRoleId) {
+        String sqlUser = "UPDATE users SET role_id = ? WHERE user_id = ?";
+        String sqlDelRole = "DELETE FROM userroles WHERE user_id = ?";
+        String sqlInsRole = "INSERT INTO userroles (user_id, role_id) VALUES (?, ?)";
+
+        Connection conn = null;
+        PreparedStatement psUser = null;
+        PreparedStatement psDelRole = null;
+        PreparedStatement psInsRole = null;
+
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            psUser = conn.prepareStatement(sqlUser);
+            psUser.setInt(1, newRoleId);
+            psUser.setInt(2, userId);
+            psUser.executeUpdate();
+
+            psDelRole = conn.prepareStatement(sqlDelRole);
+            psDelRole.setInt(1, userId);
+            psDelRole.executeUpdate();
+
+            psInsRole = conn.prepareStatement(sqlInsRole);
+            psInsRole.setInt(1, userId);
+            psInsRole.setInt(2, newRoleId);
+            psInsRole.executeUpdate();
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    logger.log(Level.SEVERE, "Rollback failed", ex);
+                }
+            }
+            logger.log(Level.SEVERE, "Error updating role for user: " + userId, e);
+            return false;
+        } finally {
+            closeResources(null, psInsRole, null);
+            closeResources(null, psDelRole, null);
+            closeResources(conn, psUser, null);
+        }
+    }
+
+    /**
+     * Retrieves all Host accounts with their property and room counts for Admin management.
+     */
+    public List<HostAccount> findAllHostAccounts() {
+        List<HostAccount> hosts = new ArrayList<>();
+        String sql = "SELECT u.user_id, u.username, u.full_name, u.email, u.phone, u.avatar_url, u.status, u.created_at, "
+                + "COUNT(DISTINCT p.property_id) as property_count, "
+                + "COUNT(DISTINCT rm.room_id) as room_count "
+                + "FROM users u "
+                + "LEFT JOIN userroles ur ON u.user_id = ur.user_id "
+                + "LEFT JOIN roles r ON (ur.role_id = r.role_id OR u.role_id = r.role_id) "
+                + "LEFT JOIN properties p ON u.user_id = p.host_id "
+                + "LEFT JOIN rooms rm ON p.property_id = rm.property_id "
+                + "WHERE u.role_id = 3 OR ur.role_id = 3 OR r.role_name = 'ROLE_HOST' "
+                + "GROUP BY u.user_id, u.username, u.full_name, u.email, u.phone, u.avatar_url, u.status, u.created_at "
+                + "ORDER BY u.user_id DESC";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                HostAccount host = new HostAccount();
+                host.setUserId(rs.getInt("user_id"));
+                host.setUsername(rs.getString("username"));
+                host.setFullName(rs.getString("full_name"));
+                host.setEmail(rs.getString("email"));
+                host.setPhone(rs.getString("phone"));
+                host.setAvatarUrl(rs.getString("avatar_url"));
+                host.setStatus(rs.getString("status"));
+                host.setCreatedAt(rs.getTimestamp("created_at"));
+                host.setPropertyCount(rs.getInt("property_count"));
+                host.setRoomCount(rs.getInt("room_count"));
+                hosts.add(host);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching host accounts", e);
+        }
+        return hosts;
+    }
+
+    /**
+     * Retrieves a single Host account with property and room counts by user ID.
+     */
+    public Optional<HostAccount> findHostAccountById(int hostId) {
+        String sql = "SELECT u.user_id, u.username, u.full_name, u.email, u.phone, u.avatar_url, u.status, u.created_at, "
+                + "COUNT(DISTINCT p.property_id) as property_count, "
+                + "COUNT(DISTINCT rm.room_id) as room_count "
+                + "FROM users u "
+                + "LEFT JOIN userroles ur ON u.user_id = ur.user_id "
+                + "LEFT JOIN roles r ON (ur.role_id = r.role_id OR u.role_id = r.role_id) "
+                + "LEFT JOIN properties p ON u.user_id = p.host_id "
+                + "LEFT JOIN rooms rm ON p.property_id = rm.property_id "
+                + "WHERE u.user_id = ? "
+                + "GROUP BY u.user_id, u.username, u.full_name, u.email, u.phone, u.avatar_url, u.status, u.created_at";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hostId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    HostAccount host = new HostAccount();
+                    host.setUserId(rs.getInt("user_id"));
+                    host.setUsername(rs.getString("username"));
+                    host.setFullName(rs.getString("full_name"));
+                    host.setEmail(rs.getString("email"));
+                    host.setPhone(rs.getString("phone"));
+                    host.setAvatarUrl(rs.getString("avatar_url"));
+                    host.setStatus(rs.getString("status"));
+                    host.setCreatedAt(rs.getTimestamp("created_at"));
+                    host.setPropertyCount(rs.getInt("property_count"));
+                    host.setRoomCount(rs.getInt("room_count"));
+                    return Optional.of(host);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching host account by id: " + hostId, e);
+        }
+        return Optional.empty();
     }
 }

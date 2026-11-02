@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java"  %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -187,7 +187,7 @@
                   <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}"
                      class="d-block position-relative overflow-hidden">
                     <img src="${pageContext.request.contextPath}/assets/${not empty room.imageUrl ? room.imageUrl : 'images/img_1.jpg'}"
-                         alt="${room.roomName}" class="img-fluid w-100 room-card-image">
+                         alt="${room.roomName}" class="img-fluid w-100 room-card-image" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/img_1.jpg';">
                     <span class="badge badge-primary position-absolute px-3 py-2 font-weight-bold"
                           style="top: 14px; left: 14px; border-radius: 8px;">
                       Mã: ${room.roomNumber}

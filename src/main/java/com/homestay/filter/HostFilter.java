@@ -19,8 +19,21 @@ import java.util.Optional;
 @WebFilter(urlPatterns = {"/host/*"})
 public class HostFilter implements Filter {
 
-    private final HostProfileDAO hostProfileDAO = new HostProfileDAO();
-    private final UserDAO userDAO = new UserDAO();
+    private final HostProfileDAO hostProfileDAO;
+    private final UserDAO userDAO;
+
+    public HostFilter() {
+        this(new HostProfileDAO(), new UserDAO());
+    }
+
+    HostFilter(HostProfileDAO hostProfileDAO) {
+        this(hostProfileDAO, new UserDAO());
+    }
+
+    HostFilter(HostProfileDAO hostProfileDAO, UserDAO userDAO) {
+        this.hostProfileDAO = hostProfileDAO;
+        this.userDAO = userDAO;
+    }
 
     @Override
     public void doFilter(
@@ -55,6 +68,21 @@ public class HostFilter implements Filter {
                     || "HOST".equalsIgnoreCase(user.getRole().getRoleName())
                     || "ROLE_HOST".equalsIgnoreCase(user.getRole().getName())
                     || "HOST".equalsIgnoreCase(user.getRole().getName()));
+
+        if (!isHost && user != null && session != null) {
+            User refreshed = userDAO.findById(user.getId()).orElse(null);
+            if (refreshed != null) {
+                user = refreshed;
+                session.setAttribute("user", user);
+                session.setAttribute("role", user.getRole() != null ? user.getRole().getName() : "");
+                session.setAttribute("roleId", user.getRoleId());
+                isHost = user.getRole() != null
+                        && ("ROLE_HOST".equalsIgnoreCase(user.getRole().getRoleName())
+                            || "HOST".equalsIgnoreCase(user.getRole().getRoleName())
+                            || "ROLE_HOST".equalsIgnoreCase(user.getRole().getName())
+                            || "HOST".equalsIgnoreCase(user.getRole().getName()));
+            }
+        }
 
         if (!isHost) {
             if (user == null) {
