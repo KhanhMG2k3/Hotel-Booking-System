@@ -1,4 +1,4 @@
-<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
@@ -219,6 +219,11 @@
                             <!-- BẢNG THÔNG TIN TÀI KHOẢN NHẬN TIỀN -->
                             <div class="bg-light border rounded p-3 mb-4">
                                 
+                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                    <span class="text-muted small">Loại tài khoản nhận:</span>
+                                    <span class="badge badge-primary px-2 py-1"><i class="fa fa-shield mr-1"></i> Tài khoản Ký quỹ Sàn Sogo Homestay</span>
+                                </div>
+
                                 <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
                                     <span class="text-muted small">Ngân hàng thụ hưởng:</span>
                                     <strong class="text-dark">

@@ -1,4 +1,4 @@
-<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -944,35 +944,29 @@
                             </div>
                         </div>
 
-                        <div class="pt-3 border-top mt-3">
-                            <span class="text-muted d-block mb-1" style="font-size: 12px;">Tài khoản ngân hàng của khách nhận tiền:</span>
-                            <div class="p-2 bg-white rounded font-weight-bold text-dark font-monospace border" id="approveBankInfo"></div>
-                        </div>
+                        <div class="p-3 bg-white rounded border mt-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fa fa-university text-primary mr-2" style="font-size: 18px;"></i>
+                                <span class="font-weight-bold text-dark" style="font-size: 13.5px;">Tài khoản ngân hàng nhận tiền hoàn của khách:</span>
+                            </div>
+                            <div class="p-2 bg-light rounded font-weight-bold text-dark font-monospace border mb-3" id="approveBankInfo"></div>
 
-                        <!-- VietQR Dynamic Hoàn Tiền Code -->
-                        <div id="refundVietQrSection" class="text-center p-3 bg-white rounded border mt-3" style="display: none;">
-                            <div class="font-weight-bold text-dark mb-1" style="font-size: 13.5px;">
-                                <i class="fa fa-qrcode text-primary mr-1"></i> Quét mã VietQR chuyển tiền hoàn cho khách
+                            <div class="alert alert-info py-2 px-3 mb-0 small" style="line-height: 1.5;">
+                                <i class="fa fa-shield text-primary mr-1"></i>
+                                <strong>Cơ chế hoàn tiền tự động (Model 2):</strong> Khi bấm Duyệt, hệ thống sẽ <strong>khấu trừ trực tiếp số tiền hoàn từ Số dư Ví Host</strong> của bạn để giải ngân hoàn tiền trực tiếp vào tài khoản ngân hàng của khách hàng. Host không cần phải mở app ngân hàng chuyển tiền thủ công ngoài đời.
                             </div>
-                            <small class="text-muted d-block mb-2">Host mở App Ngân hàng quét mã để chuyển tiền trực tiếp trả lại khách</small>
-                            <div class="d-flex justify-content-center my-2">
-                                <img id="refundVietQrImg" src="" alt="Mã VietQR hoàn tiền" class="img-fluid border rounded shadow-sm" style="max-width: 220px;" />
-                            </div>
-                            <small class="text-muted font-italic">
-                                <i class="fa fa-info-circle mr-1"></i>Mã QR đã tích hợp sẵn STK nhận, số tiền hoàn và nội dung chuyển khoản.
-                            </small>
                         </div>
                     </div>
 
                     <div class="form-group mb-0">
                         <label class="font-weight-bold text-dark" style="font-size: 13px;">Ghi chú duyệt hoàn tiền:</label>
-                        <input type="text" name="hostNote" class="form-control" placeholder="Ví dụ: Đã quét VietQR chuyển tiền hoàn trả..." value="Host đã chuyển tiền hoàn qua VietQR và trừ Ví" />
+                        <input type="text" name="hostNote" class="form-control" placeholder="Ghi chú hoàn tiền..." value="Hệ thống đã khấu trừ Ví Host và hoàn tất giải ngân cho khách" />
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-dismiss="modal">Đóng</button>
                     <button type="submit" id="btnConfirmApprove" class="btn btn-success rounded-pill px-4 font-weight-bold">
-                        <i class="fa fa-check mr-1"></i> Xác Nhận Đã Chuyển Tiền Hoàn & Trừ Ví
+                        <i class="fa fa-check-circle mr-1"></i> Duyệt Hoàn Tiền Từ Ví Host
                     </button>
                 </div>
             </form>
@@ -1086,52 +1080,7 @@
         var formatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
         document.getElementById('approveAmount').textContent = formatted;
 
-        // Generate VietQR dynamic code for refunding customer
-        var qrSection = document.getElementById('refundVietQrSection');
-        var qrImg = document.getElementById('refundVietQrImg');
 
-        if (bankInfo && bankInfo.indexOf('-') > -1) {
-            var parts = bankInfo.split('-');
-            var rawBank = parts[0].trim();
-            var rest = parts.slice(1).join('-').trim();
-            
-            var accNo = '';
-            var holder = customerName || '';
-            
-            var parenIdx = rest.indexOf('(');
-            if (parenIdx > -1) {
-                accNo = rest.substring(0, parenIdx).trim();
-                var closeParen = rest.indexOf(')', parenIdx);
-                if (closeParen > -1) {
-                    holder = rest.substring(parenIdx + 1, closeParen).trim();
-                }
-            } else {
-                accNo = rest.trim();
-            }
-
-            var bankUpper = rawBank.toUpperCase();
-            var bankCode = 'MB'; // fallback default
-            if (bankUpper.indexOf('VIETCOMBANK') > -1 || bankUpper.indexOf('VCB') > -1) bankCode = 'VCB';
-            else if (bankUpper.indexOf('MB') > -1) bankCode = 'MB';
-            else if (bankUpper.indexOf('TPBANK') > -1 || bankUpper.indexOf('TPB') > -1) bankCode = 'TPB';
-            else if (bankUpper.indexOf('TECHCOM') > -1 || bankUpper.indexOf('TCB') > -1) bankCode = 'TCB';
-            else if (bankUpper.indexOf('BIDV') > -1) bankCode = 'BIDV';
-            else if (bankUpper.indexOf('AGRI') > -1 || bankUpper.indexOf('VBA') > -1) bankCode = 'VBA';
-            else if (bankUpper.indexOf('VIETIN') > -1 || bankUpper.indexOf('ICB') > -1) bankCode = 'ICB';
-            else if (bankUpper.indexOf('VPBANK') > -1 || bankUpper.indexOf('VPB') > -1) bankCode = 'VPB';
-            else if (bankUpper.indexOf('ACB') > -1) bankCode = 'ACB';
-            else if (bankUpper.indexOf('OCB') > -1) bankCode = 'OCB';
-            else if (bankUpper.indexOf('SACOM') > -1 || bankUpper.indexOf('STB') > -1) bankCode = 'STB';
-
-            var qrUrl = 'https://img.vietqr.io/image/' + bankCode + '-' + encodeURIComponent(accNo) + '-compact2.png'
-                      + '?amount=' + Math.round(amount)
-                      + '&addInfo=' + encodeURIComponent('HOAN TIEN ' + bookingCode)
-                      + '&accountName=' + encodeURIComponent(holder);
-            qrImg.src = qrUrl;
-            qrSection.style.display = 'block';
-        } else {
-            qrSection.style.display = 'none';
-        }
 
         // Balance calculation
         var balanceAfter = currentHostBalance - amount;
