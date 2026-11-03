@@ -134,6 +134,15 @@ public class BookingController extends HttpServlet {
         List<Room> rooms = roomDAO.findAll();
         request.setAttribute("rooms", rooms);
         request.setAttribute("step", "1");
+        request.setAttribute("minStay", MIN_STAY_NIGHTS);
+        request.setAttribute("maxStay", MAX_STAY_NIGHTS);
+        request.setAttribute("todayDate", LocalDate.now().toString());
+        String cIn = request.getParameter("checkin_date");
+        if (cIn == null || cIn.isBlank()) { cIn = request.getParameter("check_in"); }
+        if (cIn != null && !cIn.isBlank()) { request.setAttribute("checkinDate", cIn); }
+        String cOut = request.getParameter("checkout_date");
+        if (cOut == null || cOut.isBlank()) { cOut = request.getParameter("check_out"); }
+        if (cOut != null && !cOut.isBlank()) { request.setAttribute("checkoutDate", cOut); }
 
         String roomIdParam = request.getParameter("roomId");
         if (roomIdParam == null || roomIdParam.isEmpty()) {
@@ -163,8 +172,10 @@ public class BookingController extends HttpServlet {
     private void handlePostStep1(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String roomIdStr = request.getParameter("room_id");
-        String checkInStr = request.getParameter("check_in");
-        String checkOutStr = request.getParameter("check_out");
+        String checkInStr = request.getParameter("checkin_date");
+        if (checkInStr == null || checkInStr.isBlank()) { checkInStr = request.getParameter("check_in"); }
+        String checkOutStr = request.getParameter("checkout_date");
+        if (checkOutStr == null || checkOutStr.isBlank()) { checkOutStr = request.getParameter("check_out"); }
         String adultsStr = request.getParameter("adults");
         String childrenStr = request.getParameter("children");
 

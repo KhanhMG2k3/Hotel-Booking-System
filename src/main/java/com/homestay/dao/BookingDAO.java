@@ -594,6 +594,11 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
                 psRoom.addBatch();
             }
             psRoom.executeBatch();
+            try (PreparedStatement syncPs = conn.prepareStatement(
+                    "UPDATE bookings SET booking_id = id, total_amount = total_price, property_id = COALESCE((SELECT property_id FROM rooms WHERE room_id = bookings.room_id), 1) WHERE id = ?")) {
+                syncPs.setInt(1, bookingId);
+                syncPs.executeUpdate();
+            } catch (SQLException ignored) {}
 
             conn.commit();
             return true;
