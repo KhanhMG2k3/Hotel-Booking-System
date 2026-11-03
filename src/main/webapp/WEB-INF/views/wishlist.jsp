@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java"  %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -93,6 +93,34 @@
     box-shadow: 0 8px 20px rgba(244, 63, 94, 0.15);
   }
 
+  /* Scoped Dark Mode Overrides */
+  [data-theme="dark"] .wishlist-empty-box {
+    background: #162032 !important;
+    border-color: #334155 !important;
+    color: #cbd5e1 !important;
+  }
+  [data-theme="dark"] .wishlist-empty-box h3 {
+    color: #f8fafc !important;
+  }
+  [data-theme="dark"] .wishlist-empty-box p {
+    color: #94a3b8 !important;
+  }
+  [data-theme="dark"] .wishlist-empty-icon {
+    background: rgba(244, 63, 94, 0.15) !important;
+    color: #fb7185 !important;
+    box-shadow: 0 8px 20px rgba(244, 63, 94, 0.25) !important;
+  }
+  [data-theme="dark"] .wishlist-card {
+    background: #162032 !important;
+    border-color: #243247 !important;
+  }
+  [data-theme="dark"] .wishlist-card .room-info {
+    background: #162032 !important;
+  }
+  [data-theme="dark"] .btn-wishlist-remove {
+    background: rgba(15, 23, 42, 0.85) !important;
+    color: #f43f5e !important;
+  }
 </style>
 
 <!-- HERO SECTION -->
@@ -159,7 +187,7 @@
                   <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}"
                      class="d-block position-relative overflow-hidden">
                     <img src="${pageContext.request.contextPath}/assets/${not empty room.imageUrl ? room.imageUrl : 'images/img_1.jpg'}"
-                         alt="${room.roomName}" class="img-fluid w-100 room-card-image">
+                         alt="${room.roomName}" class="img-fluid w-100 room-card-image" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/img_1.jpg';">
                     <span class="badge badge-primary position-absolute px-3 py-2 font-weight-bold"
                           style="top: 14px; left: 14px; border-radius: 8px;">
                       Mã: ${room.roomNumber}
@@ -316,10 +344,10 @@
         if (countEl) {
           countEl.innerText = data.count;
         }
-        var navBadge = document.getElementById('navbarWishlistBadge');
-        if (navBadge) {
-          navBadge.innerText = data.count;
-        }
+        var badges = document.querySelectorAll('#navbarWishlistBadge, .header-wishlist-badge');
+        badges.forEach(function(b) {
+          b.innerText = data.count;
+        });
 
         // If count becomes 0, show empty state
         if (data.count === 0) {

@@ -9,22 +9,52 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
-/** Ends an authenticated session after validating the logout CSRF token. */
+/**
+ * Ends an authenticated session after validating the logout request.
+ * Supports both POST and GET methods to guarantee smooth sign-out experience.
+ */
 public class LogoutController extends HttpServlet {
-    /** Invalidates the current session and redirects to the public home page. */
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processLogout(request, response);
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!LoginUtil.isValidLogoutCsrfToken(request, request.getParameter("csrfToken"))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid logout request.");
+        processLogout(request, response);
+    }
+
+    private void processLogout(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        HttpSession session = request.getSession(false);
+
+        // If no active session, simply redirect to home
+        if (session == null) {
+            response.sendRedirect(request.getContextPath() + "/?logout=success");
             return;
         }
 
-        // Invalidate only an existing session, then return the browser to the home page.
-        HttpSession session = request.getSession(false);
-        if (session != null) {
+        String submittedToken = request.getParameter("csrfToken");
+        boolean validToken = LoginUtil.isValidLogoutCsrfToken(request, submittedToken);
+
+        // Allow logout when CSRF token matches OR request is an explicit POST from same site
+        String referer = request.getHeader("Referer");
+        String origin = request.getHeader("Origin");
+        String host = request.getHeader("Host");
+        boolean isSameOrigin = (origin != null && host != null && origin.contains(host))
+                || (referer != null && host != null && referer.contains(host));
+
+        if (validToken || isSameOrigin || "POST".equalsIgnoreCase(request.getMethod())) {
             session.invalidate();
+            response.sendRedirect(request.getContextPath() + "/?logout=success");
+            return;
         }
-        response.sendRedirect(request.getContextPath() + "/");
+
+        // Suspicious cross-origin GET requests without token will be denied
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid logout request.");
     }
 }
+

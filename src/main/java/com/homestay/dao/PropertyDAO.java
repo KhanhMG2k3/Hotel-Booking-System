@@ -411,7 +411,7 @@ public class PropertyDAO {
     public int createFromApprovedApplication(Connection connection, int applicationId)
             throws SQLException {
         String insertPropertySql = "INSERT INTO properties " +
-                "(owner_id, application_id, property_name, property_type, description, address, " +
+                "(host_id, application_id, property_name, property_type, description, address, " +
                 "city, district, ward, latitude, longitude, room_count, max_guests, status) " +
                 "SELECT a.user_id, a.id, a.property_name, a.property_type, a.property_description, " +
                 "a.property_address, a.property_city, a.property_district, a.property_ward, " +
@@ -601,6 +601,16 @@ public class PropertyDAO {
                     }
                 }
                 replaceAmenities(connection, roomId, room.getAmenities());
+                String syncSql = "UPDATE roomtypes rt JOIN rooms r ON rt.room_type_id = r.room_type_id " +
+                        "SET rt.room_name = ?, rt.base_price = ?, rt.max_guests = ? " +
+                        "WHERE r.room_id = ?";
+                try (PreparedStatement syncStmt = connection.prepareStatement(syncSql)) {
+                    syncStmt.setString(1, room.getRoomName().trim());
+                    syncStmt.setBigDecimal(2, room.getPricePerNight());
+                    syncStmt.setInt(3, room.getMaxGuests());
+                    syncStmt.setInt(4, roomId);
+                    syncStmt.executeUpdate();
+                }
                 updatePropertyCapacity(connection, propertyId);
                 connection.commit();
                 return true;
@@ -608,6 +618,29 @@ public class PropertyDAO {
                 connection.rollback();
                 throw e;
             }
+        }
+    }
+
+    /**
+     * Updates direct room details from host modal.
+     */
+    public boolean updateRoomDetails(Room room) {
+        if (room == null || room.getId() <= 0) {
+            return false;
+        }
+        String sql = "UPDATE rooms SET room_name = ?, price_per_night = ?, capacity = ?, bed_count = ?, bathroom_count = ?, status = ? WHERE room_id = ?";
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, room.getRoomName());
+            ps.setBigDecimal(2, room.getPricePerNight());
+            ps.setInt(3, room.getCapacity());
+            ps.setInt(4, room.getBedCount());
+            ps.setInt(5, room.getBathroomCount());
+            ps.setString(6, room.getStatus());
+            ps.setInt(7, room.getId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            return false;
         }
     }
 

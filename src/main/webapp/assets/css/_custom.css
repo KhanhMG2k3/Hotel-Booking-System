@@ -224,9 +224,29 @@
   text-decoration: none !important;
 }
 
+.site-header.header-solid .header-wishlist-link {
+  color: #e63946 !important;
+}
+
 .header-notification-list {
   max-height: min(360px, 100vh - 170px);
   overflow-y: auto;
+}
+
+.dropdown-notif-item {
+  cursor: pointer;
+  transition: background 0.2s ease;
+  background: var(--bg-card, #ffffff);
+}
+.dropdown-notif-item:hover {
+  background: var(--bg-card-hover, #f8fafc);
+}
+.dropdown-notif-item.unread {
+  background: var(--bg-unread, #f4f8ff);
+  font-weight: 500;
+}
+.dropdown-notif-item.unread:hover {
+  background: var(--bg-unread-hover, #eef5ff);
 }
 
 .notif-footer-link {

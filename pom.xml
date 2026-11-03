@@ -13,6 +13,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.release>17</maven.compiler.release>
         <tomcat.version>10.1.20</tomcat.version>
         <mysql.version>8.3.0</mysql.version>
@@ -74,6 +75,18 @@
             <version>2.0.3</version>
         </dependency>
 
+        <!-- ZXing: Generate VietQR images -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+
         <!-- JUnit 5 for Unit Testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -105,26 +118,30 @@
             <version>1.3</version>
             <scope>test</scope>
         </dependency>
-        
-        <!--Bcrypt-->
+
+        <!-- Bcrypt -->
         <dependency>
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
             <version>0.4</version>
         </dependency>
-        
-        <!--jakarta.servlet-->
+
+        <!-- Jakarta Servlet -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <version>6.0.0</version>
             <scope>provided</scope>
         </dependency>
-        
         <dependency>
             <groupId>com.google.http-client</groupId>
             <artifactId>google-http-client-jackson2</artifactId>
             <version>1.45.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.17.2</version>
         </dependency>
     </dependencies>
 
@@ -140,14 +157,16 @@
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
-                    <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+                    <argLine>-Dfile.encoding=UTF-8 -Dnet.bytebuddy.experimental=true</argLine>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
@@ -167,13 +186,14 @@
                         <artifactId>flyway-mysql</artifactId>
                         <version>10.15.2</version>
                     </dependency>
-                    <dependency>
+                                        <dependency>
                         <groupId>com.mysql</groupId>
                         <artifactId>mysql-connector-j</artifactId>
                         <version>${mysql.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
@@ -189,8 +209,28 @@
                 <version>3.2.0</version>
                 <configuration>
                     <mainClass>com.homestay.ServerRunner</mainClass>
+                    <systemProperties>
+                        <systemProperty>
+                            <key>file.encoding</key>
+                            <value>UTF-8</value>
+                        </systemProperty>
+                        <systemProperty>
+                            <key>sun.jnu.encoding</key>
+                            <value>UTF-8</value>
+                        </systemProperty>
+                        <systemProperty>
+                            <key>stdout.encoding</key>
+                            <value>UTF-8</value>
+                        </systemProperty>
+                        <systemProperty>
+                            <key>stderr.encoding</key>
+                            <value>UTF-8</value>
+                        </systemProperty>
+                    </systemProperties>
                 </configuration>
             </plugin>
         </plugins>
     </build>
 </project>
+
+

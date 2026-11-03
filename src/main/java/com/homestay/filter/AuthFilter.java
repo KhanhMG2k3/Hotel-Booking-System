@@ -22,10 +22,14 @@ import java.io.IOException;
         "/become-host/*",
         "/profile",
         "/profile/*",
+        "/my-bookings",
+        "/my-bookings/*",
         "/booking",
         "/booking/*",
         "/support",
-        "/support/*"
+        "/support/*",
+        "/checkout",
+        "/checkout/*"
 })
 public class AuthFilter implements Filter {
 

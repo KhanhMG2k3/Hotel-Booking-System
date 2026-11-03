@@ -42,7 +42,11 @@ public class WishlistController extends HttpServlet {
 
         // API Endpoint: Count
         if ("/api/wishlist/count".equals(path)) {
-            sendJsonCountResponse(response, userId != null ? wishlistDAO.getWishlistCount(userId) : 0, userId != null);
+            int count = userId != null ? wishlistDAO.getWishlistCount(userId) : 0;
+            if (session != null) {
+                session.setAttribute("wishlistCount", count);
+            }
+            sendJsonCountResponse(response, count, userId != null);
             return;
         }
 
@@ -110,9 +114,12 @@ public class WishlistController extends HttpServlet {
 
         if ("clear".equalsIgnoreCase(action)) {
             wishlistDAO.clearAll(userId);
+            if (session != null) {
+                session.setAttribute("wishlistCount", 0);
+            }
             if (isAjax) {
                 sendJsonResponse(response, HttpServletResponse.SC_OK,
-                        "{\"success\": true, \"count\": 0, \"message\": \"Đã làm trống danh sách yêu thích!\"}");
+                        "{\"success\": true, \"isWishlisted\": false, \"action\": \"cleared\", \"count\": 0, \"wishlistCount\": 0, \"message\": \"Đã làm trống danh sách yêu thích!\"}");
             } else {
                 response.sendRedirect(request.getContextPath() + "/wishlist");
             }
@@ -132,9 +139,13 @@ public class WishlistController extends HttpServlet {
         if ("remove".equalsIgnoreCase(action)) {
             boolean removed = wishlistDAO.removeRoom(userId, roomId);
             int count = wishlistDAO.getWishlistCount(userId);
+            if (session != null) {
+                session.setAttribute("wishlistCount", count);
+            }
             if (isAjax) {
                 sendJsonResponse(response, HttpServletResponse.SC_OK,
-                        "{\"success\": true, \"isWishlisted\": false, \"count\": " + count +
+                        "{\"success\": true, \"isWishlisted\": false, \"action\": \"removed\", \"count\": " + count +
+                                ", \"wishlistCount\": " + count +
                                 ", \"message\": \"Đã bỏ phòng khỏi danh sách yêu thích!\"}");
             } else {
                 String referer = request.getHeader("Referer");
@@ -146,11 +157,18 @@ public class WishlistController extends HttpServlet {
         // Default action: toggle
         boolean isAdded = wishlistDAO.toggleRoomWishlist(userId, roomId);
         int count = wishlistDAO.getWishlistCount(userId);
+        if (session != null) {
+            session.setAttribute("wishlistCount", count);
+        }
+        String actionStr = isAdded ? "added" : "removed";
         String msg = isAdded ? "Đã thêm vào danh sách yêu thích!" : "Đã bỏ khỏi danh sách yêu thích!";
 
         if (isAjax) {
             sendJsonResponse(response, HttpServletResponse.SC_OK,
-                    "{\"success\": true, \"isWishlisted\": " + isAdded + ", \"count\": " + count +
+                    "{\"success\": true, \"isWishlisted\": " + isAdded +
+                            ", \"action\": \"" + actionStr + "\"" +
+                            ", \"count\": " + count +
+                            ", \"wishlistCount\": " + count +
                             ", \"message\": \"" + msg + "\"}");
         } else {
             String referer = request.getHeader("Referer");
@@ -169,6 +187,6 @@ public class WishlistController extends HttpServlet {
 
     private void sendJsonCountResponse(HttpServletResponse response, int count, boolean loggedIn) throws IOException {
         sendJsonResponse(response, HttpServletResponse.SC_OK,
-                "{\"count\": " + count + ", \"loggedIn\": " + loggedIn + "}");
+                "{\"count\": " + count + ", \"wishlistCount\": " + count + ", \"loggedIn\": " + loggedIn + "}");
     }
 }

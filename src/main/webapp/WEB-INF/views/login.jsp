@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java"  %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <%-- Login flow: authenticate with account credentials or Google, with registration fallback. --%>

@@ -1,8 +1,213 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- Shared responsive site header: brand logo, quick actions, collapsible desktop links, user menu, and side drawer. --%>
+
+<%-- Scoped Dark Mode Styles for Header Notification Bell & Dropdown --%>
+<style>
+/* Notification Bell Button */
+[data-theme="dark"] .header-notification-link,
+html.dark-mode .header-notification-link,
+body.dark-mode .header-notification-link,
+[data-theme="dark"] .site-header .header-notification-link,
+html.dark-mode .site-header .header-notification-link,
+body.dark-mode .site-header .header-notification-link,
+[data-theme="dark"] .site-header.scrolled .header-notification-link,
+html.dark-mode .site-header.scrolled .header-notification-link,
+body.dark-mode .site-header.scrolled .header-notification-link,
+[data-theme="dark"] .site-header.header-solid .header-notification-link,
+html.dark-mode .site-header.header-solid .header-notification-link,
+body.dark-mode .site-header.header-solid .header-notification-link {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(251, 191, 36, 0.35) !important;
+    color: #fbbf24 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
+[data-theme="dark"] .header-notification-link .fa-bell,
+[data-theme="dark"] .header-notification-link i,
+html.dark-mode .header-notification-link .fa-bell,
+html.dark-mode .header-notification-link i,
+body.dark-mode .header-notification-link .fa-bell,
+body.dark-mode .header-notification-link i,
+[data-theme="dark"] .site-header .header-notification-link .fa-bell,
+[data-theme="dark"] .site-header .header-notification-link i,
+html.dark-mode .site-header .header-notification-link .fa-bell,
+html.dark-mode .site-header .header-notification-link i {
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .header-notification-link:hover,
+html.dark-mode .header-notification-link:hover,
+body.dark-mode .header-notification-link:hover,
+[data-theme="dark"] .site-header .header-notification-link:hover,
+html.dark-mode .site-header .header-notification-link:hover,
+[data-theme="dark"] .site-header.scrolled .header-notification-link:hover,
+html.dark-mode .site-header.scrolled .header-notification-link:hover,
+[data-theme="dark"] .site-header.header-solid .header-notification-link:hover,
+html.dark-mode .site-header.header-solid .header-notification-link:hover {
+    background: #fbbf24 !important;
+    color: #0f172a !important;
+    border-color: #fbbf24 !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.5) !important;
+}
+
+[data-theme="dark"] .header-notification-link:hover .fa-bell,
+[data-theme="dark"] .header-notification-link:hover i,
+html.dark-mode .header-notification-link:hover .fa-bell,
+html.dark-mode .header-notification-link:hover i {
+    color: #0f172a !important;
+}
+
+[data-theme="dark"] .header-notification-badge,
+html.dark-mode .header-notification-badge,
+body.dark-mode .header-notification-badge {
+    background: #dc3545 !important;
+    color: #ffffff !important;
+    border-color: #0f172a !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Notification Dropdown Box */
+[data-theme="dark"] .notification-header-dropdown,
+html.dark-mode .notification-header-dropdown,
+body.dark-mode .notification-header-dropdown {
+    background: #162032 !important;
+    border: 1px solid #243247 !important;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="dark"] .header-notification-list,
+html.dark-mode .header-notification-list,
+body.dark-mode .header-notification-list {
+    background: #162032 !important;
+}
+
+/* Dropdown Header & Footer Bars */
+[data-theme="dark"] .notification-header-dropdown .notif-header-box,
+html.dark-mode .notification-header-dropdown .notif-header-box,
+body.dark-mode .notification-header-dropdown .notif-header-box,
+[data-theme="dark"] .notification-header-dropdown .notif-footer-box,
+html.dark-mode .notification-header-dropdown .notif-footer-box,
+body.dark-mode .notification-header-dropdown .notif-footer-box,
+[data-theme="dark"] .notification-header-dropdown .bg-light,
+html.dark-mode .notification-header-dropdown .bg-light,
+body.dark-mode .notification-header-dropdown .bg-light {
+    background: #111827 !important;
+    border-color: #243247 !important;
+}
+
+[data-theme="dark"] .notif-dropdown-title,
+html.dark-mode .notif-dropdown-title,
+body.dark-mode .notif-dropdown-title,
+[data-theme="dark"] .notif-dropdown-title.text-dark,
+html.dark-mode .notif-dropdown-title.text-dark {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .notif-mark-read-btn,
+html.dark-mode .notif-mark-read-btn,
+body.dark-mode .notif-mark-read-btn,
+[data-theme="dark"] .notif-footer-link,
+html.dark-mode .notif-footer-link,
+body.dark-mode .notif-footer-link {
+    color: #ffba5a !important;
+}
+
+[data-theme="dark"] .notif-mark-read-btn:hover,
+html.dark-mode .notif-mark-read-btn:hover,
+[data-theme="dark"] .notif-footer-link:hover,
+html.dark-mode .notif-footer-link:hover {
+    color: #ffd285 !important;
+}
+
+/* Notification Items inside Dropdown */
+[data-theme="dark"] .dropdown-notif-item,
+html.dark-mode .dropdown-notif-item,
+body.dark-mode .dropdown-notif-item {
+    background: #162032 !important;
+    border-bottom: 1px solid #243247 !important;
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .dropdown-notif-item:hover,
+html.dark-mode .dropdown-notif-item:hover,
+body.dark-mode .dropdown-notif-item:hover {
+    background: #1c2a42 !important;
+}
+
+[data-theme="dark"] .dropdown-notif-item.unread,
+html.dark-mode .dropdown-notif-item.unread,
+body.dark-mode .dropdown-notif-item.unread {
+    background: #1a273f !important;
+    border-left: 3px solid #3b82f6 !important;
+}
+
+[data-theme="dark"] .dropdown-notif-item.unread:hover,
+html.dark-mode .dropdown-notif-item.unread:hover,
+body.dark-mode .dropdown-notif-item.unread:hover {
+    background: #223352 !important;
+}
+
+[data-theme="dark"] .dropdown-notif-item .text-dark,
+html.dark-mode .dropdown-notif-item .text-dark,
+body.dark-mode .dropdown-notif-item .text-dark,
+[data-theme="dark"] .dropdown-notif-item .notif-item-title,
+html.dark-mode .dropdown-notif-item .notif-item-title,
+body.dark-mode .dropdown-notif-item .notif-item-title {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .dropdown-notif-item .text-muted,
+html.dark-mode .dropdown-notif-item .text-muted,
+body.dark-mode .dropdown-notif-item .text-muted,
+[data-theme="dark"] .dropdown-notif-item .notif-item-message,
+html.dark-mode .dropdown-notif-item .notif-item-message,
+[data-theme="dark"] .dropdown-notif-item .notif-item-time,
+html.dark-mode .dropdown-notif-item .notif-item-time,
+[data-theme="dark"] .header-notification-list .text-muted,
+html.dark-mode .header-notification-list .text-muted,
+body.dark-mode .header-notification-list .text-muted {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .header-notification-list .text-center,
+html.dark-mode .header-notification-list .text-center,
+body.dark-mode .header-notification-list .text-center,
+[data-theme="dark"] .notif-empty-state,
+html.dark-mode .notif-empty-state,
+body.dark-mode .notif-empty-state {
+    background: #162032 !important;
+    color: #94a3b8 !important;
+}
+
+/* Category Icons inside Notification Items */
+[data-theme="dark"] .dropdown-notif-item .text-primary,
+html.dark-mode .dropdown-notif-item .text-primary {
+    color: #60a5fa !important;
+}
+[data-theme="dark"] .dropdown-notif-item .text-warning,
+html.dark-mode .dropdown-notif-item .text-warning {
+    color: #fbbf24 !important;
+}
+[data-theme="dark"] .dropdown-notif-item .text-info,
+html.dark-mode .dropdown-notif-item .text-info {
+    color: #38bdf8 !important;
+}
+[data-theme="dark"] .dropdown-notif-item .text-success,
+html.dark-mode .dropdown-notif-item .text-success {
+    color: #34d399 !important;
+}
+[data-theme="dark"] .dropdown-notif-item .text-danger,
+html.dark-mode .dropdown-notif-item .text-danger {
+    color: #f87171 !important;
+}
+</style>
+
 <header class="site-header js-site-header">
     <div class="container-fluid">
         <div class="header-bar-row">
@@ -30,7 +235,7 @@
                             <!-- POPUP DROPDOWN TOP 5 THÔNG BÁO -->
                             <div class="notification-header-dropdown shadow-lg" id="notificationHeaderDropdown" role="region" aria-label="Thông báo gần đây">
 
-                                <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+                                <div class="d-flex justify-content-between align-items-center p-3 border-bottom notif-header-box bg-light">
                                     <span class="font-weight-bold text-dark notif-dropdown-title">
                                         <i class="fa fa-bell text-warning mr-1"></i> Thông báo
                                     </span>
@@ -41,13 +246,11 @@
 
                                 <!-- Danh sách 5 thông báo nạp động qua AJAX -->
                                 <div id="headerNotificationList" class="header-notification-list">
-                                    <div class="text-center py-4 text-muted small">
-                                        <i class="fa fa-spinner fa-spin mr-1"></i> Đang tải thông báo...
-                                    </div>
+                                    <div class="text-center py-4 text-muted small notif-empty-state"><i class="fa fa-spinner fa-spin mr-1"></i> Đang tải thông báo...</div>
                                 </div>
 
                                 <!-- Footer dẫn sang trang đầy đủ -->
-                                <div class="p-2 text-center border-top bg-light">
+                                <div class="p-2 text-center border-top notif-footer-box bg-light">
                                     <a href="${pageContext.request.contextPath}/notifications" class="small text-primary font-weight-bold notif-footer-link">
                                         Xem tất cả thông báo <i class="fa fa-arrow-right ml-1"></i>
                                     </a>
@@ -66,6 +269,28 @@
                         <!-- Dấu gạch đứng phân cách nhẹ -->
                         <span class="auth-divider" aria-hidden="true">|</span>
                     </div>
+
+                    <!-- NÚT GẠT CHUYỂN ĐỔI LIGHT / DARK MODE (DESKTOP) -->
+                    <div class="theme-toggle-wrapper" title="Chuyển đổi giao diện Sáng / Tối">
+                        <button type="button" class="theme-toggle-btn" id="desktopThemeToggleBtn" role="switch" aria-checked="false" aria-label="Chuyển đổi giao diện sáng/tối">
+                            <span class="theme-toggle-track">
+                                <span class="theme-toggle-icon icon-sun" title="Chế độ Sáng">
+                                    <i class="fa fa-sun-o"></i>
+                                </span>
+                                <span class="theme-toggle-icon icon-moon" title="Chế độ Tối">
+                                    <i class="fa fa-moon-o"></i>
+                                </span>
+                                <span class="theme-toggle-thumb">
+                                    <span class="thumb-icon-sun"><i class="fa fa-sun-o"></i></span>
+                                    <span class="thumb-icon-moon"><i class="fa fa-moon-o"></i></span>
+                                </span>
+                            </span>
+                            <span class="theme-toggle-label d-none d-xl-inline">Sáng</span>
+                        </button>
+                    </div>
+
+                    <!-- Dấu gạch đứng phân cách nhẹ -->
+                    <span class="auth-divider text-white-50 mx-2" style="user-select: none;">|</span>
 
                     <c:choose>
                         <c:when test="${not empty sessionScope.userId}">
@@ -116,10 +341,10 @@
                                         <c:if test="${not empty sessionScope.userEmail or not empty sessionScope.email}">
                                             <span class="user-dropdown-email"><c:out value="${not empty sessionScope.userEmail ? sessionScope.userEmail : sessionScope.email}" /></span>
                                         </c:if>
-                                        <c:set var="uRoleName" value="${fn:toUpperCase(not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : (not empty sessionScope.role ? sessionScope.role : ''))}" />
-                                        <c:set var="uRoleId" value="${not empty sessionScope.roleId ? sessionScope.roleId : sessionScope.user.roleId}" />
-                                        <c:set var="isUserAdmin" value="${uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN' || uRoleName == 'ADMINISTRATOR' || (empty uRoleName && (uRoleId == 1 || uRoleId == 5))}" />
-                                        <c:set var="isUserHost" value="${uRoleName == 'HOST' || uRoleName == 'ROLE_HOST' || uRoleName == 'HOTEL_OWNER' || (empty uRoleName && uRoleId == 3)}" />
+                                        <c:set var="uRoleName" value="${fn:toUpperCase(not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : (not empty sessionScope.user.role.name ? sessionScope.user.role.name : (not empty sessionScope.role ? sessionScope.role : '')))}" />
+                                        <c:set var="uRoleId" value="${not empty sessionScope.roleId ? sessionScope.roleId : (not empty sessionScope.user.roleId ? sessionScope.user.roleId : (not empty sessionScope.user.role.id ? sessionScope.user.role.id : 0))}" />
+                                        <c:set var="isUserAdmin" value="${uRoleName == 'ADMIN' || uRoleName == 'ROLE_ADMIN' || uRoleName == 'ADMINISTRATOR' || uRoleId == 1 || uRoleId == 5}" />
+                                        <c:set var="isUserHost" value="${uRoleName == 'HOST' || uRoleName == 'ROLE_HOST' || uRoleName == 'HOTEL_OWNER' || uRoleId == 3}" />
                                         <c:choose>
                                             <c:when test="${isUserAdmin}">
                                                 <span class="user-role-badge"><i class="fa fa-shield mr-1"></i> Quản trị viên</span>
@@ -159,13 +384,19 @@
                                     </c:if>
                                     <c:if test="${isUserHost}">
                                         <a href="${pageContext.request.contextPath}/host/dashboard" class="user-dropdown-item" role="menuitem">
-                                            <i class="fa fa-dashboard"></i> Host Dashboard
+                                            <i class="fa fa-dashboard"></i> Bảng điều khiển Host
+                                        </a>
+                                        <a href="${pageContext.request.contextPath}/host/calendar" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-calendar-check-o"></i> Lịch Đặt Phòng
                                         </a>
                                         <a href="${pageContext.request.contextPath}/host/vouchers" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-ticket"></i> Quản lý Voucher
                                         </a>
                                         <a href="${pageContext.request.contextPath}/host/reviews" class="user-dropdown-item" role="menuitem">
                                             <i class="fa fa-comments-o"></i> Quản lý Đánh giá
+                                        </a>
+                                        <a href="${pageContext.request.contextPath}/host/refunds" class="user-dropdown-item" role="menuitem">
+                                            <i class="fa fa-undo"></i> Quản lý hoàn tiền
                                         </a>
                                     </c:if>
                                     <c:if test="${isUserAdmin}">
@@ -241,6 +472,29 @@
                         </div>
                         <!-- Thân Drawer cuộn mượt mà -->
                         <div class="drawer-body">
+                            <!-- Chuyển đổi Giao diện Sáng / Tối trong Drawer -->
+                            <div class="drawer-theme-switch-row">
+                                <div class="drawer-theme-info">
+                                    <i class="fa fa-adjust text-warning mr-1" style="font-size: 16px;"></i>
+                                    <div>
+                                        <div class="drawer-theme-title">Giao diện</div>
+                                        <div class="drawer-theme-status" id="drawerThemeStatus">Chế độ Sáng</div>
+                                    </div>
+                                </div>
+                                <div class="theme-toggle-wrapper">
+                                    <button type="button" class="theme-toggle-btn" id="mobileThemeToggleBtn" role="switch" aria-checked="false" aria-label="Chuyển đổi giao diện sáng/tối">
+                                        <span class="theme-toggle-track">
+                                            <span class="theme-toggle-icon icon-sun"><i class="fa fa-sun-o"></i></span>
+                                            <span class="theme-toggle-icon icon-moon"><i class="fa fa-moon-o"></i></span>
+                                            <span class="theme-toggle-thumb">
+                                                <span class="thumb-icon-sun"><i class="fa fa-sun-o"></i></span>
+                                                <span class="thumb-icon-moon"><i class="fa fa-moon-o"></i></span>
+                                            </span>
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+
                             <!-- Thẻ tóm tắt thông tin người dùng (Đã đăng nhập vs Khách) -->
                             <c:choose>
                                 <c:when test="${not empty sessionScope.userId}">
@@ -332,7 +586,7 @@
                                     </li>
                                     <li class="drawer-nav-item ${activePage == 'wishlist' ? 'active' : ''}">
                                         <a href="${pageContext.request.contextPath}/wishlist" class="drawer-nav-link" onclick="closeSiteNavbar()">
-                                            <span class="drawer-nav-icon" style="background:#fff1f2; color:#f43f5e;"><i class="fa fa-heart"></i></span>
+                                            <span class="drawer-nav-icon icon-wishlist"><i class="fa fa-heart"></i></span>
                                             <span class="drawer-nav-text">Danh Sách Yêu Thích</span>
                                             <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                         </a>
@@ -406,7 +660,14 @@
                                             <li class="drawer-nav-item ${activePage == 'host-dashboard' ? 'active' : ''}">
                                                 <a href="${pageContext.request.contextPath}/host/dashboard" class="drawer-nav-link" onclick="closeSiteNavbar()">
                                                     <span class="drawer-nav-icon icon-dashboard"><i class="fa fa-dashboard"></i></span>
-                                                    <span class="drawer-nav-text">Host Dashboard</span>
+                                                    <span class="drawer-nav-text">Bảng Điều Khiển Host</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
+                                            <li class="drawer-nav-item ${activePage == 'host-calendar' ? 'active' : ''}">
+                                                <a href="${pageContext.request.contextPath}/host/calendar" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fa fa-calendar-check-o"></i></span>
+                                                    <span class="drawer-nav-text">Lịch Đặt Phòng</span>
                                                     <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                                 </a>
                                             </li>
@@ -414,6 +675,13 @@
                                                 <a href="${pageContext.request.contextPath}/host/vouchers" class="drawer-nav-link" onclick="closeSiteNavbar()">
                                                     <span class="drawer-nav-icon" style="background:#fef3c7; color:#d97706;"><i class="fa fa-ticket"></i></span>
                                                     <span class="drawer-nav-text">Quản Lý Voucher</span>
+                                                    <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
+                                                </a>
+                                            </li>
+                                            <li class="drawer-nav-item">
+                                                <a href="${pageContext.request.contextPath}/host/refunds" class="drawer-nav-link" onclick="closeSiteNavbar()">
+                                                    <span class="drawer-nav-icon icon-refunds"><i class="fa fa-undo"></i></span>
+                                                    <span class="drawer-nav-text">Quản Lý Hoàn Tiền</span>
                                                     <span class="drawer-nav-arrow"><i class="fa fa-angle-right"></i></span>
                                                 </a>
                                             </li>
@@ -492,7 +760,7 @@
                                 <a href="#" class="drawer-social-btn" title="Youtube"><i class="fa fa-youtube-play"></i></a>
                             </div>
                             <div class="drawer-copyright">
-                                &copy; 2026 Sogo Homestay. All rights reserved.
+                                &copy; 2026 Sogo Homestay. Toàn bộ quyền được bảo lưu.
                             </div>
                         </div>
                     </aside>
@@ -530,8 +798,9 @@
                         Ở lại
                     </button>
                     <form action="${pageContext.request.contextPath}/logout" method="post" class="m-0 d-inline">
-                        <c:if test="${not empty sessionScope.logoutCsrfToken}">
-                            <input type="hidden" name="csrfToken" value="<c:out value='${sessionScope.logoutCsrfToken}' />">
+                        <c:set var="lToken" value="${not empty logoutCsrfToken ? logoutCsrfToken : (not empty sessionScope.logoutCsrfToken ? sessionScope.logoutCsrfToken : '')}" />
+                        <c:if test="${not empty lToken}">
+                            <input type="hidden" name="csrfToken" value="<c:out value='${lToken}' />">
                         </c:if>
                         <button type="submit" class="btn btn-logout px-4 py-2 rounded-pill font-weight-bold">
                             <i class="fa fa-sign-out mr-1"></i> Đăng xuất
@@ -723,7 +992,7 @@
                         })
                         .then(function (data) {
                             if (!data.success || !data.notifications || data.notifications.length === 0) {
-                                notifList.innerHTML = '<div class="text-center py-4 text-muted small"><i class="fa fa-bell-slash-o d-block mb-2" style="font-size:1.8rem;"></i>Không có thông báo mới</div>';
+                                notifList.innerHTML = '<div class="text-center py-4 text-muted small notif-empty-state"><i class="fa fa-bell-slash-o d-block mb-2" style="font-size:1.8rem;"></i>Không có thông báo mới</div>';
                                 return;
                             }
                             if (data.unreadCount > 0) {
@@ -735,15 +1004,15 @@
 
                             var html = '';
                             data.notifications.forEach(function (item) {
-                                var unreadStyle = !item.isRead ? 'background: #f4f8ff; font-weight: 500;' : 'background: #fff;';
-                                html += '<div class="p-3 border-bottom dropdown-notif-item" style="cursor:pointer; transition:background 0.2s; ' + unreadStyle + '" ' +
+                                var unreadClass = !item.isRead ? ' unread' : '';
+                                html += '<div class="p-3 border-bottom dropdown-notif-item' + unreadClass + '" style="cursor:pointer; transition:background 0.2s;" ' +
                                         'onclick="onDropdownNotifClick(' + item.id + ', \'' + (item.targetUrl || '') + '\', ' + item.isRead + ');">' +
                                         '<div class="d-flex align-items-start">' +
                                         '<i class="' + item.iconClass + ' mr-2 mt-1" style="font-size:1.1rem;"></i>' +
                                         '<div class="flex-grow-1" style="min-width:0; overflow-wrap:break-word;">' +
-                                        '<div class="text-dark small font-weight-bold mb-1">' + item.title + '</div>' +
-                                        '<div class="text-muted" style="font-size: 0.78rem; line-height: 1.35; max-height: 2.7em; overflow: hidden;">' + item.message + '</div>' +
-                                        '<div class="text-muted mt-1" style="font-size: 0.72rem;"><i class="fa fa-clock-o mr-1"></i>' + item.timeAgo + '</div>' +
+                                        '<div class="text-dark small font-weight-bold mb-1 notif-item-title">' + item.title + '</div>' +
+                                        '<div class="text-muted notif-item-message" style="font-size: 0.78rem; line-height: 1.35; max-height: 2.7em; overflow: hidden;">' + item.message + '</div>' +
+                                        '<div class="text-muted mt-1 notif-item-time" style="font-size: 0.72rem;"><i class="fa fa-clock-o mr-1"></i>' + item.timeAgo + '</div>' +
                                         '</div>' +
                                         (!item.isRead ? '<span class="ml-2 flex-shrink-0" style="width:8px;height:8px;background:#0d6efd;border-radius:50%;display:inline-block;"></span>' : '') +
                                         '</div>' +

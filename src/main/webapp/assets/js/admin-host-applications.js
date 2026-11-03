@@ -262,7 +262,7 @@
       const view = document.createElement('button');
       view.type = 'button';
       view.className = 'btn btn-sm btn-outline-primary';
-      view.textContent = 'View';
+      view.textContent = 'Xem chi tiết';
       view.dataset.applicationId = application.id;
       view.dataset.action = 'view';
       actions.appendChild(view);
@@ -306,7 +306,7 @@
         link.href = entry.href;
         link.target = '_blank';
         link.rel = 'noopener';
-        link.textContent = entry.value || 'View document';
+        link.textContent = entry.value || 'Xem tài liệu';
         value.appendChild(link);
       } else {
         value.textContent = entry.value === null || entry.value === undefined || entry.value === ''
@@ -323,17 +323,101 @@
  * @param {Array<Object>} rooms - Room records attached to the application.
  * @returns {void}
  */
-  function renderRooms(rooms) {
+  /**
+ * Renders verification documents (CCCD, ownership, business) with visual cards and previews.
+ * @param {Object} application - The application object.
+ * @returns {void}
+ */
+  function renderVerificationDocuments(application) {
+    const section = document.createElement('section');
+    section.className = 'admin-host-detail-section';
+    const heading = document.createElement('h3');
+    heading.className = 'h5 mb-3 font-weight-bold text-dark';
+    heading.innerHTML = '<i class="fa fa-folder-open text-primary mr-2"></i> Giấy tờ xác minh & Định danh pháp lý';
+    section.appendChild(heading);
+
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    // 1. Identity Document (CCCD / Passport)
+    const colIdentity = document.createElement('div');
+    colIdentity.className = 'col-md-4 mb-3';
+    const cardId = document.createElement('div');
+    cardId.className = 'card h-100 p-3 border shadow-sm text-center bg-white';
+    cardId.innerHTML = '<strong class="d-block mb-2 text-dark"><i class="fa fa-id-card text-success mr-1"></i> Định danh CCCD / Hộ chiếu</strong>';
+    if (application.identityDocumentUrl) {
+      const isPdf = String(application.identityDocumentUrl).toLowerCase().includes('.pdf');
+      if (isPdf) {
+        cardId.innerHTML += '<div class="py-3"><i class="fa fa-file-pdf-o fa-3x text-danger mb-2"></i><div class="small font-weight-bold">Tài liệu định danh PDF</div></div>' +
+          '<a href="' + application.identityDocumentUrl + '" target="_blank" class="btn btn-sm btn-outline-danger font-weight-bold mt-auto"><i class="fa fa-eye mr-1"></i> Mở xem file PDF</a>';
+      } else {
+        const img = document.createElement('img');
+        img.src = application.identityDocumentUrl;
+        img.alt = 'CCCD / Identity Document';
+        img.className = 'img-fluid rounded mb-2 border';
+        img.style = 'max-height: 180px; object-fit: contain; cursor: pointer; background: #fafafa;';
+        img.title = 'Bấm để mở ảnh lớn trong tab mới';
+        img.onclick = function () { window.open(application.identityDocumentUrl, '_blank'); };
+        cardId.appendChild(img);
+
+        const link = document.createElement('a');
+        link.href = application.identityDocumentUrl;
+        link.target = '_blank';
+        link.className = 'btn btn-sm btn-outline-primary font-weight-bold mt-auto';
+        link.innerHTML = '<i class="fa fa-external-link mr-1"></i> Mở ảnh gốc';
+        cardId.appendChild(link);
+      }
+    } else {
+      cardId.innerHTML += '<div class="text-muted small py-4">Chưa có tài liệu định danh nào được tải lên.</div>';
+    }
+    colIdentity.appendChild(cardId);
+    row.appendChild(colIdentity);
+
+    // 2. Ownership Document
+    const colOwnership = document.createElement('div');
+    colOwnership.className = 'col-md-4 mb-3';
+    const cardOwn = document.createElement('div');
+    cardOwn.className = 'card h-100 p-3 border shadow-sm text-center bg-white';
+    cardOwn.innerHTML = '<strong class="d-block mb-2 text-dark"><i class="fa fa-building-o text-info mr-1"></i> Quyền sở hữu / Thuê nhà</strong>';
+    if (application.ownershipDocumentUrl) {
+      cardOwn.innerHTML += '<div class="py-3"><i class="fa fa-file-text-o fa-3x text-info mb-2"></i><div class="small font-weight-bold">Tài liệu chủ quyền / Thuê</div></div>' +
+        '<a href="' + application.ownershipDocumentUrl + '" target="_blank" class="btn btn-sm btn-outline-info font-weight-bold mt-auto"><i class="fa fa-eye mr-1"></i> Xem tài liệu</a>';
+    } else {
+      cardOwn.innerHTML += '<div class="text-muted small py-4">Chưa tải lên tài liệu sở hữu.</div>';
+    }
+    colOwnership.appendChild(cardOwn);
+    row.appendChild(colOwnership);
+
+    // 3. Business Document
+    const colBusiness = document.createElement('div');
+    colBusiness.className = 'col-md-4 mb-3';
+    const cardBiz = document.createElement('div');
+    cardBiz.className = 'card h-100 p-3 border shadow-sm text-center bg-white';
+    cardBiz.innerHTML = '<strong class="d-block mb-2 text-dark"><i class="fa fa-certificate text-warning mr-1"></i> Giấy phép kinh doanh</strong>';
+    if (application.businessDocumentUrl) {
+      cardBiz.innerHTML += '<div class="py-3"><i class="fa fa-certificate fa-3x text-warning mb-2"></i><div class="small font-weight-bold">Giấy phép KD</div></div>' +
+        '<a href="' + application.businessDocumentUrl + '" target="_blank" class="btn btn-sm btn-outline-warning font-weight-bold mt-auto"><i class="fa fa-eye mr-1"></i> Xem giấy phép</a>';
+    } else {
+      cardBiz.innerHTML += '<div class="text-muted small py-4">Chưa có giấy phép (Tùy chọn).</div>';
+    }
+    colBusiness.appendChild(cardBiz);
+    row.appendChild(colBusiness);
+
+    section.appendChild(row);
+    detailContent.appendChild(section);
+  }
+
+function renderRooms(rooms) {
     const section = document.createElement('section');
     section.className = 'admin-host-detail-section';
     const heading = document.createElement('h3');
     heading.className = 'h5 mb-3';
-    heading.textContent = 'Room Information';
+    heading.textContent = 'Thông tin các phòng';
     section.appendChild(heading);
     if (!rooms || !rooms.length) {
       const note = document.createElement('p');
       note.className = 'text-muted';
-      note.textContent = 'No rooms were included in this application.';
+      note.textContent = 'Hồ sơ này chưa có phòng nào kèm theo.';
       section.appendChild(note);
       detailContent.appendChild(section);
       return;
@@ -348,11 +432,11 @@
       const details = document.createElement('p');
       details.className = 'mb-2';
       details.textContent = [
-        'Type: ' + (room.roomType || '—'),
-        'Price: ' + (room.pricePerNight || '—'),
-        'Maximum guests: ' + (room.maxGuests || '—'),
-        'Beds: ' + (room.bedCount || '—'),
-        'Bathrooms: ' + (room.bathroomCount || '—')
+        'Loại phòng: ' + (room.roomType || '—'),
+        'Giá phòng: ' + (room.pricePerNight ? Number(room.pricePerNight).toLocaleString('vi-VN') + ' ₫ / đêm' : '—'),
+        'Số khách: ' + (room.maxGuests || '—'),
+        'Giường: ' + (room.bedCount || '—'),
+        'Phòng tắm: ' + (room.bathroomCount || '—')
       ].join(' · ');
       const amenities = document.createElement('p');
       amenities.className = 'small text-muted mb-2';
@@ -398,55 +482,46 @@
     // The detail view is driven by the selected review record, so keep the current record in state.
     state.selectedApplication = application;
     document.getElementById('host-detail-title').textContent =
-      'Host Application #' + application.id;
+      'Hồ sơ Host #' + application.id;
     detailContent.replaceChildren();
 
-    addDetailSection('Applicant Information', [
-      { label: 'Full name', value: application.applicantName },
+    addDetailSection('Thông tin người nộp đơn', [
+      { label: 'Họ và tên', value: application.applicantName },
       { label: 'Email', value: application.applicantEmail },
-      { label: 'Phone', value: application.applicantPhone },
-      { label: 'User ID', value: application.userId },
-      { label: 'Identification', value: application.identificationType
+      { label: 'Số điện thoại', value: application.applicantPhone },
+      { label: 'Mã người dùng (User ID)', value: application.userId },
+      { label: 'Giấy tờ định danh', value: application.identificationType
         ? application.identificationType + ' · ' + (application.identificationNumber || '')
         : application.identificationNumber }
     ]);
-    addDetailSection('Property Information', [
-      { label: 'Property name', value: application.propertyName },
-      { label: 'Property type', value: application.propertyType },
-      { label: 'Description', value: application.propertyDescription },
-      { label: 'Address', value: application.propertyAddress },
-      { label: 'City', value: application.propertyCity },
-      { label: 'District', value: application.propertyDistrict },
-      { label: 'Ward', value: application.propertyWard },
-      { label: 'Location', value: application.latitude !== null && application.longitude !== null
-        ? application.latitude + ', ' + application.longitude : null },
+    addDetailSection('Thông tin Homestay / Chỗ nghỉ', [
+      { label: 'Tên cơ sở', value: application.propertyName },
+      { label: 'Loại hình', value: application.propertyType },
+      { label: 'Mô tả', value: application.propertyDescription },
+      { label: 'Địa chỉ chi tiết', value: application.propertyAddress },
+      { label: 'Tỉnh / Thành phố', value: application.propertyCity },
+      { label: 'Quận / Huyện', value: application.propertyDistrict },
+      { label: 'Phường / Xã', value: application.propertyWard },
+      { label: 'Tọa độ GPS', value: (application.latitude !== null && application.longitude !== null)
+        ? application.latitude + ', ' + application.longitude : 'Chưa có',
+      href: (application.latitude !== null && application.longitude !== null)
+        ? 'https://www.google.com/maps?q=' + application.latitude + ',' + application.longitude : null },
       { label: 'Rooms / maximum guests', value: application.roomCount !== null
         ? application.roomCount + ' / ' + application.maxGuests : null }
     ]);
     renderRooms(application.rooms);
 
-    const documents = [
-      { label: 'Identity document', href: application.identityDocumentUrl },
-      { label: 'Property ownership / authorization document', href: application.ownershipDocumentUrl },
-      { label: 'Business document', href: application.businessDocumentUrl }
-    ];
-    addDetailSection('Verification Information', documents.map(function (document) {
-      return {
-        label: document.label,
-        value: document.href ? 'Open uploaded document' : 'Not provided',
-        href: document.href
-      };
-    }));
+    renderVerificationDocuments(application);
 
     const history = [
-      { label: 'Status', value: application.status },
-      { label: 'Submitted date', value: formatDate(application.submittedAt) },
-      { label: 'Reviewed date', value: formatDate(application.reviewedAt) },
-      { label: 'Reviewer', value: application.reviewerName },
-      { label: 'Previous application ID', value: application.supersedesApplicationId },
-      { label: 'Rejection reason', value: application.rejectionReason }
+      { label: 'Trạng thái', value: application.status },
+      { label: 'Ngày gửi hồ sơ', value: formatDate(application.submittedAt) },
+      { label: 'Ngày xét duyệt', value: formatDate(application.reviewedAt) },
+      { label: 'Người xét duyệt', value: application.reviewerName },
+      { label: 'Mã hồ sơ trước đó', value: application.supersedesApplicationId },
+      { label: 'Lý do từ chối', value: application.rejectionReason }
     ];
-    addDetailSection('Application Information', history);
+    addDetailSection('Lịch sử & Trạng thái hồ sơ', history);
 
     const canReview = application.status === 'PENDING';
     document.getElementById('host-detail-approve').classList.toggle('d-none', !canReview);
@@ -529,6 +604,9 @@
     detailPanel.classList.add('d-none');
     listPanel.classList.remove('d-none');
     state.selectedApplication = null;
+    if (window.location.search.includes('id=')) {
+      window.history.pushState({}, '', window.location.pathname);
+    }
   });
 
   document.getElementById('host-detail-approve').addEventListener('click', function () {
@@ -608,9 +686,36 @@
     renderApplications();
   });
 
-  loadApplications().catch(function (error) {
-    loading.classList.add('d-none');
-    table.classList.add('d-none');
-    showAlert(error.message, 'danger');
-  });
+  async function init() {
+    try {
+      await loadApplications();
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetId = urlParams.get('id');
+      if (targetId) {
+        setBusy(true);
+        clearAlert();
+        document.getElementById('host-detail-loading').classList.remove('d-none');
+        listPanel.classList.add('d-none');
+        detailPanel.classList.remove('d-none');
+        detailContent.replaceChildren();
+        try {
+          const application = await loadDetail(targetId);
+          renderDetail(application);
+        } catch (err) {
+          detailPanel.classList.add('d-none');
+          listPanel.classList.remove('d-none');
+          showAlert('Không thể tải chi tiết hồ sơ #' + targetId + ': ' + err.message, 'danger');
+        } finally {
+          document.getElementById('host-detail-loading').classList.add('d-none');
+          setBusy(false);
+        }
+      }
+    } catch (error) {
+      loading.classList.add('d-none');
+      table.classList.add('d-none');
+      showAlert(error.message, 'danger');
+    }
+  }
+
+  init();
 }());

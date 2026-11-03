@@ -75,6 +75,29 @@ public class VoucherDAO extends BaseDAO
     }
 
     /**
+     * Find active public vouchers for booking checkout.
+     */
+    public List<Voucher> findActivePublicVouchers() {
+        List<Voucher> list = new ArrayList<>();
+        String sql = "SELECT * FROM vouchers WHERE (status = 'ACTIVE' OR status IS NULL) AND (end_date IS NULL OR end_date >= CURRENT_TIMESTAMP) ORDER BY id DESC";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapResultSetToVoucher(rs));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Error finding active vouchers, falling back to findAll()", e);
+            for (Voucher v : findAll()) {
+                if ("ACTIVE".equalsIgnoreCase(v.getStatus())) {
+                    list.add(v);
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
      * List vouchers belonging to a specific Host.
      */
     public List<Voucher> findByHostId(int hostId) {
@@ -106,6 +129,8 @@ public class VoucherDAO extends BaseDAO
         return vouchers;
     }
 
+
+
     /**
      * Find a voucher only if it belongs to the given Host.
      */
@@ -134,6 +159,34 @@ public class VoucherDAO extends BaseDAO
         } catch (SQLException e) {
             logger.log(Level.SEVERE,
                     "Error finding Host voucher", e);
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Find a voucher by its unique coupon code.
+     */
+    public Optional<Voucher> findByCode(String code) {
+        if (code == null || code.trim().isEmpty()) {
+            return Optional.empty();
+        }
+
+        String sql = "SELECT * FROM vouchers WHERE UPPER(TRIM(code)) = UPPER(?) AND status = 'ACTIVE' LIMIT 1";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, code.trim());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToVoucher(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding voucher by code: " + code, e);
         }
 
         return Optional.empty();

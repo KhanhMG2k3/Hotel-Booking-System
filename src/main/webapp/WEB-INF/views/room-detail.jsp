@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
@@ -54,7 +54,7 @@
                     <a href="${pageContext.request.contextPath}/assets/${room.imageUrl}" data-fancybox="gallery"
                        data-caption="${room.roomName} - Ảnh Chính">
                         <img src="${pageContext.request.contextPath}/assets/${room.imageUrl}" alt="${room.roomName}"
-                             class="img-fluid w-100 room-detail-image">
+                             class="img-fluid w-100 room-detail-image" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/img_1.jpg';">
                     </a>
                     <button type="button" 
                             class="btn-wishlist-toggle ${isWishlisted ? 'active' : ''}" 
@@ -322,7 +322,7 @@
                     }
 
                     if (data.success) {
-                        var isAdded = (data.action === 'added');
+                        var isAdded = (data.action === 'added' || data.isWishlisted === true);
 
                         if (btnCard && textCard && iconCard) {
                             if (isAdded) {
@@ -352,10 +352,11 @@
                             }
                         }
 
-                        // Update badges
+                        // Update badges immediately
+                        var newCount = (typeof data.wishlistCount !== 'undefined') ? data.wishlistCount : ((typeof data.count !== 'undefined') ? data.count : 0);
                         var badges = document.querySelectorAll('#navbarWishlistBadge, .header-wishlist-badge');
                         badges.forEach(function (b) {
-                            b.textContent = data.wishlistCount || 0;
+                            b.textContent = newCount;
                             b.style.display = 'inline-block';
                         });
 

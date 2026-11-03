@@ -69,6 +69,52 @@
     word-break: break-word;
     overflow-wrap: break-word;
   }
+  /* Scoped Dark Mode Overrides */
+  [data-theme="dark"] .bg-light {
+    background-color: #0b0f19 !important;
+  }
+  [data-theme="dark"] .ticket-card-item {
+    background-color: #162032 !important;
+    border-color: #243247 !important;
+  }
+  [data-theme="dark"] .ticket-card-item:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+  }
+  [data-theme="dark"] .nav-pills-support .nav-link {
+    color: #94a3b8 !important;
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+  }
+  [data-theme="dark"] .nav-pills-support .nav-link:hover {
+    color: #ffba5a !important;
+    background-color: #243247 !important;
+    border-color: #ffba5a !important;
+  }
+  [data-theme="dark"] .nav-pills-support .nav-link.active {
+    color: #0f172a !important;
+    background-color: #ffba5a !important;
+    border-color: #ffba5a !important;
+  }
+  [data-theme="dark"] .ticket-status-new {
+    background-color: rgba(2, 132, 199, 0.2) !important;
+    color: #38bdf8 !important;
+    border-color: rgba(2, 132, 199, 0.35) !important;
+  }
+  [data-theme="dark"] .ticket-status-processing {
+    background-color: rgba(217, 119, 6, 0.2) !important;
+    color: #fbbf24 !important;
+    border-color: rgba(217, 119, 6, 0.35) !important;
+  }
+  [data-theme="dark"] .ticket-status-resolved {
+    background-color: rgba(22, 163, 74, 0.2) !important;
+    color: #4ade80 !important;
+    border-color: rgba(22, 163, 74, 0.35) !important;
+  }
+  [data-theme="dark"] .badge-light {
+    background-color: #1e293b !important;
+    color: #cbd5e1 !important;
+    border-color: #334155 !important;
+  }
 </style>
 
 <section class="site-hero inner-page overlay" style="background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.65)), url('${pageContext.request.contextPath}/assets/images/hero_4.jpg'); min-height: 280px; height: 320px;" data-stellar-background-ratio="0.5">

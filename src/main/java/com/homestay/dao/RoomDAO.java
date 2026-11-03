@@ -32,7 +32,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             "LEFT JOIN properties prop ON rt.property_id = prop.property_id " +
             "LEFT JOIN destinations dest ON prop.destination_id = dest.destination_id " +
             "LEFT JOIN provinces prov ON dest.province_id = prov.province_id " +
-            "LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri " +
+            "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri " +
             "ON rt.room_type_id = ri.room_type_id ";
 
     @Override
@@ -94,7 +94,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
      */
     public List<String> getRoomImages(Connection conn, int roomTypeId) {
         List<String> images = new ArrayList<>();
-        String sql = "SELECT image_url FROM roomimages WHERE room_type_id = ? ORDER BY display_order ASC";
+        String sql = "SELECT image_url FROM roomimages WHERE room_type_id = ? AND (media_type = 'IMAGE' OR media_type IS NULL) ORDER BY is_primary DESC, display_order ASC, image_id ASC";
         PreparedStatement ps = null;
         ResultSet rs = null;
 
@@ -466,5 +466,46 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             amenities.add("Ban công lớn view toàn cảnh biển");
         }
         return amenities;
+    }
+
+    /**
+     * Retrieves all rooms belonging to all properties of a specific host.
+     */
+    public List<Room> findRoomsByHostId(int hostId) {
+        List<Room> rooms = new ArrayList<>();
+        String sql = "SELECT r.room_id, r.property_id, r.room_number, r.room_name, r.price_per_night, "
+                + "r.capacity, r.bed_count, r.bathroom_count, r.status, r.image_url, r.description, "
+                + "p.property_name, p.address, p.city "
+                + "FROM rooms r "
+                + "JOIN properties p ON r.property_id = p.property_id "
+                + "WHERE p.host_id = ? "
+                + "ORDER BY p.property_id, r.room_id";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hostId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Room room = new Room();
+                    room.setId(rs.getInt("room_id"));
+                    room.setPropertyId(rs.getInt("property_id"));
+                    room.setRoomNumber(rs.getString("room_number"));
+                    room.setRoomName(rs.getString("room_name"));
+                    room.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                    room.setCapacity(rs.getInt("capacity"));
+                    room.setBedCount(rs.getInt("bed_count"));
+                    room.setBathroomCount(rs.getInt("bathroom_count"));
+                    room.setStatus(rs.getString("status"));
+                    room.setImageUrl(rs.getString("image_url"));
+                    room.setDescription(rs.getString("description"));
+                    room.setPropertyName(rs.getString("property_name"));
+                    room.setAddress(rs.getString("address"));
+                    rooms.add(room);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding rooms by host id: " + hostId, e);
+        }
+        return rooms;
     }
 }

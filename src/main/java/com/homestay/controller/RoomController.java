@@ -1,7 +1,9 @@
 package com.homestay.controller;
 
+import com.homestay.dao.RecommendationDAO;
 import com.homestay.dao.RoomDAO;
 import com.homestay.dao.WishlistDAO;
+import com.homestay.model.Recommendation;
 import com.homestay.model.Room;
 import com.homestay.dao.ReviewDAO;
 import com.homestay.dao.ReviewReplyDAO;
@@ -20,12 +22,14 @@ import java.util.Set;
 
 /**
  * RoomController - Handles listing and viewing rich details of homestay rooms.
+ * Includes AI-driven personalized recommendations for customers ("Recommended for You").
  */
 @WebServlet(name = "RoomController", urlPatterns = {"/rooms", "/room-detail"})
 public class RoomController extends HttpServlet {
 
     private RoomDAO roomDAO;
     private WishlistDAO wishlistDAO;
+    private RecommendationDAO recommendationDAO;
     private ReviewDAO reviewDAO;
     private ReviewReplyDAO replyDAO;
 
@@ -34,6 +38,7 @@ public class RoomController extends HttpServlet {
         super.init();
         this.roomDAO = new RoomDAO();
         this.wishlistDAO = new WishlistDAO();
+        this.recommendationDAO = new RecommendationDAO();
         this.reviewDAO = new ReviewDAO();
         this.replyDAO = new ReviewReplyDAO();
     }
@@ -192,6 +197,15 @@ public class RoomController extends HttpServlet {
             Set<Integer> wishlistRoomIds = wishlistDAO.getWishlistRoomIds(userId);
             request.setAttribute("wishlistRoomIds", wishlistRoomIds);
             request.setAttribute("wishlistCount", wishlistRoomIds.size());
+        }
+
+        // Module AI — Catalog & Discovery: Personalized Room Recommendations ("Recommended for You")
+        try {
+            List<Recommendation> recommendedRooms = recommendationDAO.getPersonalizedRecommendations(userId, 4);
+            request.setAttribute("recommendedRooms", recommendedRooms);
+        } catch (Exception e) {
+            // Graceful fallback to avoid breaking the catalog page if recommendation engine encounters an issue
+            request.setAttribute("recommendedRooms", java.util.Collections.emptyList());
         }
 
         request.getRequestDispatcher("/WEB-INF/views/rooms.jsp").forward(request, response);

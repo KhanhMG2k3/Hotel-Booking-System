@@ -19,9 +19,10 @@ public class LogoutCsrfFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpSession session = httpRequest.getSession(false);
-        if (session != null && session.getAttribute("userId") instanceof Number) {
-            httpRequest.setAttribute(
-                    "logoutCsrfToken", LoginUtil.getOrCreateLogoutCsrfToken(httpRequest));
+        if (session != null && (session.getAttribute("userId") != null || session.getAttribute("user") != null)) {
+            String token = LoginUtil.getOrCreateLogoutCsrfToken(httpRequest);
+            httpRequest.setAttribute("logoutCsrfToken", token);
+            session.setAttribute("logoutCsrfToken", token);
         }
 
         // Continue normal request processing after attaching the logout token.

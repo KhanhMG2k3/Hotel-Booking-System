@@ -2,8 +2,11 @@ package com.homestay.dao;
 
 import com.homestay.context.DBContext;
 import com.homestay.model.Booking;
+import com.homestay.model.BookingRoomItem;
+import com.homestay.model.Room;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -217,10 +220,14 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
 
     public List<Booking> findBookingsByHost(int hostId, int limit, int offset) throws SQLException {
         List<Booking> bookings = new ArrayList<>();
-        String sql = "SELECT b.*, r.room_name, p.property_name " +
+        String sql = "SELECT b.*, r.room_name, r.room_number, p.property_name, " +
+                     "       COALESCE(p.address, '') as property_address, " +
+                     "       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') as room_image_url " +
                      "FROM bookings b " +
                      "JOIN rooms r ON b.room_id = r.room_id " +
                      "JOIN properties p ON r.property_id = p.property_id " +
+                     "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
                      "WHERE p.host_id = ? " +
                      "ORDER BY b.created_at DESC LIMIT ? OFFSET ?";
         try (Connection conn = getConnection();
@@ -232,11 +239,27 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
                 while (rs.next()) {
                     Booking b = mapResultSetToBooking(rs);
                     b.setRoomName(rs.getString("room_name"));
+                    b.setRoomNumber(rs.getString("room_number"));
                     b.setPropertyName(rs.getString("property_name"));
+                    b.setPropertyAddress(rs.getString("property_address"));
+                    try {
+                        b.setRoomImageUrl(rs.getString("room_image_url"));
+                    } catch (SQLException ignored) {}
                     bookings.add(b);
                 }
             }
         }
+
+        // Attach multi-room items if any
+        for (Booking b : bookings) {
+            try {
+                List<BookingRoomItem> rooms = getBookingRooms(b.getId());
+                if (rooms != null && !rooms.isEmpty()) {
+                    b.setBookingRooms(rooms);
+                }
+            } catch (Exception ignored) {}
+        }
+
         return bookings;
     }
 
@@ -282,11 +305,400 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
         return findBookingsByHost(hostId, limit, 0);
     }
 
+    /**
+     * Retrieves active bookings overlapping with a date range for a given host and optional property/room.
+     */
+    public List<Booking> findBookingsForCalendar(int hostId, int propertyId, int roomId, LocalDate startDate, LocalDate endDate) throws SQLException {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT DISTINCT b.*, r.room_name, r.room_number, p.property_name, " +
+                     "       COALESCE(p.address, '') as property_address, " +
+                     "       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') as room_image_url, " +
+                     "       COALESCE(br.room_id, b.room_id) as calendar_room_id " +
+                     "FROM bookings b " +
+                     "LEFT JOIN bookingrooms br ON b.id = br.booking_id " +
+                     "JOIN rooms r ON r.room_id = COALESCE(br.room_id, b.room_id) " +
+                     "JOIN properties p ON r.property_id = p.property_id " +
+                     "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
+                     "WHERE p.host_id = ? " +
+                     "  AND (? = 0 OR p.property_id = ?) " +
+                     "  AND (? = 0 OR r.room_id = ?) " +
+                     "  AND b.status IN ('PENDING', 'CONFIRMED', 'COMPLETED') " +
+                     "  AND (b.check_in_date < ? AND b.check_out_date > ?) " +
+                     "ORDER BY b.check_in_date ASC, b.id ASC";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hostId);
+            ps.setInt(2, propertyId);
+            ps.setInt(3, propertyId);
+            ps.setInt(4, roomId);
+            ps.setInt(5, roomId);
+            ps.setDate(6, java.sql.Date.valueOf(endDate));
+            ps.setDate(7, java.sql.Date.valueOf(startDate));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Booking b = mapResultSetToBooking(rs);
+                    b.setRoomName(rs.getString("room_name"));
+                    b.setRoomNumber(rs.getString("room_number"));
+                    b.setPropertyName(rs.getString("property_name"));
+                    b.setPropertyAddress(rs.getString("property_address"));
+                    try {
+                        b.setRoomImageUrl(rs.getString("room_image_url"));
+                    } catch (SQLException ignored) {}
+                    b.setRoomId(rs.getInt("calendar_room_id"));
+                    bookings.add(b);
+                }
+            }
+        } catch (SQLException e) {
+            if (e.getMessage() != null && e.getMessage().contains("bookingrooms")) {
+                logger.log(Level.WARNING, "bookingrooms table missing, falling back to direct rooms query for calendar", e);
+                return findBookingsForCalendarFallback(hostId, propertyId, roomId, startDate, endDate);
+            }
+            throw e;
+        }
+        return bookings;
+    }
+
+    private List<Booking> findBookingsForCalendarFallback(int hostId, int propertyId, int roomId, LocalDate startDate, LocalDate endDate) throws SQLException {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT DISTINCT b.*, r.room_name, r.room_number, p.property_name, " +
+                     "       COALESCE(p.address, '') as property_address, " +
+                     "       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') as room_image_url, " +
+                     "       b.room_id as calendar_room_id " +
+                     "FROM bookings b " +
+                     "JOIN rooms r ON r.room_id = b.room_id " +
+                     "JOIN properties p ON r.property_id = p.property_id " +
+                     "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
+                     "WHERE p.host_id = ? " +
+                     "  AND (? = 0 OR p.property_id = ?) " +
+                     "  AND (? = 0 OR r.room_id = ?) " +
+                     "  AND b.status IN ('PENDING', 'CONFIRMED', 'COMPLETED') " +
+                     "  AND (b.check_in_date < ? AND b.check_out_date > ?) " +
+                     "ORDER BY b.check_in_date ASC, b.id ASC";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hostId);
+            ps.setInt(2, propertyId);
+            ps.setInt(3, propertyId);
+            ps.setInt(4, roomId);
+            ps.setInt(5, roomId);
+            ps.setDate(6, java.sql.Date.valueOf(endDate));
+            ps.setDate(7, java.sql.Date.valueOf(startDate));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Booking b = mapResultSetToBooking(rs);
+                    b.setRoomName(rs.getString("room_name"));
+                    b.setRoomNumber(rs.getString("room_number"));
+                    b.setPropertyName(rs.getString("property_name"));
+                    b.setPropertyAddress(rs.getString("property_address"));
+                    try {
+                        b.setRoomImageUrl(rs.getString("room_image_url"));
+                    } catch (SQLException ignored) {}
+                    b.setRoomId(rs.getInt("calendar_room_id"));
+                    bookings.add(b);
+                }
+            }
+        }
+        return bookings;
+    }
+
+
     public int createBooking(Booking booking) throws SQLException {
         if (insert(booking)) {
             return booking.getId();
         }
         return 0;
+    }
+
+    /**
+     * Checks if a room is available during the requested dates (no overlapping PENDING or CONFIRMED bookings).
+     */
+    public boolean isRoomAvailable(int roomId, Date checkIn, Date checkOut, Integer excludeBookingId) {
+        String sql = "SELECT COUNT(*) FROM bookings b " +
+                     "WHERE b.status IN ('PENDING', 'CONFIRMED') " +
+                     "  AND (b.check_in_date < ? AND b.check_out_date > ?) " +
+                     "  AND (b.room_id = ? OR EXISTS (SELECT 1 FROM bookingrooms br WHERE br.booking_id = b.id AND br.room_id = ?)) " +
+                     (excludeBookingId != null ? " AND b.id <> ? " : "");
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setDate(1, checkOut);
+            ps.setDate(2, checkIn);
+            ps.setInt(3, roomId);
+            ps.setInt(4, roomId);
+            if (excludeBookingId != null) {
+                ps.setInt(5, excludeBookingId);
+            }
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) == 0;
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error checking room availability for roomId=" + roomId, e);
+            return false;
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+        return true;
+    }
+
+    /**
+     * Finds all available rooms for a given date range.
+     */
+    public List<Room> findAvailableRooms(Date checkIn, Date checkOut, Integer excludeRoomId) {
+        List<Room> availableRooms = new ArrayList<>();
+        String sql = "SELECT r.room_id as id, r.room_number, r.status, " +
+                     "       COALESCE(r.room_name, rt.room_name) as room_name, " +
+                     "       COALESCE(r.price_per_night, rt.base_price, 1000000) as price_per_night, " +
+                     "       COALESCE(r.capacity, rt.max_guests, 2) as capacity, " +
+                     "       COALESCE(ri.image_url, r.image_url, 'images/img_1.jpg') as image_url, " +
+                     "       COALESCE(prop.property_name, 'Sogo Homestay') as property_name, " +
+                     "       COALESCE(rt.room_name, 'Phòng Homestay') as room_type_name " +
+                     "FROM rooms r " +
+                     "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+                     "LEFT JOIN properties prop ON r.property_id = prop.property_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
+                     "WHERE r.status = 'AVAILABLE' " +
+                     (excludeRoomId != null ? " AND r.room_id <> ? " : "") +
+                     "  AND NOT EXISTS ( " +
+                     "      SELECT 1 FROM bookings b " +
+                     "      WHERE b.status IN ('PENDING', 'CONFIRMED') " +
+                     "        AND (b.check_in_date < ? AND b.check_out_date > ?) " +
+                     "        AND (b.room_id = r.room_id OR EXISTS (SELECT 1 FROM bookingrooms br WHERE br.booking_id = b.id AND br.room_id = r.room_id)) " +
+                     "  ) " +
+                     "ORDER BY r.sort_order ASC, r.room_id ASC";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            int idx = 1;
+            if (excludeRoomId != null) {
+                ps.setInt(idx++, excludeRoomId);
+            }
+            ps.setDate(idx++, checkOut);
+            ps.setDate(idx++, checkIn);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Room room = new Room();
+                room.setId(rs.getInt("id"));
+                room.setRoomNumber(rs.getString("room_number"));
+                room.setRoomName(rs.getString("room_name"));
+                room.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                room.setCapacity(rs.getInt("capacity"));
+                room.setImageUrl(rs.getString("image_url"));
+                room.setPropertyName(rs.getString("property_name"));
+                room.setRoomType(rs.getString("room_type_name"));
+                availableRooms.add(room);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding available rooms", e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+        return availableRooms;
+    }
+
+    /**
+     * Inserts a multi-room booking transactionally into bookings and bookingrooms tables.
+     */
+    public boolean insertMultiRoomBooking(Booking booking, List<BookingRoomItem> rooms) {
+        if (booking == null || rooms == null || rooms.isEmpty()) return false;
+
+        String insertBookingSql = "INSERT INTO bookings (booking_code, user_id, customer_name, customer_email, customer_phone, " +
+                                  "room_id, check_in_date, check_out_date, adults, children, guest_count, total_price, notes, special_requests, status) " +
+                                  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String insertRoomSql = "INSERT INTO bookingrooms (booking_id, room_id, price_per_night, number_of_nights, subtotal) " +
+                               "VALUES (?, ?, ?, ?, ?)";
+
+        Connection conn = null;
+        PreparedStatement psBooking = null;
+        PreparedStatement psRoom = null;
+
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            if (booking.getBookingCode() == null || booking.getBookingCode().trim().isEmpty()) {
+                booking.setBookingCode(generateBookingCode());
+            }
+
+            BookingRoomItem primaryRoom = rooms.get(0);
+            booking.setRoomId(primaryRoom.getRoomId());
+            booking.setCheckInDate(primaryRoom.getCheckInDate());
+            booking.setCheckOutDate(primaryRoom.getCheckOutDate());
+
+            psBooking = conn.prepareStatement(insertBookingSql, Statement.RETURN_GENERATED_KEYS);
+            psBooking.setString(1, booking.getBookingCode());
+            if (booking.getUserId() != null) {
+                psBooking.setInt(2, booking.getUserId());
+            } else {
+                psBooking.setNull(2, Types.INTEGER);
+            }
+            psBooking.setString(3, booking.getCustomerName());
+            psBooking.setString(4, booking.getCustomerEmail());
+            psBooking.setString(5, booking.getCustomerPhone());
+            psBooking.setInt(6, booking.getRoomId());
+            psBooking.setDate(7, booking.getCheckInDate());
+            psBooking.setDate(8, booking.getCheckOutDate());
+            psBooking.setInt(9, booking.getAdults());
+            psBooking.setInt(10, booking.getChildren());
+            psBooking.setInt(11, booking.getGuestCount());
+            psBooking.setBigDecimal(12, booking.getTotalPrice());
+            psBooking.setString(13, booking.getNotes());
+            psBooking.setString(14, booking.getSpecialRequests());
+            psBooking.setString(15, booking.getStatus() != null ? booking.getStatus() : "CONFIRMED");
+
+            int affected = psBooking.executeUpdate();
+            if (affected == 0) {
+                conn.rollback();
+                return false;
+            }
+
+            int bookingId = 0;
+            try (ResultSet keys = psBooking.getGeneratedKeys()) {
+                if (keys.next()) {
+                    bookingId = keys.getInt(1);
+                    booking.setId(bookingId);
+                }
+            }
+            if (bookingId == 0) {
+                conn.rollback();
+                return false;
+            }
+
+            psRoom = conn.prepareStatement(insertRoomSql);
+            for (BookingRoomItem room : rooms) {
+                psRoom.setInt(1, bookingId);
+                psRoom.setInt(2, room.getRoomId());
+                psRoom.setBigDecimal(3, room.getPricePerNight());
+                psRoom.setInt(4, room.getNumberOfNights());
+                psRoom.setBigDecimal(5, room.getSubtotal());
+                psRoom.addBatch();
+            }
+            psRoom.executeBatch();
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error inserting multi-room booking", e);
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    logger.log(Level.SEVERE, "Rollback failed", ex);
+                }
+            }
+            return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ignore) {}
+            }
+            closeResources(conn, psBooking, null);
+            if (psRoom != null) {
+                try { psRoom.close(); } catch (SQLException ignore) {}
+            }
+        }
+    }
+
+    /**
+     * Finds a booking by unique booking code.
+     */
+    public Optional<Booking> findByBookingCode(String bookingCode) {
+        if (bookingCode == null || bookingCode.trim().isEmpty()) return Optional.empty();
+        String sql = "SELECT b.*, r.room_name, r.room_number, p.property_name, " +
+                     "       COALESCE(p.address, '') as property_address, " +
+                     "       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') as room_image_url " +
+                     "FROM bookings b " +
+                     "JOIN rooms r ON b.room_id = r.room_id " +
+                     "JOIN properties p ON r.property_id = p.property_id " +
+                     "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
+                     "WHERE b.booking_code = ? LIMIT 1";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, bookingCode.trim());
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                Booking booking = mapResultSetToBooking(rs);
+                booking.setRoomName(rs.getString("room_name"));
+                booking.setPropertyName(rs.getString("property_name"));
+                booking.setBookingRooms(getBookingRooms(booking.getId()));
+                return Optional.of(booking);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding booking by code: " + bookingCode, e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Gets all rooms in a booking.
+     */
+    public List<BookingRoomItem> getBookingRooms(int bookingId) {
+        List<BookingRoomItem> list = new ArrayList<>();
+        String sql = "SELECT br.*, r.room_name, COALESCE(rt.room_name, 'Phòng Homestay') as type_name, " +
+                     "       COALESCE(r.capacity, rt.max_guests, 2) as capacity, " +
+                     "       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') as image_url, " +
+                     "       COALESCE(p.property_name, 'Sogo Homestay') as property_name, " +
+                     "       b.check_in_date, b.check_out_date, b.adults, b.children " +
+                     "FROM bookingrooms br " +
+                     "JOIN bookings b ON br.booking_id = b.id " +
+                     "JOIN rooms r ON br.room_id = r.room_id " +
+                     "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+                     "LEFT JOIN properties p ON r.property_id = p.property_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
+                     "WHERE br.booking_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, bookingId);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                BookingRoomItem item = new BookingRoomItem();
+                item.setBookingRoomId(rs.getInt("booking_room_id"));
+                item.setBookingId(rs.getInt("booking_id"));
+                item.setRoomId(rs.getInt("room_id"));
+                item.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                item.setNumberOfNights(rs.getInt("number_of_nights"));
+                item.setSubtotal(rs.getBigDecimal("subtotal"));
+                item.setRoomName(rs.getString("room_name"));
+                item.setRoomTypeName(rs.getString("type_name"));
+                item.setCapacity(rs.getInt("capacity"));
+                item.setImageUrl(rs.getString("image_url"));
+                item.setPropertyName(rs.getString("property_name"));
+                item.setCheckInDate(rs.getDate("check_in_date"));
+                item.setCheckOutDate(rs.getDate("check_out_date"));
+                item.setAdults(rs.getInt("adults"));
+                item.setChildren(rs.getInt("children"));
+                list.add(item);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting booking rooms for bookingId=" + bookingId, e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+        return list;
     }
 
     /**
@@ -313,6 +725,12 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
             }
         }
         return list;
+    }
+
+    public static String generateBookingCode() {
+        String datePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyMMdd"));
+        int rand = 1000 + new java.util.Random().nextInt(9000);
+        return "BK-" + datePart + "-" + rand;
     }
 
     /**
@@ -380,27 +798,85 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
 
     private Booking mapResultSetToBooking(ResultSet rs) throws SQLException {
         Booking booking = new Booking();
-        booking.setId(rs.getInt("id"));
-        // BO SUNG DOC BOOKING_CODE TU RESULTSET DE HIEN THI DUNG MA DAT PHONG THAY VI CHI SO ID (DOT 6)
-        booking.setBookingCode(rs.getString("booking_code"));
-        int userId = rs.getInt("user_id");
-        if (!rs.wasNull()) {
-            booking.setUserId(userId);
+        int id = 0;
+        try { id = rs.getInt("id"); } catch (SQLException e) { try { id = rs.getInt("booking_id"); } catch (SQLException ignored) {} }
+        if (id == 0) { try { id = rs.getInt("booking_id"); } catch (SQLException ignored) {} }
+        booking.setId(id);
+
+        try { booking.setBookingCode(rs.getString("booking_code")); } catch (SQLException ignored) {}
+
+        int userId = 0;
+        try { userId = rs.getInt("user_id"); if (!rs.wasNull()) booking.setUserId(userId); } catch (SQLException ignored) {}
+
+        try { long propId = rs.getLong("property_id"); if (!rs.wasNull()) booking.setPropertyId(propId); } catch (SQLException ignored) {}
+        try { booking.setCustomerName(rs.getString("customer_name")); } catch (SQLException ignored) {}
+        try { booking.setEmail(rs.getString("customer_email")); } catch (SQLException ignored) {}
+        try { booking.setCustomerPhone(rs.getString("customer_phone")); } catch (SQLException ignored) {}
+        try { booking.setRoomId(rs.getInt("room_id")); } catch (SQLException ignored) {}
+
+        Date checkIn = null;
+        try { checkIn = rs.getDate("check_in_date"); } catch (SQLException e) { try { checkIn = rs.getDate("check_in"); } catch (SQLException ignored) {} }
+        if (checkIn == null) { try { checkIn = rs.getDate("check_in"); } catch (SQLException ignored) {} }
+        booking.setCheckInDate(checkIn);
+
+        Date checkOut = null;
+        try { checkOut = rs.getDate("check_out_date"); } catch (SQLException e) { try { checkOut = rs.getDate("check_out"); } catch (SQLException ignored) {} }
+        if (checkOut == null) { try { checkOut = rs.getDate("check_out"); } catch (SQLException ignored) {} }
+        booking.setCheckOutDate(checkOut);
+
+        try { booking.setAdults(rs.getInt("adults")); } catch (SQLException ignored) {}
+        try { booking.setChildren(rs.getInt("children")); } catch (SQLException ignored) {}
+        try { booking.setGuestCount(rs.getInt("guest_count")); } catch (SQLException ignored) {}
+
+        BigDecimal total = null;
+        try { total = rs.getBigDecimal("total_price"); } catch (SQLException e) { try { total = rs.getBigDecimal("total_amount"); } catch (SQLException ignored) {} }
+        if (total == null) { try { total = rs.getBigDecimal("total_amount"); } catch (SQLException ignored) {} }
+        booking.setTotalPrice(total);
+        booking.setTotalAmount(total);
+
+        try { booking.setSubtotal(rs.getBigDecimal("subtotal") != null ? rs.getBigDecimal("subtotal") : total); } catch (SQLException ignored) { booking.setSubtotal(total); }
+        try { booking.setDiscountAmount(rs.getBigDecimal("discount_amount")); } catch (SQLException ignored) {}
+
+        try { booking.setNotes(rs.getString("notes")); } catch (SQLException ignored) {}
+        try { booking.setSpecialRequests(rs.getString("special_requests")); } catch (SQLException ignored) {}
+
+        String status = null;
+        try { status = rs.getString("status"); } catch (SQLException e) { try { status = rs.getString("booking_status"); } catch (SQLException ignored) {} }
+        if (status == null) { try { status = rs.getString("booking_status"); } catch (SQLException ignored) {} }
+        booking.setStatus(status != null ? status : "PENDING");
+
+        try { booking.setCancellationReason(rs.getString("cancellation_reason")); } catch (SQLException ignored) {}
+        try { booking.setCreatedAt(rs.getTimestamp("created_at")); } catch (SQLException ignored) {}
+
+        try {
+            String propName = rs.getString("joined_property_name");
+            if (propName != null) booking.setPropertyName(propName);
+            else if (rs.getString("property_name") != null) booking.setPropertyName(rs.getString("property_name"));
+        } catch (SQLException ignored) {
+            try { booking.setPropertyName(rs.getString("property_name")); } catch (SQLException ignored2) {}
         }
-        booking.setCustomerName(rs.getString("customer_name"));
-        booking.setEmail(rs.getString("customer_email"));
-        booking.setCustomerPhone(rs.getString("customer_phone"));
-        booking.setRoomId(rs.getInt("room_id"));
-        booking.setCheckInDate(rs.getDate("check_in_date"));
-        booking.setCheckOutDate(rs.getDate("check_out_date"));
-        booking.setAdults(rs.getInt("adults"));
-        booking.setChildren(rs.getInt("children"));
-        booking.setGuestCount(rs.getInt("guest_count"));
-        booking.setTotalPrice(rs.getBigDecimal("total_price"));
-        booking.setNotes(rs.getString("notes"));
-        booking.setSpecialRequests(rs.getString("special_requests"));
-        booking.setStatus(rs.getString("status"));
-        booking.setCreatedAt(rs.getTimestamp("created_at"));
+
+        try {
+            String rName = rs.getString("joined_room_name");
+            if (rName != null) booking.setRoomName(rName);
+            else if (rs.getString("room_name") != null) booking.setRoomName(rs.getString("room_name"));
+        } catch (SQLException ignored) {
+            try { booking.setRoomName(rs.getString("room_name")); } catch (SQLException ignored2) {}
+        }
+
+        try {
+            String imgUrl = rs.getString("joined_image_url");
+            if (imgUrl != null) booking.setRoomImageUrl(imgUrl);
+            else if (rs.getString("room_image_url") != null) booking.setRoomImageUrl(rs.getString("room_image_url"));
+        } catch (SQLException ignored) {
+            try { booking.setRoomImageUrl(rs.getString("room_image_url")); } catch (SQLException ignored2) {}
+        }
+
+        try {
+            String payoutStatus = rs.getString("payout_status");
+            if (payoutStatus != null) booking.setPayoutStatus(payoutStatus);
+        } catch (SQLException ignored) {}
+
         return booking;
     }
     
@@ -426,6 +902,365 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Lỗi hoàn thành đơn booking: " + bookingId, e);
             return false;
+        }
+    }
+
+
+    /**
+     * Finds all bookings for a user by user_id or customer_email, ordered newest first.
+     */
+    public List<Booking> findBookingsByUser(int userId, String email) {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT b.*, " +
+                     "       COALESCE(r.room_name, 'Phòng Homestay') as room_name, " +
+                     "       COALESCE(prop.property_name, 'Sogo Homestay') as property_name, " +
+                     "       COALESCE(ri.image_url, r.image_url, 'images/img_1.jpg') as room_image_url " +
+                     "FROM bookings b " +
+                     "LEFT JOIN rooms r ON b.room_id = r.room_id " +
+                     "LEFT JOIN properties prop ON r.property_id = prop.property_id " +
+                     "LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+                     "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri ON rt.room_type_id = ri.room_type_id " +
+                     "WHERE (b.user_id = ? OR (? IS NOT NULL AND ? <> '' AND b.customer_email = ?)) " +
+                     "ORDER BY b.id DESC";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            ps.setString(2, email);
+            ps.setString(3, email);
+            ps.setString(4, email);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Booking b = mapResultSetToBooking(rs);
+                b.setRoomName(rs.getString("room_name"));
+                b.setPropertyName(rs.getString("property_name"));
+                try {
+                    b.setRoomImageUrl(rs.getString("room_image_url"));
+                } catch (SQLException ignored) {}
+                bookings.add(b);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding bookings for user " + userId, e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+
+        // Attach multi-room items if any
+        for (Booking b : bookings) {
+            try {
+                List<BookingRoomItem> rooms = getBookingRooms(b.getId());
+                if (rooms != null && !rooms.isEmpty()) {
+                    b.setBookingRooms(rooms);
+                }
+            } catch (Exception ignored) {}
+        }
+        return bookings;
+    }
+
+    /**
+     * Cancels a booking if it belongs to the user and is in PENDING or CONFIRMED status.
+     */
+    public boolean cancelBooking(int bookingId, int userId, String email) {
+        String sql = "UPDATE bookings SET status = 'CANCELLED' " +
+                     "WHERE id = ? AND (user_id = ? OR (? IS NOT NULL AND ? <> '' AND customer_email = ?)) " +
+                     "  AND status IN ('PENDING', 'CONFIRMED')";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, bookingId);
+            ps.setInt(2, userId);
+            ps.setString(3, email);
+            ps.setString(4, email);
+            ps.setString(5, email);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error cancelling booking " + bookingId, e);
+            return false;
+        } finally {
+            closeResources(conn, ps, null);
+        }
+    }
+
+
+public List<Booking> findByUserId(int userId) {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = """
+                SELECT b.*,
+                       COALESCE(p.property_name, p.name, 'Sogo Homestay') AS joined_property_name,
+                       COALESCE(r.room_name, rt.room_name, 'Phòng tiêu chuẩn') AS joined_room_name,
+                       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') AS joined_image_url
+                FROM bookings b
+                LEFT JOIN properties p ON b.property_id = p.property_id
+                LEFT JOIN rooms r ON b.room_id = r.room_id
+                LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id
+                LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri
+                       ON rt.room_type_id = ri.room_type_id
+                WHERE b.user_id = ?
+                ORDER BY b.booking_id DESC
+                """;
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                bookings.add(mapResultSetToBooking(rs));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding bookings for user: " + userId, e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+
+        return bookings;
+    }
+
+public List<Booking> findByHostUserId(long hostUserId, int limit) {
+        List<Booking> list = new ArrayList<>();
+        String sql = """
+                SELECT b.*,
+                       COALESCE(p.property_name, p.name, 'Homestay') AS joined_property_name,
+                       COALESCE(r.room_name, 'Phòng tiêu chuẩn') AS joined_room_name,
+                       (SELECT ri.image_url FROM roomimages ri WHERE ri.room_id = b.room_id ORDER BY ri.is_primary DESC, ri.image_id ASC LIMIT 1) AS joined_image_url
+                FROM bookings b
+                JOIN properties p ON b.property_id = p.property_id
+                LEFT JOIN rooms r ON b.room_id = r.room_id
+                WHERE p.owner_id = ? OR p.host_id IN (SELECT id FROM host_profiles WHERE user_id = ?)
+                ORDER BY b.booking_id DESC
+                LIMIT ?
+                """;
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, hostUserId);
+            ps.setLong(2, hostUserId);
+            ps.setInt(3, limit > 0 ? limit : 50);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapResultSetToBooking(rs));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting bookings for host user: " + hostUserId, e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+
+        return list;
+    }
+
+public boolean updatePayoutStatus(long bookingId, String payoutStatus) {
+        String sql = "UPDATE bookings SET payout_status = ? WHERE booking_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, payoutStatus);
+            ps.setLong(2, bookingId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating payout status for booking: " + bookingId, e);
+            return false;
+        } finally {
+            closeResources(conn, ps, null);
+        }
+    }
+
+public Optional<Booking> findByIdWithDetails(int id) {
+        String sql = """
+                SELECT b.*,
+                       COALESCE(p.property_name, p.name, 'Sogo Homestay') AS joined_property_name,
+                       COALESCE(r.room_name, rt.room_name, 'Phòng tiêu chuẩn') AS joined_room_name,
+                       COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') AS joined_image_url
+                FROM bookings b
+                LEFT JOIN properties p ON b.property_id = p.property_id
+                LEFT JOIN rooms r ON b.room_id = r.room_id
+                LEFT JOIN roomtypes rt ON r.room_type_id = rt.room_type_id
+                LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri
+                       ON rt.room_type_id = ri.room_type_id
+                WHERE b.booking_id = ?
+                """;
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, id);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return Optional.of(mapResultSetToBooking(rs));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding booking with details for id: " + id, e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+
+        return Optional.empty();
+    }
+
+public boolean updateBookingStatus(long bookingId, String bookingStatus, String cancellationReason) {
+        String sql = "UPDATE bookings SET booking_status = ?, status = ?, cancellation_reason = ? WHERE booking_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, bookingStatus);
+            ps.setString(2, bookingStatus);
+            ps.setString(3, cancellationReason);
+            ps.setLong(4, bookingId);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating status for booking id: " + bookingId, e);
+            return false;
+        } finally {
+            closeResources(conn, ps, null);
+        }
+    }
+
+public Booking findByBookingCodeForUpdate(Connection conn, String bookingCode)
+            throws SQLException {
+        requireTransaction(conn, "findByBookingCodeForUpdate");
+        if (bookingCode == null || bookingCode.isBlank()) {
+            throw new IllegalArgumentException("Booking code must not be null or blank");
+        }
+        String sql = """
+                SELECT *
+                FROM bookings
+                WHERE REPLACE(booking_code, '-', '') = REPLACE(?, '-', '')
+                FOR UPDATE
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, bookingCode.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? mapResultSetToBooking(rs) : null;
+            }
+        }
+    }
+
+public Booking findByIdForUpdate(Connection conn, long bookingId)
+            throws SQLException {
+
+        requireTransaction(conn, "findByIdForUpdate");
+        validateBookingId(bookingId);
+
+        String sql = """
+                SELECT *
+                FROM bookings
+                WHERE booking_id = ?
+                FOR UPDATE
+                """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? mapResultSetToBooking(rs) : null;
+            }
+        }
+    }
+
+public boolean confirmPendingBooking(
+            Connection conn,
+            long bookingId) throws SQLException {
+
+        requireTransaction(conn, "confirmPendingBooking");
+        validateBookingId(bookingId);
+
+        String sql = """
+                UPDATE bookings
+                SET booking_status = 'CONFIRMED',
+                    status = 'CONFIRMED'
+                WHERE booking_id = ?
+                  AND booking_status = 'PENDING'
+                """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
+public boolean cancelPendingBooking(
+            Connection conn,
+            long bookingId,
+            String cancellationReason) throws SQLException {
+
+        requireTransaction(conn, "cancelPendingBooking");
+        validateBookingId(bookingId);
+
+        if (cancellationReason == null ||
+                cancellationReason.trim().isEmpty() ||
+                cancellationReason.length() > 500) {
+            throw new IllegalArgumentException(
+                    "Cancellation reason must contain 1-500 characters."
+            );
+        }
+
+        Booking booking = findByIdForUpdate(conn, bookingId);
+
+        if (booking == null ||
+                !"PENDING".equalsIgnoreCase(booking.getStatus())) {
+            return false;
+        }
+
+        String sql = """
+                UPDATE bookings
+                SET booking_status = 'CANCELLED',
+                    status = 'CANCELLED',
+                    cancellation_reason = ?
+                WHERE booking_id = ?
+                  AND booking_status = 'PENDING'
+                """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, cancellationReason.trim());
+            ps.setLong(2, bookingId);
+
+            return ps.executeUpdate() == 1;
+        }
+    }
+
+private void requireTransaction(Connection conn, String method)
+            throws SQLException {
+
+        if (conn == null || conn.isClosed() || conn.getAutoCommit()) {
+            throw new IllegalArgumentException(
+                    method + " requires an open connection with autoCommit=false."
+            );
+        }
+    }
+
+private void validateBookingId(long bookingId) {
+        if (bookingId <= 0 || bookingId > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException(
+                    "Invalid booking ID: " + bookingId
+            );
         }
     }
 }

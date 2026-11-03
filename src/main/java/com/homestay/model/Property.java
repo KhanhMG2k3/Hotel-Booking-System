@@ -100,20 +100,20 @@ public class Property implements Serializable {
         this.name = propertyName;
     }
 
-    public String getPropertyType() {
-        return propertyType;
-    }
-
-    public void setPropertyType(String propertyType) {
-        this.propertyType = propertyType;
-    }
-
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getPropertyType() {
+        return propertyType;
+    }
+
+    public void setPropertyType(String propertyType) {
+        this.propertyType = propertyType;
     }
 
     public String getAddress() {
