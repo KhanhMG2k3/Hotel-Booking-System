@@ -775,104 +775,15 @@
             </div>
         </div>
 
-        <!-- Wallet Transaction Ledger Card (Model 2) -->
-        <div class="card border-0 shadow-sm rounded-12" style="border-radius: 12px; overflow: hidden;">
-            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="font-weight-bold mb-0 text-dark">
-                        <i class="fa fa-book text-success mr-2"></i>Sổ cái Lịch sử biến động Ví Host (Model 2)
-                    </h5>
-                    <small class="text-muted">Theo dõi minh bạch mọi dòng tiền cộng doanh thu phòng và trừ tiền khi duyệt hoàn</small>
-                </div>
-                <button type="button" class="btn btn-sm btn-outline-success font-weight-bold" onclick="openTopupModal()">
-                    <i class="fa fa-plus-circle mr-1"></i> Nạp tiền ví
-                </button>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" style="font-size: 13.5px;">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>Thời gian</th>
-                                <th>Mã GD</th>
-                                <th>Loại giao dịch</th>
-                                <th>Số tiền biến động</th>
-                                <th>Số dư trước GD</th>
-                                <th>Số dư sau GD</th>
-                                <th>Nội dung diễn giải</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:choose>
-                                <c:when test="${empty walletTransactions}">
-                                    <tr>
-                                        <td colspan="7" class="text-center py-4 text-muted">
-                                            Chưa có biến động số dư nào trong ví Host.
-                                        </td>
-                                    </tr>
-                                </c:when>
-                                <c:otherwise>
-                                    <c:forEach var="tx" items="${walletTransactions}">
-                                        <tr>
-                                            <td class="text-muted text-nowrap">
-                                                <fmt:formatDate value="${tx.createdAt}" pattern="dd/MM/yyyy HH:mm:ss"/>
-                                            </td>
-                                            <td class="font-monospace text-muted">#TX-${tx.transactionId}</td>
-                                            <td>
-                                                <c:choose>
-                                                    <c:when test="${tx.transactionType == 'CREDIT_BOOKING'}">
-                                                        <span class="badge badge-tx-credit px-2 py-1">Doanh thu phòng</span>
-                                                    </c:when>
-                                                    <c:when test="${tx.transactionType == 'DEBIT_REFUND'}">
-                                                        <span class="badge badge-tx-debit px-2 py-1">Hoàn tiền khách</span>
-                                                    </c:when>
-                                                    <c:when test="${tx.transactionType == 'DEBIT_WITHDRAWAL'}">
-                                                        <span class="badge badge-info px-2 py-1">Rút về ngân hàng</span>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <span class="badge badge-tx-topup px-2 py-1">Nạp tiền ký quỹ</span>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </td>
-                                            <td class="font-weight-bold">
-                                                <c:choose>
-                                                    <c:when test="${tx.transactionType == 'DEBIT_REFUND' or tx.transactionType == 'DEBIT_WITHDRAWAL'}">
-                                                        <span class="text-danger">-<fmt:formatNumber value="${tx.amount}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/></span>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <span class="text-success">+<fmt:formatNumber value="${tx.amount}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/></span>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </td>
-                                            <td class="text-muted">
-                                                <fmt:formatNumber value="${tx.balanceBefore}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
-                                            </td>
-                                            <td class="font-weight-bold text-dark">
-                                                <fmt:formatNumber value="${tx.balanceAfter}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
-                                            </td>
-                                            <td><c:out value="${tx.description}"/></td>
-                                        </tr>
-                                    </c:forEach>
-                                </c:otherwise>
-                            </c:choose>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<!-- ========================================== -->
-<!-- MODAL APPROVE REFUND (WITH WALLET CHECK)   -->
+        <!-- ========================================== -->
+<!-- MODAL APPROVE REFUND (TRADITIONAL VIETQR)   -->
 <!-- ========================================== -->
 <div class="modal fade" id="approveModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title font-weight-bold">
-                    <i class="fa fa-check-circle mr-2"></i>Duyệt Hoàn Tiền Từ Ví Host (Model 2)
+                    <i class="fa fa-qrcode mr-2"></i>Quét Mã VietQR Hoàn Tiền Cho Khách
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -881,116 +792,46 @@
             <form action="${pageContext.request.contextPath}/host/refunds/action" method="post" id="approveRefundForm">
                 <input type="hidden" name="refundId" id="approveRefundId" />
                 <input type="hidden" name="action" value="approve" />
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 text-center">
                     <p class="text-muted mb-3" style="font-size: 13.5px;">
-                        Bạn đang phê duyệt yêu cầu hoàn tiền cho đơn đặt phòng <strong id="approveBookingCode" class="text-dark"></strong> của khách hàng <strong id="approveCustomerName" class="text-dark"></strong>.
+                        Quý Host vui lòng mở App Ngân Hàng bất kỳ để <strong>quét mã VietQR</strong> dưới đây và chuyển tiền hoàn lại cho khách hàng <strong id="approveCustomerName" class="text-dark"></strong> (Đơn <strong id="approveBookingCode" class="text-dark"></strong>).
                     </p>
 
-                    <!-- Wallet & Balance Check Box -->
-                    <div class="p-3 bg-light rounded mb-3 border">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Số tiền cần hoàn:</span>
-                            <span id="approveAmount" class="font-weight-bold text-danger" style="font-size: 18px;"></span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Số dư ví Host hiện tại:</span>
-                            <span id="approveHostBal" class="font-weight-bold text-success" style="font-size: 15px;">
-                                <fmt:formatNumber value="${hostBalance}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
-                            </span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2 pt-2 border-top">
-                            <span class="text-muted">Số dư sau khi trừ hoàn tiền:</span>
-                            <span id="approveHostBalAfter" class="font-weight-bold" style="font-size: 15px;"></span>
-                        </div>
-
-                        <!-- Wallet Status Banner -->
-                        <div id="walletSufficientAlert" class="alert alert-success py-2 px-3 mb-0 mt-3 small" style="display: none;">
-                            <i class="fa fa-check-circle mr-1"></i> Số dư ví đủ để hoàn tiền. Tiền sẽ được trừ trực tiếp từ Ví Host của bạn.
-                        </div>
-                        <div id="walletInsufficientAlert" class="alert alert-danger py-2 px-3 mb-0 mt-3 small" style="display: none;">
-                            <i class="fa fa-exclamation-triangle mr-1"></i> Số dư ví không đủ để hoàn tiền! Vui lòng nạp thêm tiền vào ví.
-                            <div class="mt-2 text-right">
-                                <button type="button" class="btn btn-xs btn-sm btn-danger font-weight-bold" onclick="$('#approveModal').modal('hide'); openTopupModal();">
-                                    <i class="fa fa-plus-circle mr-1"></i> Nạp tiền ngay
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="p-3 bg-white rounded border mt-3">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="fa fa-university text-primary mr-2" style="font-size: 18px;"></i>
-                                <span class="font-weight-bold text-dark" style="font-size: 13.5px;">Tài khoản ngân hàng nhận tiền hoàn của khách:</span>
-                            </div>
-                            <div class="p-2 bg-light rounded font-weight-bold text-dark font-monospace border mb-3" id="approveBankInfo"></div>
-
-                            <div class="alert alert-info py-2 px-3 mb-0 small" style="line-height: 1.5;">
-                                <i class="fa fa-shield text-primary mr-1"></i>
-                                <strong>Cơ chế hoàn tiền tự động (Model 2):</strong> Khi bấm Duyệt, hệ thống sẽ <strong>khấu trừ trực tiếp số tiền hoàn từ Số dư Ví Host</strong> của bạn để giải ngân hoàn tiền trực tiếp vào tài khoản ngân hàng của khách hàng. Host không cần phải mở app ngân hàng chuyển tiền thủ công ngoài đời.
-                            </div>
+                    <!-- VIETQR IMAGE BOX -->
+                    <div class="p-3 bg-light border rounded mb-3 shadow-sm text-center">
+                        <img id="refundVietQrImg" src="" alt="VietQR Hoàn Tiền Cho Khách"
+                             class="img-fluid rounded border shadow-sm mb-2"
+                             style="max-width: 250px; width: 100%; height: auto; background: #fff; padding: 8px;" />
+                        <div class="small text-muted font-weight-bold">
+                            <i class="fa fa-mobile fa-lg mr-1 text-primary"></i> Quét bằng ứng dụng Ngân hàng bất kỳ
                         </div>
                     </div>
 
-                    <div class="form-group mb-0">
-                        <label class="font-weight-bold text-dark" style="font-size: 13px;">Ghi chú duyệt hoàn tiền:</label>
-                        <input type="text" name="hostNote" class="form-control" placeholder="Ghi chú hoàn tiền..." value="Hệ thống đã khấu trừ Ví Host và hoàn tất giải ngân cho khách" />
+                    <!-- THÔNG TIN CHUYỂN KHOẢN -->
+                    <div class="bg-white border rounded p-3 mb-3 text-left">
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <span class="text-muted small">Số tiền cần hoàn trả:</span>
+                            <span id="approveAmount" class="font-weight-bold text-danger h5 mb-0"></span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <span class="text-muted small">Tài khoản nhận của khách:</span>
+                            <span class="font-weight-bold text-dark font-monospace" id="approveBankInfo"></span>
+                        </div>
+                        <div class="alert alert-info py-2 px-3 mb-0 small" style="line-height: 1.5;">
+                            <i class="fa fa-info-circle mr-1 text-primary"></i>
+                            Mã VietQR phía trên đã được hệ thống tự động điền sẵn số tài khoản của khách, số tiền hoàn và nội dung chuyển khoản. Sau khi chuyển khoản xong, Host bấm nút xác nhận bên dưới.
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-0 text-left">
+                        <label class="font-weight-bold text-dark" style="font-size: 13px;">Ghi chú hoàn tiền:</label>
+                        <input type="text" name="hostNote" class="form-control" placeholder="Ghi chú hoàn tiền..." value="Host đã quét mã VietQR và hoàn tất chuyển tiền trả khách" />
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-light justify-content-between">
                     <button type="button" class="btn btn-secondary rounded-pill px-4" data-dismiss="modal">Đóng</button>
-                    <button type="submit" id="btnConfirmApprove" class="btn btn-success rounded-pill px-4 font-weight-bold">
-                        <i class="fa fa-check-circle mr-1"></i> Duyệt Hoàn Tiền Từ Ví Host
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- ========================================== -->
-<!-- MODAL TOP-UP WALLET (NẠP TIỀN VÍ HOST)      -->
-<!-- ========================================== -->
-<div class="modal fade" id="topupModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title font-weight-bold">
-                    <i class="fa fa-credit-card mr-2"></i>Nạp Tiền Vào Ví Host (Ký Quỹ Hoàn Tiền)
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form action="${pageContext.request.contextPath}/host/refunds/action" method="post" id="topupForm">
-                <input type="hidden" name="action" value="topup" />
-                <div class="modal-body p-4">
-                    <p class="text-muted mb-3" style="font-size: 13px;">
-                        Nạp thêm số dư vào ví Host để đảm bảo quỹ thanh toán hoàn tiền kịp thời cho khách hàng.
-                    </p>
-
-                    <div class="form-group">
-                        <label class="font-weight-bold text-dark" style="font-size: 13px;">Chọn nhanh số tiền nạp:</label>
-                        <div class="d-flex flex-wrap gap-2 mb-2">
-                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mr-2 mb-2 font-weight-bold" onclick="selectTopupAmount(5000000)">+ 5.000.000đ</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mr-2 mb-2 font-weight-bold" onclick="selectTopupAmount(10000000)">+ 10.000.000đ</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mr-2 mb-2 font-weight-bold" onclick="selectTopupAmount(20000000)">+ 20.000.000đ</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mr-2 mb-2 font-weight-bold" onclick="selectTopupAmount(50000000)">+ 50.000.000đ</button>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="font-weight-bold text-dark" style="font-size: 13px;">Số tiền nạp (VNĐ): <span class="text-danger">*</span></label>
-                        <input type="number" step="1000" min="1000" name="amount" id="topupAmountInput" class="form-control form-control-lg font-weight-bold text-success" placeholder="Nhập số tiền VNĐ..." required value="10000000" />
-                    </div>
-
-                    <div class="form-group mb-0">
-                        <label class="font-weight-bold text-dark" style="font-size: 13px;">Nội dung nạp tiền:</label>
-                        <input type="text" name="note" class="form-control" value="Nạp tiền bổ sung ký quỹ Ví Host" />
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 font-weight-bold">
-                        <i class="fa fa-arrow-down mr-1"></i> Xác Nhận Nạp Tiền
+                    <button type="submit" id="btnConfirmApprove" class="btn btn-success rounded-pill px-4 font-weight-bold shadow-sm">
+                        <i class="fa fa-check-circle mr-1"></i> Xác Nhận Đã Chuyển Tiền Hoàn Cho Khách
                     </button>
                 </div>
             </form>

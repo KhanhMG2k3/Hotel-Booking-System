@@ -113,7 +113,7 @@ public class HostRefundServlet extends HttpServlet {
 
         String msg = request.getParameter("msg");
         if ("approved".equals(msg)) {
-            request.setAttribute("successMessage", "Đã phê duyệt hoàn tiền thành công. Tiền đã được trừ từ Ví Host và gửi thông báo tới khách hàng.");
+            request.setAttribute("successMessage", "Đã xác nhận hoàn tiền thành công cho khách hàng qua VietQR!");
         } else if ("rejected".equals(msg)) {
             request.setAttribute("successMessage", "Đã từ chối yêu cầu hoàn tiền thành công.");
         } else if ("topup_success".equals(msg)) {
