@@ -194,7 +194,9 @@
         <c:otherwise>
           <div class="replies-thread-container">
             <c:forEach items="${ticket.replies}" var="reply">
-              <div class="card reply-thread-item shadow-sm ${reply.adminReply ? 'reply-thread-admin' : 'reply-thread-user'}">
+              <%-- <div class="card reply-thread-item shadow-sm ${reply.adminReply ? 'reply-thread-admin' : 'reply-thread-user'}"> --%>
+              <%-- BO SUNG ID ANCHOR CHO TUNG PHAN HOI DE LINK THONG BAO (#reply-{replyId}) CUON DEN DUNG TIN NHAN (DOT 5) --%>
+              <div id="reply-${reply.replyId}" class="card reply-thread-item shadow-sm ${reply.adminReply ? 'reply-thread-admin' : 'reply-thread-user'}">
                 <div class="card-body p-4">
                   <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
                     <div class="d-flex align-items-center">
@@ -259,9 +261,13 @@
           <input type="hidden" name="ticketId" value="${ticket.messageId}">
 
           <div class="form-group mb-3">
+            <%-- <textarea name="message" id="replyMessage" rows="4" class="form-control" 
+                      placeholder="Nhập nội dung trao đổi bổ sung (từ 2 đến 2000 ký tự)..." 
+                      minlength="2" maxlength="2000" required></textarea> --%>
+            <%-- GIU LAI NOI DUNG NHAP (REPLYDRAFT) KHI CO LOI VALIDATION/CSRF/RATE-LIMIT (DOT 6) --%>
             <textarea name="message" id="replyMessage" rows="4" class="form-control" 
                       placeholder="Nhập nội dung trao đổi bổ sung (từ 2 đến 2000 ký tự)..." 
-                      minlength="2" maxlength="2000" required></textarea>
+                      minlength="2" maxlength="2000" required><c:out value="${replyDraft}" /></textarea>
             <div class="d-flex justify-content-between mt-1">
               <small class="text-muted">Hỗ trợ plain text an toàn, không chứa mã độc.</small>
               <small id="replyCounter" class="text-muted">0 / 2000 ký tự</small>

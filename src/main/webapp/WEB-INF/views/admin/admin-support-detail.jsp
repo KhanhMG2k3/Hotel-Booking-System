@@ -168,6 +168,20 @@
         background: #eff6ff;
         color: #1d4ed8;
     }
+    /* CHONG TRAN NGANG TREN VIEWPORT NHO 320PX - 575PX CHO THE TIN NHAN TIMELINE (DOT 6) */
+    @media (max-width: 575.98px) {
+        .timeline-content-card {
+            min-width: 0;
+            width: 100%;
+        }
+        .admin-detail-wrap {
+            padding-top: 90px;
+            padding-bottom: 50px;
+        }
+        .card-box-body, .card-box-header {
+            padding: 0.9rem 1rem;
+        }
+    }
 </style>
 
 <div class="admin-detail-wrap">
@@ -313,7 +327,9 @@
                                     <div class="timeline-wrap">
                                         <c:forEach var="reply" items="${ticket.replies}">
                                             <c:set var="isAdminReply" value="${reply.senderRole == 'ROLE_ADMIN' || reply.senderRole == 'ADMIN'}" />
-                                            <div class="timeline-item ${isAdminReply ? 'timeline-admin' : ''}">
+                                            <%-- <div class="timeline-item ${isAdminReply ? 'timeline-admin' : ''}"> --%>
+                                            <%-- BO SUNG ID ANCHOR CHO TUNG PHAN HOI DE LINK THONG BAO (#reply-{replyId}) CUON DEN DUNG TIN NHAN (DOT 5) --%>
+                                            <div id="reply-${reply.replyId}" class="timeline-item ${isAdminReply ? 'timeline-admin' : ''}">
                                                 <div class="timeline-content-card">
                                                     <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
                                                         <div class="d-flex align-items-center">
@@ -366,9 +382,13 @@
 
                             <div class="form-group mb-2">
                                 <label for="adminReplyMessage" class="font-weight-bold small text-muted">Nội dung phản hồi tới người gửi (Plain text):</label>
+                                <%-- <textarea name="message" id="adminReplyMessage" class="form-control" rows="5"
+                                          placeholder="Nhập nội dung phản hồi chi tiết, hướng dẫn hoặc giải pháp hỗ trợ..."
+                                          required minlength="2" maxlength="2000"></textarea> --%>
+                                <%-- GIU LAI NOI DUNG NHAP (REPLYDRAFT) KHI CO LOI VALIDATION/CSRF/RATE-LIMIT/DB (DOT 6) --%>
                                 <textarea name="message" id="adminReplyMessage" class="form-control" rows="5"
                                           placeholder="Nhập nội dung phản hồi chi tiết, hướng dẫn hoặc giải pháp hỗ trợ..."
-                                          required minlength="2" maxlength="2000"></textarea>
+                                          required minlength="2" maxlength="2000"><c:out value="${replyDraft}" /></textarea>
                                 <div class="d-flex justify-content-between align-items-center mt-1">
                                     <small class="text-muted">Độ dài từ 2 đến 2000 ký tự. Không chứa mã HTML/Script độc hại.</small>
                                     <small class="text-muted"><span id="charCount">0</span>/2000 ký tự</small>
@@ -411,7 +431,9 @@
                     <div class="card-box-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="sender-avatar mr-3">
-                                ${fn:toUpperCase(fn:substring(ticket.fullName, 0, 1))}
+                                <%-- ${fn:toUpperCase(fn:substring(ticket.fullName, 0, 1))} --%>
+                                <%-- ESCAPE KY TU DAU TEN NGUOI GUI DE CHONG XSS NEU HO TEN CHUA KY TU HTML DAC BIET (DOT 6) --%>
+                                <c:out value="${fn:toUpperCase(fn:substring(ticket.fullName, 0, 1))}" />
                             </div>
                             <div>
                                 <h6 class="font-weight-bold text-dark mb-0"><c:out value="${ticket.fullName}" /></h6>
@@ -534,6 +556,8 @@
         var replyArea = document.getElementById("adminReplyMessage");
         var charCount = document.getElementById("charCount");
         if (replyArea && charCount) {
+            // CAP NHAT BO DEM KY TU NGAY KHI TRANG TAI LAI CO DUNG LUONG REPLYDRAFT (DOT 6)
+            charCount.textContent = replyArea.value.length;
             replyArea.addEventListener("input", function () {
                 charCount.textContent = replyArea.value.length;
             });

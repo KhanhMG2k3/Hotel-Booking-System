@@ -2,29 +2,113 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <jsp:include page="../common/header.jsp">
-  <jsp:param name="pageTitle" value="Quản Lý FAQ - Sogo Homestay" />
+  <jsp:param name="pageTitle" value="Quản Trị FAQ - Sogo Homestay" />
 </jsp:include>
 
+<!-- 1. THÊM THANH NAVBAR CHÍNH CỦA HỆ THỐNG -->
 <jsp:include page="../common/navbar.jsp" />
 
-<div class="container py-5 my-4">
-  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+<style>
+  /* Khoảng cách đệm phía trên để không bị thanh header cố định che khuất */
+  .admin-faq-container {
+    padding-top: 115px;
+    padding-bottom: 80px;
+    min-height: 85vh;
+  }
+
+  /* Đường dẫn Breadcrumb */
+  .custom-breadcrumb {
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+  .custom-breadcrumb a {
+    color: #f7a030;
+    text-decoration: none;
+  }
+  .custom-breadcrumb a:hover {
+    text-decoration: underline;
+  }
+  .custom-breadcrumb span {
+    color: #888888;
+    margin: 0 6px;
+  }
+  .custom-breadcrumb .active-crumb {
+    color: #adb5bd;
+  }
+
+  /* Cột kéo thả với dấu gạch ngang */
+  .drag-handle {
+    cursor: grab;
+    color: #888888;
+    font-size: 1.15rem;
+    transition: all 0.2s ease;
+    user-select: none;
+    width: 50px;
+  }
+  .drag-handle:hover {
+    color: #f7a030;
+    transform: scale(1.15);
+  }
+  .faq-row:active .drag-handle {
+    cursor: grabbing;
+  }
+  .faq-row.dragging {
+    opacity: 0.45;
+    background-color: #fff3cd !important;
+  }
+  .faq-row.drag-over-top {
+    border-top: 3px solid #f7a030 !important;
+  }
+  .faq-row.drag-over-bottom {
+    border-bottom: 3px solid #f7a030 !important;
+  }
+</style>
+
+<div class="container admin-faq-container">
+
+  <!-- ĐƯỜNG DẪN BREADCRUMB QUAY VỀ TRANG CHÍNH -->
+  <div class="custom-breadcrumb">
+    <a href="${pageContext.request.contextPath}/home"><i class="fa fa-home mr-1"></i> Trang Chủ</a>
+    <span>&gt;</span>
+    <a href="${pageContext.request.contextPath}/admin/dashboard"><i class="fa fa-cogs mr-1"></i> Trang Quản Trị</a>
+    <span>&gt;</span>
+    <span class="active-crumb">Quản Lý FAQ</span>
+  </div>
+
+  <!-- TIÊU ĐỀ & CÁC NÚT ĐIỀU HƯỚNG QUAY VỀ -->
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom flex-wrap" style="gap: 10px;">
     <div>
       <h2 class="font-weight-bold text-dark mb-1">
         <i class="fa fa-question-circle text-primary mr-2"></i>Quản Lý FAQ Hệ Thống
       </h2>
-      <p class="text-muted small mb-0">Thêm, sửa, xóa câu hỏi và bật/tắt hiển thị lên trang FAQ tĩnh cho khách hàng</p>
+      <p class="text-muted small mb-0">Kéo thả dấu 3 gạch ngang để thay đổi thứ tự câu hỏi hiển thị lên trang khách</p>
     </div>
-    <div>
-      <a href="${pageContext.request.contextPath}/faq" class="btn btn-outline-info mr-2">
-        <span class="fa fa-eye mr-1"></span> Xem Trang FAQ Khách
+
+    <!-- CÁC NÚT ĐIỀU HƯỚNG CHÍNH -->
+    <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+      <!-- Nút 1: Quay lại Trang Chủ -->
+      <a href="${pageContext.request.contextPath}/home" class="btn btn-outline-secondary btn-sm font-weight-bold">
+        <i class="fa fa-arrow-left mr-1"></i> Về Trang Chủ
       </a>
-      <button class="btn btn-primary font-weight-bold shadow-sm" data-toggle="modal" data-target="#modalAddFaq">
-        <span class="fa fa-plus-circle mr-1"></span> Thêm Câu Hỏi Mới
+
+      <!-- Nút 2: Quay lại Trang Quản Trị Admin Dashboard -->
+      <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-outline-dark btn-sm font-weight-bold">
+        <i class="fa fa-cogs mr-1"></i> Trang Quản Trị
+      </a>
+
+      <!-- Nút 3: Xem Trang FAQ Khách -->
+      <a href="${pageContext.request.contextPath}/faq" target="_blank" class="btn btn-outline-info btn-sm font-weight-bold">
+        <i class="fa fa-eye mr-1"></i> Xem FAQ Khách
+      </a>
+
+      <!-- Nút 4: Thêm Câu Hỏi Mới -->
+      <button class="btn btn-primary btn-sm font-weight-bold shadow-sm" data-toggle="modal" data-target="#modalAddFaq">
+        <i class="fa fa-plus-circle mr-1"></i> Thêm Câu Hỏi Mới
       </button>
     </div>
   </div>
 
+  <!-- CÁC THÔNG BÁO ALERT -->
   <c:if test="${param.msg == 'added'}">
     <div class="alert alert-success alert-dismissible fade show" role="alert">
       <strong><i class="fa fa-check-circle mr-1"></i> Thành công!</strong> Đã thêm mới câu hỏi vào hệ thống!
@@ -56,6 +140,7 @@
     </div>
   </c:if>
 
+  <!-- KHỐI TÌM KIẾM NHANH TRONG ADMIN -->
   <div class="card mb-4 border-0 shadow-sm bg-light">
     <div class="card-body p-3">
       <form action="${pageContext.request.contextPath}/admin/faqs" method="get" class="form-inline justify-content-between">
@@ -76,12 +161,15 @@
     </div>
   </div>
 
+  <!-- BẢNG DANH SÁCH FAQ CHO ADMIN -->
   <div class="bg-white rounded shadow-sm border p-3">
     <div class="table-responsive">
       <table class="table table-hover table-bordered mb-0 align-middle">
         <thead class="thead-light text-center">
           <tr>
-            <th style="width: 50px;">Thứ tự</th>
+            <th style="width: 50px;" class="text-center" title="Kéo thả dấu 3 gạch ngang để thay đổi thứ tự">
+              <i class="fa fa-bars text-muted"></i>
+            </th>
             <th style="width: 150px;">Chuyên Mục</th>
             <th style="width: 280px;">Câu Hỏi</th>
             <th>Câu Trả Lời</th>
@@ -89,19 +177,29 @@
             <th style="width: 140px;">Thao Tác</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="faqTableBody">
           <c:choose>
             <c:when test="${not empty faqList}">
               <c:forEach var="faq" items="${faqList}">
-                <tr>
-                  <td class="text-center font-weight-bold text-muted">${faq.orderIndex}</td>
+                <tr class="faq-row" data-id="${faq.id}">
+                  <td class="text-center drag-handle" title="Nhấp giữ dấu gạch ngang và kéo lên/xuống để đổi thứ tự">
+                    <i class="fa fa-bars"></i>
+                  </td>
+                  
                   <td class="text-center">
                     <span class="badge badge-secondary p-2" style="font-size: 0.85rem;">
                       ${faq.category}
                     </span>
                   </td>
-                  <td class="font-weight-bold text-dark">${faq.question}</td>
-                  <td class="text-secondary small" style="white-space: pre-line;">${faq.answer}</td>
+                  
+                  <td class="font-weight-bold text-dark" style="word-break: break-word;">
+                    ${faq.question}
+                  </td>
+                  
+                  <td class="text-secondary small" style="white-space: pre-line; word-break: break-word;">
+                    ${faq.answer}
+                  </td>
+                  
                   <td class="text-center">
                     <c:choose>
                       <c:when test="${faq.status == 'ACTIVE'}">
@@ -126,6 +224,7 @@
                       </c:otherwise>
                     </c:choose>
                   </td>
+                  
                   <td class="text-center">
                     <div class="btn-group btn-group-sm" role="group">
                       <button type="button" class="btn btn-outline-primary btn-edit-faq"
@@ -164,11 +263,12 @@
   </div>
 </div>
 
-<!-- MODAL THÊM CÂU HỎI MỚI -->
+<!-- ================= MODAL THÊM CÂU HỎI MỚI ================= -->
 <div class="modal fade" id="modalAddFaq" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <form action="${pageContext.request.contextPath}/admin/faqs/add" method="post">
+        <input type="hidden" name="orderIndex" value="999">
         <div class="modal-header bg-primary text-white">
           <h5 class="modal-title font-weight-bold">
             <i class="fa fa-plus-circle mr-1"></i> Thêm Câu Hỏi Thường Gặp (FAQ) Mới
@@ -194,19 +294,12 @@
             <label class="font-weight-bold">Câu trả lời: <span class="text-danger">*</span></label>
             <textarea name="answer" rows="5" class="form-control" placeholder="Nhập câu trả lời chi tiết và rõ ràng cho khách hàng..." required></textarea>
           </div>
-          <div class="row">
-            <div class="col-md-6 form-group">
-              <label class="font-weight-bold">Thứ tự hiển thị (Order Index):</label>
-              <input type="number" name="orderIndex" value="1" min="1" class="form-control" required>
-              <small class="text-muted">Số nhỏ hơn sẽ hiển thị lên trước.</small>
-            </div>
-            <div class="col-md-6 form-group">
-              <label class="font-weight-bold">Trạng thái hiển thị lên trang khách:</label>
-              <select name="status" class="form-control">
-                <option value="ACTIVE" selected>Hiển thị lên trang FAQ khách (ACTIVE)</option>
-                <option value="INACTIVE">Tạm ẩn, không hiển thị (INACTIVE)</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label class="font-weight-bold">Trạng thái hiển thị lên trang khách:</label>
+            <select name="status" class="form-control">
+              <option value="ACTIVE" selected>Hiển thị lên trang FAQ khách (ACTIVE)</option>
+              <option value="INACTIVE">Tạm ẩn, không hiển thị (INACTIVE)</option>
+            </select>
           </div>
         </div>
         <div class="modal-footer">
@@ -220,12 +313,14 @@
   </div>
 </div>
 
-<!-- MODAL SỬA CÂU HỎI & CÂU TRẢ LỜI -->
+<!-- ================= MODAL SỬA CÂU HỎI & CÂU TRẢ LỜI ================= -->
 <div class="modal fade" id="modalEditFaq" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <form action="${pageContext.request.contextPath}/admin/faqs/edit" method="post">
         <input type="hidden" name="id" id="edit-id">
+        <input type="hidden" name="orderIndex" id="edit-order">
+
         <div class="modal-header bg-dark text-white">
           <h5 class="modal-title font-weight-bold">
             <i class="fa fa-edit mr-1"></i> Chỉnh Sửa Câu Hỏi & Câu Trả Lời
@@ -251,18 +346,12 @@
             <label class="font-weight-bold">Câu trả lời: <span class="text-danger">*</span></label>
             <textarea name="answer" id="edit-answer" rows="5" class="form-control" required></textarea>
           </div>
-          <div class="row">
-            <div class="col-md-6 form-group">
-              <label class="font-weight-bold">Thứ tự hiển thị (Order Index):</label>
-              <input type="number" name="orderIndex" id="edit-order" min="1" class="form-control" required>
-            </div>
-            <div class="col-md-6 form-group">
-              <label class="font-weight-bold">Trạng thái hiển thị lên trang khách:</label>
-              <select name="status" id="edit-status" class="form-control">
-                <option value="ACTIVE">Hiển thị lên trang FAQ khách (ACTIVE)</option>
-                <option value="INACTIVE">Tạm ẩn, không hiển thị (INACTIVE)</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label class="font-weight-bold">Trạng thái hiển thị lên trang khách:</label>
+            <select name="status" id="edit-status" class="form-control">
+              <option value="ACTIVE">Hiển thị lên trang FAQ khách (ACTIVE)</option>
+              <option value="INACTIVE">Tạm ẩn, không hiển thị (INACTIVE)</option>
+            </select>
           </div>
         </div>
         <div class="modal-footer">
@@ -278,27 +367,129 @@
 
 <jsp:include page="../common/footer.jsp" />
 
+<!-- SCRIPT KÉO THẢ THỨ TỰ (DRAG & DROP) & GẮN DỮ LIỆU MODAL -->
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    // 1. Gắn dữ liệu vào Modal Sửa
     var editButtons = document.querySelectorAll('.btn-edit-faq');
     editButtons.forEach(function (button) {
       button.addEventListener('click', function () {
-        var id = this.getAttribute('data-id');
-        var category = this.getAttribute('data-category');
-        var question = this.getAttribute('data-question');
-        var answer = this.getAttribute('data-answer');
-        var order = this.getAttribute('data-order');
-        var status = this.getAttribute('data-status');
-
-        document.getElementById('edit-id').value = id;
-        document.getElementById('edit-category').value = category;
-        document.getElementById('edit-question').value = question;
-        document.getElementById('edit-answer').value = answer;
-        document.getElementById('edit-order').value = order;
-        document.getElementById('edit-status').value = status;
-
+        document.getElementById('edit-id').value = this.getAttribute('data-id');
+        document.getElementById('edit-category').value = this.getAttribute('data-category');
+        document.getElementById('edit-question').value = this.getAttribute('data-question');
+        document.getElementById('edit-answer').value = this.getAttribute('data-answer');
+        document.getElementById('edit-order').value = this.getAttribute('data-order');
+        document.getElementById('edit-status').value = this.getAttribute('data-status');
         $('#modalEditFaq').modal('show');
       });
     });
+
+    // 2. Logic Kéo Thả (Drag & Drop) bảng FAQ
+    var tableBody = document.getElementById('faqTableBody');
+    var draggedRow = null;
+
+    if (tableBody) {
+      var rows = tableBody.querySelectorAll('tr.faq-row');
+      rows.forEach(function (row) {
+        row.setAttribute('draggable', 'true');
+
+        row.addEventListener('dragstart', function (e) {
+          draggedRow = this;
+          this.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', this.getAttribute('data-id'));
+        });
+
+        row.addEventListener('dragover', function (e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (!draggedRow || draggedRow === this) return;
+
+          var rect = this.getBoundingClientRect();
+          var midY = rect.top + rect.height / 2;
+
+          rows.forEach(function (r) {
+            r.classList.remove('drag-over-top', 'drag-over-bottom');
+          });
+
+          if (e.clientY < midY) {
+            this.classList.add('drag-over-top');
+          } else {
+            this.classList.add('drag-over-bottom');
+          }
+        });
+
+        row.addEventListener('dragleave', function () {
+          this.classList.remove('drag-over-top', 'drag-over-bottom');
+        });
+
+        row.addEventListener('drop', function (e) {
+          e.preventDefault();
+          this.classList.remove('drag-over-top', 'drag-over-bottom');
+          if (!draggedRow || draggedRow === this) return;
+
+          var rect = this.getBoundingClientRect();
+          var midY = rect.top + rect.height / 2;
+
+          if (e.clientY < midY) {
+            tableBody.insertBefore(draggedRow, this);
+          } else {
+            tableBody.insertBefore(draggedRow, this.nextSibling);
+          }
+
+          saveNewFaqOrder();
+        });
+
+        row.addEventListener('dragend', function () {
+          this.classList.remove('dragging');
+          rows.forEach(function (r) {
+            r.classList.remove('drag-over-top', 'drag-over-bottom');
+          });
+          draggedRow = null;
+        });
+      });
+    }
+
+    function saveNewFaqOrder() {
+      var allRows = tableBody.querySelectorAll('tr.faq-row');
+      var ids = Array.from(allRows).map(function (r) {
+        return r.getAttribute('data-id');
+      });
+
+      var params = new URLSearchParams();
+      params.append('ids', ids.join(','));
+
+      fetch('${pageContext.request.contextPath}/admin/faqs/reorder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        },
+        body: params
+      })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        showReorderToast('Đã lưu thứ tự hiển thị mới thành công!');
+      })
+      .catch(function (err) {
+        console.error('Lỗi lưu thứ tự FAQ:', err);
+      });
+    }
+
+    function showReorderToast(msg) {
+      var toast = document.getElementById('faqReorderToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'faqReorderToast';
+        toast.style.cssText = 'position:fixed;bottom:25px;right:25px;background:#28a745;color:#fff;padding:12px 22px;border-radius:6px;box-shadow:0 4px 15px rgba(0,0,0,0.25);z-index:99999;font-weight:bold;display:flex;align-items:center;gap:10px;';
+        toast.innerHTML = '<i class="fa fa-check-circle" style="font-size:1.2rem;"></i> <span></span>';
+        document.body.appendChild(toast);
+      }
+      toast.querySelector('span').innerText = msg;
+      toast.style.display = 'flex';
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(function () {
+        toast.style.display = 'none';
+      }, 2500);
+    }
   });
 </script>

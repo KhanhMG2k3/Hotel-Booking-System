@@ -252,17 +252,20 @@ class SupportServiceTest {
 
     @Test
     @DisplayName("updateTicketStatus: Admin can transition PROCESSING to RESOLVED")
-    void testUpdateTicketStatusAdminSuccess() {
+    void testUpdateTicketStatusAdminSuccess() throws Exception {
         int ticketId = 1;
         ContactMessage existingTicket = new ContactMessage();
         existingTicket.setMessageId(ticketId);
         existingTicket.setStatus(TicketStatus.PROCESSING);
 
         when(contactMessageDAO.findById(ticketId)).thenReturn(Optional.of(existingTicket));
-        when(contactMessageDAO.updateStatus(ticketId, TicketStatus.RESOLVED, TicketStatus.PROCESSING)).thenReturn(true);
+//        when(contactMessageDAO.updateStatus(ticketId, TicketStatus.RESOLVED, TicketStatus.PROCESSING)).thenReturn(true);
+        // CAP NHAT MOCK THEO GIAO DICH TRANSACTION NHAT QUAN TREN MOCKCONNECTION (DOT 5)
+        when(contactMessageDAO.updateStatus(ticketId, TicketStatus.RESOLVED, TicketStatus.PROCESSING, mockConnection)).thenReturn(true);
 
         boolean success = supportService.updateTicketStatus(ticketId, TicketStatus.RESOLVED, true);
         assertTrue(success);
+        verify(mockConnection).commit();
     }
 
     @Test

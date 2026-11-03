@@ -35,6 +35,12 @@ public class NotificationController extends HttpServlet {
         String path = request.getServletPath();
         HttpSession session = request.getSession(false);
         Integer userId = (session != null) ? (Integer) session.getAttribute("userId") : null;
+
+        // ====== THÊM DÒNG NÀY: TỰ ĐỘNG QUÉT ĐƠN HOÀN THÀNH ĐỂ BẮN THÔNG BÁO CHO KHÁCH ======
+        if (userId != null) {
+            notificationDAO.autoGenerateCompletedStayReviewNotifications(userId);
+        }
+
         // API Endpoint: Count unread
         if ("/api/notifications/count".equals(path)) {
             sendJsonCountResponse(response, userId != null ? notificationDAO.countUnreadByUserId(userId) : 0, userId != null);

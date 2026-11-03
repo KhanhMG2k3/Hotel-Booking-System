@@ -130,6 +130,71 @@ public class SupportReplyDAO extends BaseDAO {
         }
     }
 
+    // ==================== BAT DAU THEM MOI DOT 5: TRUY VAN ADMIN XU LY TICKET & MA PHAN HOI CUOI ====================
+
+    /**
+     * TIM DANH SACH ADMIN DANG HOAT DONG DA THAM GIA PHAN HOI XU LY TREN TICKET NAY.
+     * DUNG DE GUI THONG BAO CHO NGUOI XU LY KHI KHACH HANG / HOST GUI TIN NHAN BO SUNG.
+     */
+    public List<Integer> findRepliedAdminIdsByTicketId(int ticketId, Connection conn) throws SQLException {
+        List<Integer> adminIds = new ArrayList<>();
+        if (conn == null || ticketId <= 0) {
+            return adminIds;
+        }
+
+        String sql = "SELECT DISTINCT r.sender_id "
+                   + "FROM support_replies r "
+                   + "JOIN users u ON r.sender_id = u.user_id "
+                   + "LEFT JOIN userroles ur ON u.user_id = ur.user_id "
+                   + "LEFT JOIN roles ro ON COALESCE(ur.role_id, u.role_id) = ro.role_id "
+                   + "WHERE r.ticket_id = ? "
+                   + "AND (u.role_id = 1 OR ro.role_id = 1 OR UPPER(ro.role_name) IN ('ROLE_ADMIN', 'ADMIN', 'ADMINISTRATOR')) "
+                   + "AND UPPER(COALESCE(u.status, 'ACTIVE')) = 'ACTIVE' "
+                   + "ORDER BY r.sender_id ASC";
+
+        PreparedStatement ps = conn.prepareStatement(sql);
+        if (ps == null) {
+            return adminIds;
+        }
+        try (PreparedStatement stmt = ps) {
+            stmt.setInt(1, ticketId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs != null) {
+                    while (rs.next()) {
+                        adminIds.add(rs.getInt("sender_id"));
+                    }
+                }
+            }
+        }
+        return adminIds;
+    }
+
+    /**
+     * LAY REPLY_ID MOI NHAT TREN TICKET TRONG CUNG TRANSACTION DE TAO KHOA SU KIEN CHUYEN TRANG THAI RESOLVED.
+     */
+    public int findLatestReplyId(int ticketId, Connection conn) throws SQLException {
+        if (conn == null || ticketId <= 0) {
+            return 0;
+        }
+
+        String sql = "SELECT COALESCE(MAX(reply_id), 0) AS latest_reply_id FROM support_replies WHERE ticket_id = ?";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        if (ps == null) {
+            return 0;
+        }
+        try (PreparedStatement stmt = ps) {
+            stmt.setInt(1, ticketId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs != null && rs.next()) {
+                    return rs.getInt("latest_reply_id");
+                }
+            }
+        }
+        return 0;
+    }
+
+    // ==================== KET THUC THEM MOI DOT 5: TRUY VAN ADMIN XU LY TICKET & MA PHAN HOI CUOI ====================
+
     private SupportReply mapResultSetToReply(ResultSet rs) throws SQLException {
         SupportReply r = new SupportReply();
         r.setReplyId(rs.getInt("reply_id"));

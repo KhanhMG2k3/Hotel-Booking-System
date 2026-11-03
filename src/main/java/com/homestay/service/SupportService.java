@@ -3,6 +3,8 @@ package com.homestay.service;
 import com.homestay.context.DBContext;
 import com.homestay.dao.BookingDAO;
 import com.homestay.dao.ContactMessageDAO;
+// THEM IMPORT NOTIFICATIONDAO CHO DOT 5 - TAI SU DUNG MODULE NOTIFICATION HIEN CO
+import com.homestay.dao.NotificationDAO;
 import com.homestay.dao.SupportReplyDAO;
 import com.homestay.exception.DataAccessException;
 import com.homestay.model.ContactMessage;
@@ -35,15 +37,30 @@ public class SupportService {
     private final ContactMessageDAO contactMessageDAO;
     private final SupportReplyDAO supportReplyDAO;
     private final BookingDAO bookingDAO;
+    // BO SUNG NOTIFICATIONDAO DE GHI NHAN THONG BAO TRONG CUNG TRANSACTION NGHIEP VU (DOT 5)
+    private final NotificationDAO notificationDAO;
 
     public SupportService() {
-        this(new ContactMessageDAO(), new SupportReplyDAO(), new BookingDAO());
+//        this(new ContactMessageDAO(), new SupportReplyDAO(), new BookingDAO());
+        // KHOI TAO THEM NOTIFICATIONDAO HIEN CO (KHONG TAO MODULE NOTIFICATION THU HAI)
+        this(new ContactMessageDAO(), new SupportReplyDAO(), new BookingDAO(), new NotificationDAO());
     }
 
     public SupportService(ContactMessageDAO contactMessageDAO, SupportReplyDAO supportReplyDAO, BookingDAO bookingDAO) {
+//        this.contactMessageDAO = contactMessageDAO;
+//        this.supportReplyDAO = supportReplyDAO;
+//        this.bookingDAO = bookingDAO;
+        // GIU TONG THICH NGUOC CHO CONSTRUCTOR 3 THAM SO VA CHUYEN TIEP SANG CONSTRUCTOR 4 THAM SO
+        this(contactMessageDAO, supportReplyDAO, bookingDAO, new NotificationDAO());
+    }
+
+    // CONSTRUCTOR 4 THAM SO HO TRO TIEM NOTIFICATIONDAO TRUC TIEP DE KIEM THU TRANSACTION & CHONG TRUNG (DOT 5)
+    public SupportService(ContactMessageDAO contactMessageDAO, SupportReplyDAO supportReplyDAO,
+                          BookingDAO bookingDAO, NotificationDAO notificationDAO) {
         this.contactMessageDAO = contactMessageDAO;
         this.supportReplyDAO = supportReplyDAO;
         this.bookingDAO = bookingDAO;
+        this.notificationDAO = notificationDAO;
     }
 
     protected Connection getConnection() throws SQLException {
@@ -102,6 +119,9 @@ public class SupportService {
                 conn.rollback();
                 throw new DataAccessException("Không thể lưu yêu cầu hỗ trợ vào cơ sở dữ liệu.");
             }
+
+            // TICH HOP NOTIFICATION DOT 5 - SU KIEN 1: YEU CAU MOI -> ADMIN DANG HOAT DONG NHAN THONG BAO (CUNG TRANSACTION)
+            notifyAdminsOnNewTicket(ticket, sender.getId(), conn);
 
             conn.commit();
             return ticket;
@@ -171,6 +191,9 @@ public class SupportService {
                 contactMessageDAO.touchUpdatedAt(ticketId, conn);
             }
 
+            // TICH HOP NOTIFICATION DOT 5 - SU KIEN 3: NGUOI GUI BO SUNG -> ADMIN XU LY / ADMIN DANG HOAT DONG NHAN THONG BAO
+            notifyAdminsOnSenderReply(ticket, reply, senderUserId, ticket.getStatus() == TicketStatus.RESOLVED, conn);
+
             conn.commit();
             return reply;
         } catch (SQLException e) {
@@ -232,6 +255,9 @@ public class SupportService {
                 contactMessageDAO.touchUpdatedAt(ticketId, conn);
             }
 
+            // TICH HOP NOTIFICATION DOT 5 - SU KIEN 2: ADMIN PHAN HOI -> CHU YEU CAU NHAN THONG BAO (CUNG TRANSACTION)
+            notifyOwnerOnAdminReply(ticket, reply, adminUserId, conn);
+
             conn.commit();
             return reply;
         } catch (SQLException e) {
@@ -261,6 +287,42 @@ public class SupportService {
      * returns false to signify a concurrent conflict.
      */
     public boolean updateTicketStatus(int ticketId, TicketStatus newStatus, TicketStatus expectedCurrentStatus, boolean isAdmin) {
+//        if (!isAdmin) {
+//            throw new SecurityException("Chỉ Quản trị viên mới có quyền cập nhật trạng thái yêu cầu.");
+//        }
+//        if (newStatus == null) {
+//            throw new IllegalArgumentException("Trạng thái mới không hợp lệ.");
+//        }
+//
+//        Optional<ContactMessage> ticketOpt = contactMessageDAO.findById(ticketId);
+//        if (ticketOpt.isEmpty()) {
+//            throw new IllegalArgumentException("Yêu cầu hỗ trợ không tồn tại.");
+//        }
+//
+//        ContactMessage ticket = ticketOpt.get();
+//        TicketStatus currentStatus = ticket.getStatus();
+//
+//        if (expectedCurrentStatus != null && currentStatus != expectedCurrentStatus) {
+//            LOGGER.warning("Concurrency conflict on ticket " + ticketId + ": expected " + expectedCurrentStatus + " but found " + currentStatus);
+//            return false;
+//        }
+//
+//        if (!currentStatus.canTransitionTo(newStatus, true, false)) {
+//            throw new IllegalStateException("Không thể chuyển đổi trạng thái từ "
+//                    + currentStatus.getDisplayName() + " sang " + newStatus.getDisplayName());
+//        }
+//
+//        return contactMessageDAO.updateStatus(ticketId, newStatus, currentStatus);
+        // CHUYEN TIEP SANG PHUONG THUC CO GIAO DICH TRANSACTION VA HO TRO ACTORUSERID (DOT 5)
+        return updateTicketStatus(ticketId, newStatus, expectedCurrentStatus, isAdmin, null);
+    }
+
+    /**
+     * CAP NHAT TRANG THAI TICKET TRONG TRANSACTION NHAT QUAN VOI GHI NHAN THONG BAO KHI CHUYEN SANG RESOLVED (DOT 5).
+     * NEU ROLLBACK THI KHONG PHAT SINH THONG BAO SAI; KHONG GUI THONG BAO CHO CHINH ACTORUSERID.
+     */
+    public boolean updateTicketStatus(int ticketId, TicketStatus newStatus, TicketStatus expectedCurrentStatus,
+                                      boolean isAdmin, Integer actorUserId) {
         if (!isAdmin) {
             throw new SecurityException("Chỉ Quản trị viên mới có quyền cập nhật trạng thái yêu cầu.");
         }
@@ -286,7 +348,43 @@ public class SupportService {
                     + currentStatus.getDisplayName() + " sang " + newStatus.getDisplayName());
         }
 
-        return contactMessageDAO.updateStatus(ticketId, newStatus, currentStatus);
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            boolean updated = contactMessageDAO.updateStatus(ticketId, newStatus, currentStatus, conn);
+            if (!updated) {
+                conn.rollback();
+                return false;
+            }
+
+            // TICH HOP NOTIFICATION DOT 5 - SU KIEN 4: CHUYEN SANG RESOLVED -> CHU YEU CAU NHAN THONG BAO (CUNG TRANSACTION)
+            if (newStatus == TicketStatus.RESOLVED) {
+                notifyOwnerOnTicketResolved(ticket, actorUserId, conn);
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    LOGGER.log(Level.WARNING, "Failed to rollback ticket status update", rollbackEx);
+                }
+            }
+            LOGGER.log(Level.SEVERE, "Error updating ticket status for ticket: " + ticketId, e);
+            throw new DataAccessException("Lỗi hệ thống khi cập nhật trạng thái yêu cầu hỗ trợ", e);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ignored) {
+                }
+            }
+        }
     }
 
     /**
@@ -380,4 +478,164 @@ public class SupportService {
         }
         return codeBuilder.toString();
     }
+
+    // ==================== BAT DAU THEM MOI DOT 5: CAC HAM TAO THONG BAO CONTACT & SUPPORT ====================
+
+    /**
+     * SU KIEN 1: YEU CAU MOI -> GUI THONG BAO CHO CAC ADMIN DANG HOAT DONG TRONG DATABASE.
+     * - CHONG TRUNG THEO TICKET_ID QUA LINK /admin/support/detail?id={ticketId}
+     * - KHONG DUA NOI DUNG HO TRO NHAY CAM VAO THONG BAO, KHONG GUI CHO CHINH NGUOI TAO.
+     */
+    private void notifyAdminsOnNewTicket(ContactMessage ticket, int actorUserId, Connection conn) throws SQLException {
+        if (notificationDAO == null || ticket == null || ticket.getMessageId() <= 0) {
+            return;
+        }
+
+        List<Integer> adminIds = notificationDAO.findActiveAdminIds(conn);
+        if (adminIds == null || adminIds.isEmpty()) {
+            return;
+        }
+
+        String codeLabel = resolveSafeTicketCodeLabel(ticket);
+        String categoryLabel = (ticket.getCategory() != null)
+                ? ticket.getCategory().getDisplayName()
+                : TicketCategory.GENERAL_FEEDBACK.getDisplayName();
+        String senderLabel = sanitizeNotificationLabel(ticket.getFullName(), "Người dùng");
+
+        String title = "Yêu cầu hỗ trợ mới [" + codeLabel + "]";
+        String message = senderLabel + " vừa gửi yêu cầu hỗ trợ thuộc mục " + categoryLabel + ".";
+        String targetUrl = "/admin/support/detail?id=" + ticket.getMessageId();
+
+        for (Integer adminId : adminIds) {
+            if (adminId != null && adminId > 0 && adminId != actorUserId) {
+                notificationDAO.createNotificationIfAbsent(adminId, title, message, "SYSTEM", targetUrl, conn);
+            }
+        }
+    }
+
+    /**
+     * SU KIEN 2: ADMIN PHAN HOI -> GUI THONG BAO CHO CHU YEU CAU (LAY RECIPIENT TU DB).
+     * - CHONG TRUNG THEO REPLY_ID QUA LINK /support/ticket?code={ticketCode}#reply-{replyId}
+     * - MOI PHAN HOI MOI CO REPLY_ID RIENG NEN LUON CO THONG BAO RIENG, RETRY CUNG REPLY_ID KHONG TAO TRUNG.
+     */
+    private void notifyOwnerOnAdminReply(ContactMessage ticket, SupportReply reply,
+                                         int adminUserId, Connection conn) throws SQLException {
+        if (notificationDAO == null || ticket == null || reply == null) {
+            return;
+        }
+
+        Integer ownerId = ticket.getUserId();
+        if (ownerId == null || ownerId <= 0 || ownerId == adminUserId) {
+            return;
+        }
+
+        String codeLabel = resolveSafeTicketCodeLabel(ticket);
+        String title = "Phản hồi mới cho yêu cầu [" + codeLabel + "]";
+        String message = "Ban quản trị đã phản hồi yêu cầu hỗ trợ " + codeLabel + " của bạn. Nhấn để xem chi tiết.";
+        String targetUrl = buildOwnerTicketUrl(ticket) + "#reply-" + reply.getReplyId();
+
+        notificationDAO.createNotificationIfAbsent(ownerId, title, message, "SYSTEM", targetUrl, conn);
+    }
+
+    /**
+     * SU KIEN 3: NGUOI GUI BO SUNG -> GUI THONG BAO CHO ADMIN DANG XU LY TICKET NAY (DA TUNG PHAN HOI),
+     * NEU CHUA CO ADMIN NAO PHAN HOI THI GUI CHO CAC ADMIN DANG HOAT DONG TRONG DATABASE.
+     * - CHONG TRUNG THEO REPLY_ID QUA LINK /admin/support/detail?id={ticketId}#reply-{replyId}
+     */
+    private void notifyAdminsOnSenderReply(ContactMessage ticket, SupportReply reply,
+                                           int senderUserId, boolean reopenedFromResolved,
+                                           Connection conn) throws SQLException {
+        if (notificationDAO == null || ticket == null || reply == null) {
+            return;
+        }
+
+        List<Integer> recipientAdminIds = supportReplyDAO.findRepliedAdminIdsByTicketId(ticket.getMessageId(), conn);
+        if (recipientAdminIds == null || recipientAdminIds.isEmpty()) {
+            recipientAdminIds = notificationDAO.findActiveAdminIds(conn);
+        }
+        if (recipientAdminIds == null || recipientAdminIds.isEmpty()) {
+            return;
+        }
+
+        String codeLabel = resolveSafeTicketCodeLabel(ticket);
+        String title = "Phản hồi bổ sung [" + codeLabel + "]";
+        String message = reopenedFromResolved
+                ? "Người gửi vừa phản hồi bổ sung và mở lại yêu cầu hỗ trợ " + codeLabel + "."
+                : "Người gửi vừa gửi thêm phản hồi cho yêu cầu hỗ trợ " + codeLabel + ".";
+        String targetUrl = "/admin/support/detail?id=" + ticket.getMessageId() + "#reply-" + reply.getReplyId();
+
+        for (Integer adminId : recipientAdminIds) {
+            if (adminId != null && adminId > 0 && adminId != senderUserId) {
+                notificationDAO.createNotificationIfAbsent(adminId, title, message, "SYSTEM", targetUrl, conn);
+            }
+        }
+    }
+
+    /**
+     * SU KIEN 4: CHUYEN TRANG THAI SANG RESOLVED -> GUI THONG BAO CHO CHU YEU CAU (LAY RECIPIENT TU DB).
+     * - CHONG TRUNG THEO TRANSITION/EVENT KEY (#resolved-{ticketId}-r{latestReplyId}[-v{stateVersion}]).
+     */
+    private void notifyOwnerOnTicketResolved(ContactMessage ticket, Integer actorUserId,
+                                             Connection conn) throws SQLException {
+        if (notificationDAO == null || ticket == null) {
+            return;
+        }
+
+        Integer ownerId = ticket.getUserId();
+        if (ownerId == null || ownerId <= 0) {
+            return;
+        }
+        if (actorUserId != null && ownerId.equals(actorUserId)) {
+            return;
+        }
+
+        int latestReplyId = supportReplyDAO.findLatestReplyId(ticket.getMessageId(), conn);
+        long stateVersion = (ticket.getUpdatedAt() != null) ? (ticket.getUpdatedAt().getTime() / 1000L) : 0L;
+        String transitionKey = "#resolved-" + ticket.getMessageId() + "-r" + latestReplyId
+                + (stateVersion > 0 ? ("-v" + stateVersion) : "");
+
+        String codeLabel = resolveSafeTicketCodeLabel(ticket);
+        String title = "Yêu cầu [" + codeLabel + "] đã được giải quyết";
+        String message = "Yêu cầu hỗ trợ " + codeLabel + " của bạn đã chuyển sang trạng thái Đã giải quyết.";
+        String targetUrl = buildOwnerTicketUrl(ticket) + transitionKey;
+
+        notificationDAO.createNotificationIfAbsent(ownerId, title, message, "SYSTEM", targetUrl, conn);
+    }
+
+    /**
+     * TAO LINK CHI TIET PHU HOP VAI TRO NGUOI GUI (CUSTOMER / HOST).
+     * CONTEXT PATH DUOC TU DONG GAN BOI NAVBAR.JSP / NOTIFICATIONS.JSP / NOTIFICATIONCONTROLLER.
+     */
+    private String buildOwnerTicketUrl(ContactMessage ticket) {
+        if (ticket.getTicketCode() != null && !ticket.getTicketCode().isBlank()) {
+            return "/support/ticket?code=" + ticket.getTicketCode().trim();
+        }
+        return "/support/ticket?id=" + ticket.getMessageId();
+    }
+
+    /**
+     * LAY NHAN MA TICKET AN TOAN CHO TIEU DE VA NOI DUNG THONG BAO.
+     */
+    private String resolveSafeTicketCodeLabel(ContactMessage ticket) {
+        if (ticket.getTicketCode() != null && !ticket.getTicketCode().isBlank()) {
+            return sanitizeNotificationLabel(ticket.getTicketCode(), "#" + ticket.getMessageId());
+        }
+        return "#" + ticket.getMessageId();
+    }
+
+    /**
+     * LAM SACH CHUOI HIEN THI NGAN GON TRONG THONG BAO DE NGANG CHONG XSS VA KHONG LO DU LIEU NHAY CAM.
+     */
+    private String sanitizeNotificationLabel(String raw, String fallback) {
+        if (raw == null) {
+            return fallback;
+        }
+        String cleaned = raw.replaceAll("[<>\"'&\\\\\\r\\n\\t]", " ").replaceAll("\\s+", " ").trim();
+        if (cleaned.isEmpty()) {
+            return fallback;
+        }
+        return cleaned.length() > 50 ? cleaned.substring(0, 50) + "..." : cleaned;
+    }
+
+    // ==================== KET THUC THEM MOI DOT 5: CAC HAM TAO THONG BAO CONTACT & SUPPORT ====================
 }

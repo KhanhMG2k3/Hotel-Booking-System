@@ -167,6 +167,15 @@ public class SupportController extends HttpServlet {
         if (replyError != null && !replyError.isBlank()) {
             request.setAttribute("replyError", replyError);
         }
+        // KHOI PHUC NOI DUNG NHAP PHAN HOI TU SESSION KHI CO LOI VALIDATION/CSRF/RATE-LIMIT/DB (DOT 6)
+        HttpSession detailSession = request.getSession(false);
+        if (detailSession != null) {
+            Object replyDraft = detailSession.getAttribute("supportReplyDraft");
+            if (replyDraft != null) {
+                request.setAttribute("replyDraft", replyDraft);
+                detailSession.removeAttribute("supportReplyDraft");
+            }
+        }
 
         request.getRequestDispatcher("/WEB-INF/views/ticket-detail.jsp").forward(request, response);
     }
@@ -183,9 +192,19 @@ public class SupportController extends HttpServlet {
             return;
         }
 
+        // LUU TAM NOI DUNG PHAN HOI DE GIU DU LIEU NGUOI DUNG KHI VALIDATION/CSRF/RATE-LIMIT/DB LOI (DOT 6)
+        String rawDraftMessage = request.getParameter("message");
+        HttpSession draftSession = request.getSession(true);
+        if (draftSession == null) {
+            draftSession = request.getSession(false);
+        }
+
         // CSRF Check (one-time token consumption)
         String submittedCsrf = request.getParameter("csrfToken");
         if (!LoginUtil.consumeCsrfToken(request, submittedCsrf)) {
+            if (draftSession != null && rawDraftMessage != null) {
+                draftSession.setAttribute("supportReplyDraft", rawDraftMessage);
+            }
             response.sendRedirect(request.getContextPath() + "/support/ticket?id=" + ticketId + "&replyError="
                     + URLEncoder.encode("Phiên bảo mật hết hạn hoặc biểu mẫu đã được gửi đi. Vui lòng thử lại.", StandardCharsets.UTF_8));
             return;
@@ -196,6 +215,9 @@ public class SupportController extends HttpServlet {
         Long lastReply = (Long) session.getAttribute("LAST_REPLY_TIME");
         long now = System.currentTimeMillis();
         if (lastReply != null && (now - lastReply) < REPLY_COOLDOWN_MS) {
+            if (rawDraftMessage != null) {
+                session.setAttribute("supportReplyDraft", rawDraftMessage);
+            }
             response.sendRedirect(request.getContextPath() + "/support/ticket?id=" + ticketId + "&replyError="
                     + URLEncoder.encode("Vui lòng đợi vài giây trước khi gửi tiếp tin nhắn tiếp theo.", StandardCharsets.UTF_8));
             return;
@@ -203,6 +225,9 @@ public class SupportController extends HttpServlet {
 
         String message = request.getParameter("message");
         if (message == null || message.trim().length() < 2 || message.trim().length() > 2000) {
+            if (message != null) {
+                session.setAttribute("supportReplyDraft", message);
+            }
             response.sendRedirect(request.getContextPath() + "/support/ticket?id=" + ticketId + "&replyError="
                     + URLEncoder.encode("Nội dung tin nhắn phải từ 2 đến 2000 ký tự.", StandardCharsets.UTF_8));
             return;
@@ -211,15 +236,18 @@ public class SupportController extends HttpServlet {
         try {
             supportService.addSenderReply(ticketId, user.getId(), message.trim());
             session.setAttribute("LAST_REPLY_TIME", now);
+            session.removeAttribute("supportReplyDraft");
             response.sendRedirect(request.getContextPath() + "/support/ticket?id=" + ticketId + "&replySuccess=1");
         } catch (SecurityException e) {
             response.sendRedirect(request.getContextPath() + "/support/my-tickets?error="
                     + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
         } catch (IllegalArgumentException e) {
+            session.setAttribute("supportReplyDraft", message);
             response.sendRedirect(request.getContextPath() + "/support/ticket?id=" + ticketId + "&replyError="
                     + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Unexpected error adding reply", e);
+            session.setAttribute("supportReplyDraft", message);
             response.sendRedirect(request.getContextPath() + "/support/ticket?id=" + ticketId + "&replyError="
                     + URLEncoder.encode("Lỗi hệ thống khi gửi phản hồi. Vui lòng thử lại.", StandardCharsets.UTF_8));
         }

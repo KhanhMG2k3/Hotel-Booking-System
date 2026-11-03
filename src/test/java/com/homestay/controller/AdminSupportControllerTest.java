@@ -238,12 +238,17 @@ class AdminSupportControllerTest {
         when(request.getParameter("csrfToken")).thenReturn("valid-csrf");
         when(session.getAttribute("loginCsrfToken")).thenReturn("valid-csrf");
 
-        when(supportService.updateTicketStatus(101, TicketStatus.PROCESSING, TicketStatus.NEW, true))
+//        when(supportService.updateTicketStatus(101, TicketStatus.PROCESSING, TicketStatus.NEW, true))
+//                .thenReturn(true);
+        // CAP NHAT KIEM THU THEO PHUONG THUC CO ACTORUSERID (DOT 5)
+        when(supportService.updateTicketStatus(101, TicketStatus.PROCESSING, TicketStatus.NEW, true, adminUser.getId()))
                 .thenReturn(true);
 
         controller.doPost(request, response);
 
-        verify(supportService).updateTicketStatus(101, TicketStatus.PROCESSING, TicketStatus.NEW, true);
+//        verify(supportService).updateTicketStatus(101, TicketStatus.PROCESSING, TicketStatus.NEW, true);
+        // XAC MINH CONTROLLER TRUYEN ADMINUSER.GETID() DE CHONG TU GUI THONG BAO CHO CHINH ACTOR (DOT 5)
+        verify(supportService).updateTicketStatus(101, TicketStatus.PROCESSING, TicketStatus.NEW, true, adminUser.getId());
         verify(session).setAttribute(eq("supportSuccessMsg"), anyString());
         verify(response).sendRedirect("/test/admin/support/detail?id=101");
     }
@@ -260,7 +265,10 @@ class AdminSupportControllerTest {
         when(session.getAttribute("loginCsrfToken")).thenReturn("valid-csrf");
 
         // Another admin already moved it, so updateTicketStatus returns false
-        when(supportService.updateTicketStatus(101, TicketStatus.PROCESSING, TicketStatus.NEW, true))
+//        when(supportService.updateTicketStatus(101, TicketStatus.PROCESSING, TicketStatus.NEW, true))
+//                .thenReturn(false);
+        // CAP NHAT KIEM THU XUNG DOT DONG THOI VOI THAM SO ACTORUSERID (DOT 5)
+        when(supportService.updateTicketStatus(101, TicketStatus.PROCESSING, TicketStatus.NEW, true, adminUser.getId()))
                 .thenReturn(false);
 
         controller.doPost(request, response);

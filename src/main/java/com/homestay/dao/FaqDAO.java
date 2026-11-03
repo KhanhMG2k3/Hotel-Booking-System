@@ -217,4 +217,42 @@ public class FaqDAO extends BaseDAO {
         }
         return filtered;
     }
+    
+        /**
+     * Admin: Cập nhật lại thứ tự hiển thị (order_index) sau khi kéo thả các hàng FAQ
+     */
+    public boolean updateFaqOrders(String[] ids) {
+        if (ids == null || ids.length == 0) {
+            return false;
+        }
+        String sql = "UPDATE faqs SET order_index = ? WHERE faq_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+            ps = conn.prepareStatement(sql);
+            for (int i = 0; i < ids.length; i++) {
+                int faqId = Integer.parseInt(ids[i].trim());
+                ps.setInt(1, i + 1); // Cập nhật thứ tự từ 1, 2, 3...
+                ps.setInt(2, faqId);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    /* ignore */
+                }
+            }
+            logger.log(Level.SEVERE, "Lỗi cập nhật thứ tự FAQ sau khi kéo thả", e);
+            return false;
+        } finally {
+            closeResources(conn, ps, null);
+        }
+    }
 }

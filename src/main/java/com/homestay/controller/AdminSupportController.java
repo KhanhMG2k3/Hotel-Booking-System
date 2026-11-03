@@ -97,7 +97,9 @@ public class AdminSupportController extends HttpServlet {
         String pathInfo = request.getPathInfo();
 
         if ("/status".equals(pathInfo)) {
-            handleUpdateStatus(request, response);
+//            handleUpdateStatus(request, response);
+            // TRUYEN ADMINUSER VAO HANDLEUPDATESTATUS DE KHONG TU GUI THONG BAO CHO CHINH NGUOI THUC HIEN (DOT 5)
+            handleUpdateStatus(request, response, adminUser);
         } else if ("/reply".equals(pathInfo)) {
             handleAdminReply(request, response, adminUser);
         } else {
@@ -302,6 +304,12 @@ public class AdminSupportController extends HttpServlet {
             request.setAttribute("errorMessage", flashError);
             session.removeAttribute("supportErrorMsg");
         }
+        // KHOI PHUC NOI DUNG NHAP PHAN HOI KHI CO LOI VALIDATION/CSRF/RATE-LIMIT/DB DE GIU DU LIEU NGUOI DUNG (DOT 6)
+        Object replyDraft = session.getAttribute("adminReplyDraft");
+        if (replyDraft != null) {
+            request.setAttribute("replyDraft", replyDraft);
+            session.removeAttribute("adminReplyDraft");
+        }
 
         request.setAttribute("ticket", ticket);
         request.setAttribute("activePage", "support");
@@ -311,7 +319,9 @@ public class AdminSupportController extends HttpServlet {
     /**
      * Updates ticket status with strict lifecycle checks and optimistic locking.
      */
-    private void handleUpdateStatus(HttpServletRequest request, HttpServletResponse response)
+//    private void handleUpdateStatus(HttpServletRequest request, HttpServletResponse response)
+    // BO SUNG THAM SO ADMINUSER DE XAC DINH NGUOI THUC HIEN SU KIEN CHUYEN TRANG THAI (DOT 5)
+    private void handleUpdateStatus(HttpServletRequest request, HttpServletResponse response, User adminUser)
             throws IOException {
 
         HttpSession session = request.getSession(true);
@@ -345,7 +355,9 @@ public class AdminSupportController extends HttpServlet {
         }
 
         try {
-            boolean success = supportService.updateTicketStatus(ticketId, targetStatus, expectedStatus, true);
+//            boolean success = supportService.updateTicketStatus(ticketId, targetStatus, expectedStatus, true);
+            // GOI UPDATETICKETSTATUS CO ACTORUSERID DE GUI THONG BAO KHI CHUYEN SANG RESOLVED MA KHONG GUI CHO CHINH ACTOR (DOT 5)
+            boolean success = supportService.updateTicketStatus(ticketId, targetStatus, expectedStatus, true, adminUser.getId());
             if (!success) {
                 session.setAttribute("supportErrorMsg",
                         "Cảnh báo xung đột đồng thời: Trạng thái yêu cầu đã bị thay đổi bởi quản trị viên khác. Vui lòng kiểm tra lại trạng thái hiện tại.");
@@ -370,8 +382,13 @@ public class AdminSupportController extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession(true);
+        // LUU TAM NOI DUNG PHAN HOI DE GIU DU LIEU NEU BI LOI VALIDATION/CSRF/RATE-LIMIT/DB (DOT 6)
+        String rawDraftMessage = request.getParameter("message");
         String csrfToken = request.getParameter("csrfToken");
         if (!LoginUtil.consumeCsrfToken(request, csrfToken)) {
+            if (rawDraftMessage != null) {
+                session.setAttribute("adminReplyDraft", rawDraftMessage);
+            }
             session.setAttribute("supportErrorMsg", "Mã xác thực biểu mẫu (CSRF) không hợp lệ hoặc đã hết hạn. Vui lòng tải lại trang.");
             String tid = request.getParameter("ticketId");
             response.sendRedirect(request.getContextPath() + "/admin/support/detail?id=" + (tid != null ? tid : ""));
@@ -392,6 +409,9 @@ public class AdminSupportController extends HttpServlet {
         long now = System.currentTimeMillis();
         if (lastReplyTime != null && (now - lastReplyTime) < REPLY_COOLDOWN_MS) {
             long remaining = (REPLY_COOLDOWN_MS - (now - lastReplyTime)) / 1000 + 1;
+            if (rawDraftMessage != null) {
+                session.setAttribute("adminReplyDraft", rawDraftMessage);
+            }
             session.setAttribute("supportErrorMsg", "Bạn đang gửi phản hồi quá nhanh. Vui lòng đợi " + remaining + " giây.");
             response.sendRedirect(request.getContextPath() + "/admin/support/detail?id=" + ticketId);
             return;
@@ -399,6 +419,9 @@ public class AdminSupportController extends HttpServlet {
 
         String message = request.getParameter("message");
         if (message == null || message.trim().length() < 2 || message.trim().length() > 2000) {
+            if (message != null) {
+                session.setAttribute("adminReplyDraft", message);
+            }
             session.setAttribute("supportErrorMsg", "Nội dung phản hồi phải từ 2 đến 2000 ký tự.");
             response.sendRedirect(request.getContextPath() + "/admin/support/detail?id=" + ticketId);
             return;
@@ -410,10 +433,17 @@ public class AdminSupportController extends HttpServlet {
         try {
             supportService.addAdminReply(ticketId, adminUser.getId(), message.trim(), changeToProcessing);
             session.setAttribute("LAST_ADMIN_REPLY_TIME", now);
+            session.removeAttribute("adminReplyDraft");
             session.setAttribute("supportSuccessMsg", "Đã gửi phản hồi hỗ trợ thành công.");
+        // TACH LOI NGHIEP VU HOP LE KHOI LOI HE THONG/DATABASE DE KHONG LO THONG TIN NHAY CAM RA CLIENT (DOT 6)
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            session.setAttribute("adminReplyDraft", message);
+            session.setAttribute("supportErrorMsg", e.getMessage());
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error submitting admin reply for ticket " + ticketId, e);
-            session.setAttribute("supportErrorMsg", e.getMessage());
+//            session.setAttribute("supportErrorMsg", e.getMessage());
+            session.setAttribute("adminReplyDraft", message);
+            session.setAttribute("supportErrorMsg", "Lỗi hệ thống khi gửi phản hồi hỗ trợ. Vui lòng thử lại sau.");
         }
 
         response.sendRedirect(request.getContextPath() + "/admin/support/detail?id=" + ticketId);

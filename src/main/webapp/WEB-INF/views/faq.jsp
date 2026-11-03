@@ -9,6 +9,7 @@
 <jsp:include page="common/navbar.jsp" />
 
 <style>
+  /* Thanh tìm kiếm */
   .faq-search-wrapper {
     background-color: #1a1a1a;
     border: 1px solid #333333;
@@ -44,32 +45,99 @@
     color: #fff;
     transform: translateY(-1px);
   }
+
+  /* Khung thẻ câu hỏi - Cố định chữ không tràn ra ngoài */
   .faq-card {
     background-color: #1e1e1e !important;
     border: 1px solid #2e2e2e !important;
     border-radius: 8px !important;
+    overflow: hidden; /* Đảm bảo 100% nội dung không tràn khỏi ô */
     transition: all 0.2s ease-in-out;
   }
-  .faq-card-header button {
+  .faq-card-header {
+    padding: 0 !important;
+  }
+  
+  /* Nút bấm câu hỏi */
+  .faq-btn {
+    width: 100%;
     color: #ffffff !important;
     font-size: 1.05rem;
     text-decoration: none !important;
+    white-space: normal !important; /* Bắt buộc tự động xuống dòng */
+    padding: 16px 20px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    border: none;
+    background: transparent;
+    text-align: left;
+    box-shadow: none !important;
   }
+  .faq-btn:focus, .faq-btn:hover {
+    text-decoration: none !important;
+    color: #f7a030 !important;
+  }
+
+  /* Khối chữ câu hỏi (Bên trái): Tự co giãn và ngắt dòng */
+  .faq-question-wrap {
+    flex: 1 1 auto;
+    min-width: 0; /* Rất quan trọng: Giúp flex item co lại vừa khung và xuống dòng */
+    word-break: break-word; /* Tự động ngắt chữ dài */
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    padding-right: 15px; /* Giữ khoảng cách an toàn với icon mũi tên */
+  }
+
+  .faq-badge {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+    margin-bottom: 2px;
+    font-size: 0.85rem;
+    background-color: #383838;
+    color: #e0e0e0;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .faq-question-text {
+    vertical-align: middle;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Khối icon mũi tên (Bên phải): Cố định vị trí, không bị chữ đè */
+  .faq-chevron-wrap {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+  }
+  .faq-chevron {
+    color: #f7a030;
+    font-size: 0.95rem;
+    transition: transform 0.3s ease;
+  }
+  .faq-btn.collapsed .faq-chevron {
+    transform: rotate(0deg);
+  }
+  .faq-btn:not(.collapsed) .faq-chevron {
+    transform: rotate(180deg);
+  }
+
+  /* Khối câu trả lời */
   .faq-answer {
     color: #b5b5b5 !important;
     line-height: 1.7;
     font-size: 0.98rem;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
-  .faq-chevron {
-    color: #f7a030;
-    transition: transform 0.3s ease;
-  }
-  .collapsed .faq-chevron {
-    transform: rotate(0deg);
-  }
-  :not(.collapsed) > span > .faq-chevron {
-    transform: rotate(180deg);
-  }
+
   .admin-manage-bar {
     background: #1c1c1c;
     border: 1px solid #f7a030;
@@ -81,32 +149,23 @@
 <div class="container-fluid" style="background-color: #121212; min-height: 100vh; padding-top: 100px; padding-bottom: 80px;">
   <div class="container">
 
-    <%-- Step 1: Check Admin or Host privileges to display the FAQ Management toolbar --%>
-    <c:set var="uRole" value="${fn:toUpperCase(not empty sessionScope.role ? sessionScope.role : (not empty sessionScope.user.role.name ? sessionScope.user.role.name : (not empty sessionScope.user.role.roleName ? sessionScope.user.role.roleName : '')))}" />
+    <!-- 1. THANH CHUYỂN HƯỚNG DÀNH CHO ADMIN -->
+    <c:set var="uRole" value="${not empty sessionScope.role ? sessionScope.role : (not empty sessionScope.user.role.name ? sessionScope.user.role.name : sessionScope.user.role.roleName)}" />
     <c:set var="uRoleId" value="${not empty sessionScope.roleId ? sessionScope.roleId : sessionScope.user.roleId}" />
-    <c:set var="isRoleAdmin" value="${isAdmin || uRole == 'ADMIN' || uRole == 'ROLE_ADMIN' || uRole == 'ADMINISTRATOR' || (empty uRole && (uRoleId == 1 || uRoleId == 5))}" />
-    <c:set var="isRoleHost" value="${isHost || uRole == 'HOST' || uRole == 'ROLE_HOST' || uRole == 'HOTEL_OWNER' || (empty uRole && uRoleId == 3)}" />
-    <c:set var="showManageButton" value="${canManageFaq || isRoleAdmin || isRoleHost}" />
+    <c:set var="isRoleAdmin" value="${uRoleId == 1 || uRoleId == 5 || fn:toLowerCase(uRole) == 'admin' || fn:toLowerCase(uRole) == 'role_admin' || fn:toLowerCase(uRole) == 'administrator'}" />
+    <c:set var="showAdminButton" value="${isAdmin || isRoleAdmin || sessionScope.displayName == 'Administrator'}" />
 
-    <%-- Step 2: Render FAQ Management banner and shortcut button for Admin and Host --%>
-    <c:if test="${showManageButton}">
+    <c:if test="${showAdminButton}">
       <div class="row justify-content-center mb-4">
         <div class="col-md-9">
-          <div class="admin-manage-bar d-flex justify-content-between align-items-center flex-wrap shadow-sm">
-            <div class="text-white my-1">
+          <div class="admin-manage-bar d-flex justify-content-between align-items-center shadow-sm">
+            <div class="text-white">
               <span class="badge badge-warning px-2 py-1 mr-2 text-dark font-weight-bold">
-                <c:choose>
-                  <c:when test="${isRoleAdmin}">
-                    <i class="fa fa-shield"></i> Chế độ Xem Admin
-                  </c:when>
-                  <c:otherwise>
-                    <i class="fa fa-home"></i> Chế độ Xem Host
-                  </c:otherwise>
-                </c:choose>
+                <i class="fa fa-shield"></i> Chế độ Xem Admin
               </span>
               <span class="text-white-50 small">Bạn đang xem giao diện FAQ của khách. Nhấn nút bên cạnh để vào phần quản lý thêm, sửa, xóa FAQ.</span>
             </div>
-            <a href="${pageContext.request.contextPath}/admin/faqs" class="btn btn-warning font-weight-bold px-3 py-2 shadow-sm text-dark my-1" style="white-space: nowrap;">
+            <a href="${pageContext.request.contextPath}/admin/faqs" class="btn btn-warning font-weight-bold px-3 py-2 shadow-sm text-dark ml-3" style="white-space: nowrap;">
               <i class="fa fa-cogs mr-1"></i> Quản Lý FAQ
             </a>
           </div>
@@ -114,7 +173,7 @@
       </div>
     </c:if>
 
-    <!-- THANH TÌM KIẾM TỪ KHÓA CÂU HỎI -->
+    <!-- 2. THANH TÌM KIẾM TỪ KHÓA CÂU HỎI -->
     <div class="row justify-content-center mb-4">
       <div class="col-md-8">
         <form action="${pageContext.request.contextPath}/faq" method="get">
@@ -135,7 +194,7 @@
           </c:if>
         </form>
 
-        <!-- BỘ LỌC DANH MỤC CÂU HỎI -->
+        <!-- BỘ LỌC DANH MỤC -->
         <div class="d-flex justify-content-center flex-wrap mt-3">
           <a href="${pageContext.request.contextPath}/faq${not empty searchKeyword ? '?q='.concat(searchKeyword) : ''}" 
              class="btn btn-sm m-1 rounded-pill ${empty selectedCategory || selectedCategory == 'ALL' ? 'btn-warning text-dark font-weight-bold' : 'btn-outline-secondary text-light'}">
@@ -157,7 +216,7 @@
       </div>
     </div>
 
-    <!-- DANH SÁCH ACCORDION CÂU HỎI -->
+    <!-- 3. DANH SÁCH ACCORDION CÂU HỎI -->
     <div class="row justify-content-center">
       <div class="col-md-9">
         <div class="accordion" id="accordionFaq">
@@ -167,21 +226,21 @@
                 <div class="card faq-card mb-3 faq-item" 
                      data-question="${faq.question.toLowerCase()}" 
                      data-answer="${faq.answer.toLowerCase()}">
-                  <div class="card-header faq-card-header bg-transparent p-3 border-0" id="heading-${faq.id}">
+                  <div class="card-header faq-card-header bg-transparent border-0" id="heading-${faq.id}">
                     <h2 class="mb-0">
-                      <button class="btn btn-link btn-block text-left font-weight-bold d-flex justify-content-between align-items-center ${status.first ? '' : 'collapsed'}" 
+                      <button class="btn btn-link btn-block faq-btn ${status.first ? '' : 'collapsed'}" 
                               type="button" 
                               data-toggle="collapse" 
                               data-target="#collapse-${faq.id}" 
                               aria-expanded="${status.first ? 'true' : 'false'}" 
                               aria-controls="collapse-${faq.id}">
-                        <span>
-                          <span class="badge badge-secondary mr-2 py-1 px-2 font-weight-normal" style="font-size: 0.85rem; background-color: #383838;">
-                            ${faq.category}
-                          </span>
+                        <!-- Khối câu hỏi: Tự co giãn và xuống dòng gọn trong ô -->
+                        <span class="faq-question-wrap">
+                          <span class="faq-badge">${faq.category}</span>
                           <span class="faq-question-text">${faq.question}</span>
                         </span>
-                        <span>
+                        <!-- Khối mũi tên: Cố định bên phải, không bị chữ đè -->
+                        <span class="faq-chevron-wrap">
                           <i class="fa fa-chevron-down faq-chevron"></i>
                         </span>
                       </button>
@@ -192,7 +251,7 @@
                        class="collapse ${status.first ? 'show' : ''}" 
                        aria-labelledby="heading-${faq.id}" 
                        data-parent="#accordionFaq">
-                    <div class="card-body pt-1 pb-4 px-4 faq-answer border-top" style="border-color: #2c2c2c !important;">
+                    <div class="card-body pt-2 pb-4 px-4 faq-answer border-top" style="border-color: #2c2c2c !important;">
                       ${faq.answer}
                     </div>
                   </div>

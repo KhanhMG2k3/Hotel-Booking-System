@@ -19,7 +19,8 @@ import java.util.Locale;
     "/admin/faqs/add",
     "/admin/faqs/edit",
     "/admin/faqs/delete",
-    "/admin/faqs/toggle"
+    "/admin/faqs/toggle",
+    "/admin/faqs/reorder" // <-- THÊM URL REORDER NÀY
 })
 public class AdminFaqController extends HttpServlet {
 
@@ -30,7 +31,6 @@ public class AdminFaqController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Step 1: Verify that the current user is an active Admin or Host
         User user = checkPermission(request, response, false);
         if (user == null) {
             return;
@@ -38,7 +38,6 @@ public class AdminFaqController extends HttpServlet {
 
         String action = request.getServletPath();
 
-        // Step 2: Handle FAQ deletion request
         if ("/admin/faqs/delete".equals(action)) {
             try {
                 int id = Integer.parseInt(request.getParameter("id"));
@@ -50,7 +49,6 @@ public class AdminFaqController extends HttpServlet {
             return;
         }
 
-        // Step 3: Handle FAQ visibility toggle (ACTIVE / INACTIVE on public FAQ page)
         if ("/admin/faqs/toggle".equals(action)) {
             try {
                 int id = Integer.parseInt(request.getParameter("id"));
@@ -62,7 +60,6 @@ public class AdminFaqController extends HttpServlet {
             return;
         }
 
-        // Step 4: Load FAQ list for management (with optional keyword filtering)
         List<Faq> faqList = faqDAO.getAllFaqsForAdmin();
         String searchKeyword = request.getParameter("search");
         if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
@@ -81,7 +78,6 @@ public class AdminFaqController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Step 1: Enforce Admin or Host write permission on POST actions
         User user = checkPermission(request, response, true);
         if (user == null) {
             return;
@@ -90,7 +86,19 @@ public class AdminFaqController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         String action = request.getServletPath();
 
-        // Step 2: Parse FAQ payload and execute create or update operation
+        // XỬ LÝ LƯU THỨ TỰ KÉO THẢ (AJAX REORDER)
+        if ("/admin/faqs/reorder".equals(action)) {
+            String idsStr = request.getParameter("ids");
+            if (idsStr != null && !idsStr.trim().isEmpty()) {
+                String[] ids = idsStr.split(",");
+                faqDAO.updateFaqOrders(ids);
+            }
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"success\": true}");
+            return;
+        }
+
         try {
             String idStr = request.getParameter("id");
             String category = request.getParameter("category");
@@ -99,7 +107,7 @@ public class AdminFaqController extends HttpServlet {
             String orderStr = request.getParameter("orderIndex");
             String status = request.getParameter("status");
 
-            int orderIndex = (orderStr != null && !orderStr.trim().isEmpty()) ? Integer.parseInt(orderStr) : 1;
+            int orderIndex = (orderStr != null && !orderStr.trim().isEmpty()) ? Integer.parseInt(orderStr) : 999;
             if (status == null || status.trim().isEmpty()) {
                 status = "ACTIVE";
             }
@@ -118,9 +126,6 @@ public class AdminFaqController extends HttpServlet {
         }
     }
 
-    /**
-     * Validate that the session belongs to an active user with Admin or Host privileges.
-     */
     private User checkPermission(HttpServletRequest request, HttpServletResponse response, boolean isPost)
             throws IOException {
         HttpSession session = request.getSession(false);
@@ -138,25 +143,9 @@ public class AdminFaqController extends HttpServlet {
             userId = ((Number) session.getAttribute("userId")).intValue();
         } else if (session.getAttribute("user") instanceof User) {
             userId = ((User) session.getAttribute("user")).getId();
-        } else if (session.getAttribute("currentUser") instanceof User) {
-            userId = ((User) session.getAttribute("currentUser")).getId();
         }
 
-        User user = null;
-        if (userId != null && userId > 0) {
-            user = userDAO.findById(userId).orElse(null);
-            if (user == null || (user.getStatus() != null && !"ACTIVE".equalsIgnoreCase(user.getStatus()))) {
-                session.invalidate();
-                response.sendRedirect(request.getContextPath() + "/login");
-                return null;
-            }
-        } else if (session.getAttribute("user") instanceof User) {
-            user = (User) session.getAttribute("user");
-        } else if (session.getAttribute("currentUser") instanceof User) {
-            user = (User) session.getAttribute("currentUser");
-        }
-
-        if (user == null) {
+        if (userId == null) {
             if (isPost) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn cần đăng nhập để thực hiện thao tác này.");
             } else {
@@ -165,34 +154,33 @@ public class AdminFaqController extends HttpServlet {
             return null;
         }
 
-        String roleName = "";
-        if (user.getRole() != null) {
-            String rawRole = user.getRole().getRoleName() != null
-                    ? user.getRole().getRoleName()
-                    : user.getRole().getName();
-            if (rawRole != null) {
-                roleName = rawRole.trim().toUpperCase(Locale.ROOT);
-            }
-        } else if (session.getAttribute("role") instanceof String) {
-            roleName = ((String) session.getAttribute("role")).trim().toUpperCase(Locale.ROOT);
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            user = userDAO.findById(userId).orElse(null);
         }
 
-        boolean isAdmin = "ROLE_ADMIN".equals(roleName)
-                || "ADMIN".equals(roleName)
-                || "ADMINISTRATOR".equals(roleName);
-        boolean isHost = "ROLE_HOST".equals(roleName)
-                || "HOST".equals(roleName)
-                || "HOTEL_OWNER".equals(roleName);
-
-        if (!isAdmin && !isHost) {
+        if (user == null || !"ACTIVE".equalsIgnoreCase(user.getStatus())) {
+            session.invalidate();
             if (isPost) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền quản lý FAQ.");
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Tài khoản không hoạt động.");
             } else {
-                response.sendRedirect(request.getContextPath() + "/home?error=no_permission");
+                response.sendRedirect(request.getContextPath() + "/login?error=account_disabled");
             }
             return null;
         }
 
+        boolean isAdmin = user.getRoleId() == 1 || user.getRoleId() == 5
+                || (user.getRole() != null && ("ROLE_ADMIN".equalsIgnoreCase(user.getRole().getRoleName())
+                || "ADMIN".equalsIgnoreCase(user.getRole().getRoleName())));
+
+        if (!isAdmin) {
+            if (isPost) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền thực hiện thao tác này.");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/home?error=unauthorized");
+            }
+            return null;
+        }
         return user;
     }
 }

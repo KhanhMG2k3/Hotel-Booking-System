@@ -97,6 +97,12 @@
         width: 100%;
         margin-bottom: 0;
     }
+    /* GIU CO DINH 100% KHONG KEO NGANG TREN DESKTOP (>=992PX), CHO PHEP CUON NOI BO TRONG CARD O MOBILE/TABLET (320PX-768PX) DE KHONG TRAN TOAN TRANG (DOT 6) */
+    @media (max-width: 991.98px) {
+        .table-support table {
+            min-width: 920px;
+        }
+    }
     .table-support thead th {
         background: #f8fafc;
         color: #475569;

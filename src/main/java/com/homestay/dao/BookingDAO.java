@@ -293,14 +293,22 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
      * Retrieves all bookings for a specific customer user.
      */
     public List<Booking> findBookingsByUserId(int userId) throws SQLException {
-        String sql = "SELECT * FROM bookings WHERE user_id = ? ORDER BY check_in_date DESC";
+//        String sql = "SELECT * FROM bookings WHERE user_id = ? ORDER BY check_in_date DESC";
+        // JOIN BANG ROOMS DE LAY ROOM_NAME HIEN THI TREN FORM LIEN HE VA HO TRO (DOT 6)
+        String sql = "SELECT b.*, r.room_name FROM bookings b "
+                   + "LEFT JOIN rooms r ON b.room_id = r.room_id "
+                   + "WHERE b.user_id = ? ORDER BY b.check_in_date DESC";
         List<Booking> list = new ArrayList<>();
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapResultSetToBooking(rs));
+//                    list.add(mapResultSetToBooking(rs));
+                    // GAN ROOM_NAME CHO BOOKING CUA KHACH HANG (DOT 6)
+                    Booking b = mapResultSetToBooking(rs);
+                    b.setRoomName(rs.getString("room_name"));
+                    list.add(b);
                 }
             }
         }
@@ -326,7 +334,12 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
      * Retrieves all bookings for homestay rooms belonging to a host.
      */
     public List<Booking> findBookingsByHostProperties(int hostUserId) throws SQLException {
-        String sql = "SELECT b.* FROM bookings b "
+//        String sql = "SELECT b.* FROM bookings b "
+//                   + "JOIN rooms r ON b.room_id = r.room_id "
+//                   + "JOIN properties p ON r.property_id = p.property_id "
+//                   + "WHERE p.host_id = ? ORDER BY b.check_in_date DESC";
+        // LAY THEM ROOM_NAME TRONG DANH SACH BOOKING THUOC PROPERTY CUA HOST (DOT 6)
+        String sql = "SELECT b.*, r.room_name FROM bookings b "
                    + "JOIN rooms r ON b.room_id = r.room_id "
                    + "JOIN properties p ON r.property_id = p.property_id "
                    + "WHERE p.host_id = ? ORDER BY b.check_in_date DESC";
@@ -336,7 +349,11 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
             ps.setInt(1, hostUserId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapResultSetToBooking(rs));
+//                    list.add(mapResultSetToBooking(rs));
+                    // GAN ROOM_NAME CHO BOOKING THUOC HOST (DOT 6)
+                    Booking b = mapResultSetToBooking(rs);
+                    b.setRoomName(rs.getString("room_name"));
+                    list.add(b);
                 }
             }
         }
@@ -364,6 +381,8 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
     private Booking mapResultSetToBooking(ResultSet rs) throws SQLException {
         Booking booking = new Booking();
         booking.setId(rs.getInt("id"));
+        // BO SUNG DOC BOOKING_CODE TU RESULTSET DE HIEN THI DUNG MA DAT PHONG THAY VI CHI SO ID (DOT 6)
+        booking.setBookingCode(rs.getString("booking_code"));
         int userId = rs.getInt("user_id");
         if (!rs.wasNull()) {
             booking.setUserId(userId);
@@ -383,5 +402,30 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
         booking.setStatus(rs.getString("status"));
         booking.setCreatedAt(rs.getTimestamp("created_at"));
         return booking;
+    }
+    
+    
+    /**
+     * Cập nhật trạng thái đơn phòng sang COMPLETED và tự động gửi thông báo mời đánh giá
+     */
+    public boolean completeBookingAndNotify(int bookingId) {
+        String sql = "UPDATE bookings SET status = 'COMPLETED' WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            boolean updated = ps.executeUpdate() > 0;
+            if (updated) {
+                findById(bookingId).ifPresent(b -> {
+                    if (b.getUserId() != null) {
+                        NotificationDAO notifDAO = new NotificationDAO();
+                        notifDAO.autoGenerateCompletedStayReviewNotifications(b.getUserId());
+                    }
+                });
+            }
+            return updated;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Lỗi hoàn thành đơn booking: " + bookingId, e);
+            return false;
+        }
     }
 }
