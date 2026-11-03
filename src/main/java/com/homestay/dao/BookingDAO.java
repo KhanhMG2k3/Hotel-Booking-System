@@ -78,6 +78,9 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
 
     @Override
     public boolean insert(Booking booking) {
+        if (booking.getBookingCode() == null || booking.getBookingCode().isBlank()) {
+            booking.setBookingCode(generateBookingCode());
+        }
         String sql = "INSERT INTO bookings (booking_code, user_id, customer_name, customer_email, customer_phone, " +
                      "room_id, check_in_date, check_out_date, adults, children, guest_count, total_price, notes, special_requests, status) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -112,6 +115,11 @@ public class BookingDAO extends BaseDAO implements GenericDAO<Booking, Integer> 
                 try (ResultSet keys = ps.getGeneratedKeys()) {
                     if (keys.next()) {
                         booking.setId(keys.getInt(1));
+                        try (PreparedStatement syncPs = conn.prepareStatement(
+                                "UPDATE bookings SET booking_id = id, total_amount = total_price, property_id = COALESCE((SELECT property_id FROM rooms WHERE room_id = bookings.room_id), 1) WHERE id = ?")) {
+                            syncPs.setInt(1, booking.getId());
+                            syncPs.executeUpdate();
+                        } catch (SQLException ignored) {}
                     }
                 }
                 return true;
@@ -948,7 +956,7 @@ public List<Booking> findByUserId(int userId) {
         List<Booking> bookings = new ArrayList<>();
         String sql = """
                 SELECT b.*,
-                       COALESCE(p.property_name, p.name, 'Sogo Homestay') AS joined_property_name,
+                       COALESCE(p.property_name, 'Sogo Homestay') AS joined_property_name,
                        COALESCE(r.room_name, rt.room_name, 'Phòng tiêu chuẩn') AS joined_room_name,
                        COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') AS joined_image_url
                 FROM bookings b
@@ -1044,7 +1052,7 @@ public boolean updatePayoutStatus(long bookingId, String payoutStatus) {
 public Optional<Booking> findByIdWithDetails(int id) {
         String sql = """
                 SELECT b.*,
-                       COALESCE(p.property_name, p.name, 'Sogo Homestay') AS joined_property_name,
+                       COALESCE(p.property_name, 'Sogo Homestay') AS joined_property_name,
                        COALESCE(r.room_name, rt.room_name, 'Phòng tiêu chuẩn') AS joined_room_name,
                        COALESCE(r.image_url, ri.image_url, 'images/img_1.jpg') AS joined_image_url
                 FROM bookings b
