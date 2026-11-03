@@ -309,6 +309,24 @@ public class BookingController extends HttpServlet {
 
         List<Voucher> publicVouchers = voucherDAO.findActivePublicVouchers();
 
+        // Auto pre-fill customer info from logged-in user session if draft info is empty
+        Object userObj = session.getAttribute("user");
+        if (userObj instanceof com.homestay.model.User u) {
+            if (draft.getCustomerName() == null || draft.getCustomerName().isBlank()) {
+                String name = u.getDisplayName() != null && !u.getDisplayName().isBlank()
+                        ? u.getDisplayName() : u.getUsername();
+                draft.setCustomerName(name);
+            }
+            if (draft.getCustomerEmail() == null || draft.getCustomerEmail().isBlank()) {
+                draft.setCustomerEmail(u.getEmail());
+            }
+            if (draft.getCustomerPhone() == null || draft.getCustomerPhone().isBlank()) {
+                if (u.getPhone() != null && !u.getPhone().isBlank()) {
+                    draft.setCustomerPhone(u.getPhone());
+                }
+            }
+        }
+
         request.setAttribute("draft", draft);
         request.setAttribute("otherAvailableRooms", otherAvailableRooms);
         request.setAttribute("publicVouchers", publicVouchers);
@@ -391,6 +409,25 @@ public class BookingController extends HttpServlet {
         if (draft == null) {
             response.sendRedirect(request.getContextPath() + "/booking?step=1");
             return;
+        }
+
+        // Preserve customer details if sent with the voucher apply request
+        String customerName = request.getParameter("customer_name");
+        String customerEmail = request.getParameter("customer_email");
+        String customerPhone = request.getParameter("customer_phone");
+        String notes = request.getParameter("notes");
+
+        if (customerName != null && !customerName.isBlank()) {
+            draft.setCustomerName(customerName.trim());
+        }
+        if (customerEmail != null && !customerEmail.isBlank()) {
+            draft.setCustomerEmail(customerEmail.trim());
+        }
+        if (customerPhone != null && !customerPhone.isBlank()) {
+            draft.setCustomerPhone(customerPhone.trim());
+        }
+        if (notes != null && !notes.isBlank()) {
+            draft.setNotes(notes.trim());
         }
 
         String voucherCode = request.getParameter("voucher_code");

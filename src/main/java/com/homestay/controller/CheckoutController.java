@@ -202,7 +202,7 @@ public class CheckoutController extends HttpServlet {
         if (bankAccount == null) {
             bankAccount = new SystemBankAccount();
             bankAccount.setBankCode("TPB");
-            bankAccount.setBankName("NgÃ¢n hÃ ng TiÃªn Phong (TPBank)");
+            bankAccount.setBankName("Ngân hàng Tiên Phong (TPBank)");
             bankAccount.setAccountNumber("22465786789");
             bankAccount.setAccountHolder("NGUYEN THANH HAI");
             bankAccount.setBinCode("970423");
