@@ -201,11 +201,11 @@ public class CheckoutController extends HttpServlet {
 
         if (bankAccount == null) {
             bankAccount = new SystemBankAccount();
-            bankAccount.setBankCode("MB");
-            bankAccount.setBankName("Ngân hàng Quân Đội (MBBank)");
-            bankAccount.setAccountNumber("0987654321");
-            bankAccount.setAccountHolder("CONG TY TNHH SOGO HOMESTAY");
-            bankAccount.setBinCode("970422");
+            bankAccount.setBankCode("TPB");
+            bankAccount.setBankName("NgÃ¢n hÃ ng TiÃªn Phong (TPBank)");
+            bankAccount.setAccountNumber("22465786789");
+            bankAccount.setAccountHolder("NGUYEN THANH HAI");
+            bankAccount.setBinCode("970423");
             bankAccount.setQrTemplate("compact2");
         }
 
