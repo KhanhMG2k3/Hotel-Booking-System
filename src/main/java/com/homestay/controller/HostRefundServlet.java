@@ -232,21 +232,22 @@ public class HostRefundServlet extends HttpServlet {
         String actionResult = "";
 
         if ("approve".equalsIgnoreCase(action.trim())) {
-            String note = (hostNote != null && !hostNote.isBlank()) ? hostNote.trim() : "Host đã duyệt hoàn tiền";
-            RefundApprovalResult approvalResult = refundDAO.approveRefundWithWallet(refundId, (long) userId, note);
+            String note = (hostNote != null && !hostNote.isBlank()) ? hostNote.trim() : "Host đã quét VietQR chuyển tiền hoàn cho khách";
+            success = refundDAO.approveRefundTraditional(refundId, (long) userId, note);
 
-            if (!approvalResult.isSuccess()) {
-                int status = approvalResult.isInsufficientBalance() ? HttpServletResponse.SC_BAD_REQUEST : HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-                sendJsonResponse(response, status, false, approvalResult.getMessage());
+            if (!success) {
+                response.sendRedirect(request.getContextPath() + "/host/refunds?error=already_processed");
                 return;
             }
 
-            success = true;
             actionResult = "approved";
 
             // Fetch booking for email notification
             Optional<Booking> bookingOpt = bookingDAO.findByIdWithDetails(refund.getBookingId().intValue());
             bookingOpt.ifPresent(booking -> emailService.sendRefundDecisionEmailAsync(booking, refund, true, note));
+
+            response.sendRedirect(request.getContextPath() + "/host/refunds?msg=approved");
+            return;
 
         } else if ("reject".equalsIgnoreCase(action.trim())) {
             if (hostNote == null || hostNote.trim().isBlank()) {

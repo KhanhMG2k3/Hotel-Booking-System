@@ -546,9 +546,6 @@
                 </p>
             </div>
             <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
-                <button type="button" class="btn btn-outline-success rounded-pill px-3 mr-2 font-weight-bold" onclick="openTopupModal()">
-                    <i class="fa fa-plus-circle mr-1"></i> Nạp tiền vào Ví
-                </button>
                 <a href="${pageContext.request.contextPath}/host/dashboard" class="btn btn-outline-secondary rounded-pill px-3 mr-2">
                     <i class="fa fa-dashboard mr-1"></i> Dashboard
                 </a>
@@ -576,34 +573,9 @@
             </div>
         </c:if>
 
-        <!-- KPI Statistic Cards (Model 2: Including Host Wallet Balance) -->
+        <!-- KPI Statistic Cards -->
         <div class="row mb-4">
-            <!-- SỐ DƯ VÍ KHẢ DỤNG -->
-            <div class="col-12 col-md-4 col-lg-3 mb-3">
-                <div class="stat-card wallet-card">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <div>
-                            <div class="stat-label text-success font-weight-bold">
-                                <i class="fa fa-shield mr-1"></i> Số dư ví Host
-                            </div>
-                            <div class="stat-value text-success" id="displayHostBalance">
-                                <fmt:formatNumber value="${hostBalance}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
-                            </div>
-                        </div>
-                        <div class="stat-icon stat-icon-wallet">
-                            <i class="fa fa-credit-card"></i>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                        <small class="text-muted" style="font-size: 11.5px;">Ví ký quỹ hoàn tiền</small>
-                        <button type="button" class="btn btn-xs btn-sm btn-link text-success p-0 font-weight-bold" onclick="openTopupModal()">
-                            + Nạp thêm ví
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-4 col-lg-2 mb-3">
+            <div class="col-6 col-md-3 mb-3">
                 <div class="stat-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -618,7 +590,7 @@
                 </div>
             </div>
 
-            <div class="col-6 col-md-4 col-lg-2 mb-3">
+            <div class="col-6 col-md-3 mb-3">
                 <div class="stat-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -633,7 +605,7 @@
                 </div>
             </div>
 
-            <div class="col-6 col-md-4 col-lg-2 mb-3">
+            <div class="col-6 col-md-3 mb-3">
                 <div class="stat-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -648,7 +620,7 @@
                 </div>
             </div>
 
-            <div class="col-6 col-md-4 col-lg-3 mb-3">
+            <div class="col-6 col-md-3 mb-3">
                 <div class="stat-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -656,7 +628,7 @@
                             <div class="stat-value text-danger" style="font-size: 1.35rem;">
                                 <fmt:formatNumber value="${stats.totalRefundedAmount}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
                             </div>
-                            <small class="text-muted" style="font-size: 11px;">Trừ trực tiếp từ ví Host</small>
+                            <small class="text-muted" style="font-size: 11px;">Đã hoàn trả qua VietQR</small>
                         </div>
                         <div class="stat-icon stat-icon-danger">
                             <i class="fa fa-money"></i>
@@ -1069,43 +1041,60 @@
 <jsp:include page="../common/footer.jsp" />
 
 <script>
-    var currentHostBalance = ${hostBalance != null ? hostBalance : 0};
-
     function openApproveModal(refundId, bookingCode, amount, bankInfo, customerName) {
         document.getElementById('approveRefundId').value = refundId;
-        document.getElementById('approveBookingCode').textContent = bookingCode;
+        document.getElementById('approveBookingCode').textContent = '#' + bookingCode;
         document.getElementById('approveCustomerName').textContent = customerName;
         document.getElementById('approveBankInfo').textContent = bankInfo || 'Chưa cung cấp';
         
         var formatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
         document.getElementById('approveAmount').textContent = formatted;
 
+        // Generate VietQR dynamic code for refunding customer
+        var rawBank = '';
+        var accNo = '';
+        var holder = customerName || '';
 
+        if (bankInfo && bankInfo.indexOf('-') > -1) {
+            var parts = bankInfo.split('-');
+            rawBank = parts[0].trim();
+            var rest = parts.slice(1).join('-').trim();
+            
+            var parenIdx = rest.indexOf('(');
+            if (parenIdx > -1) {
+                accNo = rest.substring(0, parenIdx).trim();
+                var closeParen = rest.indexOf(')', parenIdx);
+                if (closeParen > -1) {
+                    holder = rest.substring(parenIdx + 1, closeParen).trim();
+                }
+            } else {
+                accNo = rest.trim();
+            }
+        } else if (bankInfo) {
+            accNo = bankInfo.trim();
+        }
 
-        // Balance calculation
-        var balanceAfter = currentHostBalance - amount;
-        var formattedAfter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(balanceAfter);
-        var balAfterElem = document.getElementById('approveHostBalAfter');
-        balAfterElem.textContent = formattedAfter;
+        var bankUpper = rawBank.toUpperCase();
+        var bankCode = 'MB'; // fallback default
+        if (bankUpper.indexOf('VIETCOMBANK') > -1 || bankUpper.indexOf('VCB') > -1) bankCode = 'VCB';
+        else if (bankUpper.indexOf('MB') > -1) bankCode = 'MB';
+        else if (bankUpper.indexOf('TPBANK') > -1 || bankUpper.indexOf('TPB') > -1) bankCode = 'TPB';
+        else if (bankUpper.indexOf('TECHCOM') > -1 || bankUpper.indexOf('TCB') > -1) bankCode = 'TCB';
+        else if (bankUpper.indexOf('BIDV') > -1) bankCode = 'BIDV';
+        else if (bankUpper.indexOf('AGRI') > -1 || bankUpper.indexOf('VBA') > -1) bankCode = 'VBA';
+        else if (bankUpper.indexOf('VIETIN') > -1 || bankUpper.indexOf('ICB') > -1) bankCode = 'ICB';
+        else if (bankUpper.indexOf('VPBANK') > -1 || bankUpper.indexOf('VPB') > -1) bankCode = 'VPB';
+        else if (bankUpper.indexOf('ACB') > -1) bankCode = 'ACB';
+        else if (bankUpper.indexOf('OCB') > -1) bankCode = 'OCB';
+        else if (bankUpper.indexOf('SACOM') > -1 || bankUpper.indexOf('STB') > -1) bankCode = 'STB';
 
-        var btnConfirm = document.getElementById('btnConfirmApprove');
-        var alertSufficient = document.getElementById('walletSufficientAlert');
-        var alertInsufficient = document.getElementById('walletInsufficientAlert');
-
-        if (currentHostBalance >= amount) {
-            balAfterElem.className = 'font-weight-bold text-success';
-            alertSufficient.style.display = 'block';
-            alertInsufficient.style.display = 'none';
-            btnConfirm.disabled = false;
-            btnConfirm.classList.remove('btn-secondary');
-            btnConfirm.classList.add('btn-success');
-        } else {
-            balAfterElem.className = 'font-weight-bold text-danger';
-            alertSufficient.style.display = 'none';
-            alertInsufficient.style.display = 'block';
-            btnConfirm.disabled = true;
-            btnConfirm.classList.remove('btn-success');
-            btnConfirm.classList.add('btn-secondary');
+        var qrUrl = 'https://img.vietqr.io/image/' + bankCode + '-' + encodeURIComponent(accNo) + '-compact2.png'
+                  + '?amount=' + Math.round(amount)
+                  + '&addInfo=' + encodeURIComponent('HOAN TIEN ' + bookingCode)
+                  + '&accountName=' + encodeURIComponent(holder);
+        var qrImg = document.getElementById('refundVietQrImg');
+        if (qrImg) {
+            qrImg.src = qrUrl;
         }
 
         $('#approveModal').modal('show');
@@ -1113,15 +1102,7 @@
 
     function openRejectModal(refundId, bookingCode) {
         document.getElementById('rejectRefundId').value = refundId;
-        document.getElementById('rejectBookingCode').textContent = bookingCode;
+        document.getElementById('rejectBookingCode').textContent = '#' + bookingCode;
         $('#rejectModal').modal('show');
-    }
-
-    function openTopupModal() {
-        $('#topupModal').modal('show');
-    }
-
-    function selectTopupAmount(val) {
-        document.getElementById('topupAmountInput').value = val;
     }
 </script>

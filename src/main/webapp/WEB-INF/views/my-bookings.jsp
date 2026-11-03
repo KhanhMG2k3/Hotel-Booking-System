@@ -1,4 +1,4 @@
-<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
@@ -257,6 +257,17 @@
 </div>
 
 <div class="container py-5">
+    <!-- Payment Success notification from redirect -->
+    <c:if test="${param.paymentSuccess eq 'true'}">
+        <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert" style="border-left: 5px solid #28a745;">
+            <i class="fa fa-check-circle fa-lg mr-2 text-success"></i>
+            <strong>Thanh toán đặt phòng thành công!</strong> Đơn đặt phòng <c:if test="${not empty param.bookingCode}"><strong>#<c:out value="${param.bookingCode}" /></strong></c:if> của bạn đã được xác nhận hoàn tất.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </c:if>
+
     <!-- Success / Error notification -->
     <c:if test="${not empty successMessage}">
         <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">

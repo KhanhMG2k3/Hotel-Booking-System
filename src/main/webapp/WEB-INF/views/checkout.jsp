@@ -88,9 +88,12 @@
                             <h2 class="h3 font-weight-bold text-success mb-2">
                                 Thanh Toán Đặt Phòng Thành Công!
                             </h2>
-                            <p class="text-muted mb-4 lead">
+                            <p class="text-muted mb-2 lead">
                                 Cảm ơn quý khách <strong><c:out value="${booking.customerName}" /></strong>.
                                 Đơn đặt phòng của bạn đã được xác nhận hoàn tất.
+                            </p>
+                            <p class="text-success font-weight-bold mb-4 small">
+                                <i class="fa fa-spinner fa-spin mr-1"></i> Tự động chuyển hướng về trang Đơn đặt phòng của bạn sau <span id="autoRedirectCountdown">3</span> giây...
                             </p>
 
                             <div class="card bg-light border-0 text-left p-4 mb-4">
@@ -219,10 +222,7 @@
                             <!-- BẢNG THÔNG TIN TÀI KHOẢN NHẬN TIỀN -->
                             <div class="bg-light border rounded p-3 mb-4">
                                 
-                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                                    <span class="text-muted small">Loại tài khoản nhận:</span>
-                                    <span class="badge badge-primary px-2 py-1"><i class="fa fa-shield mr-1"></i> Tài khoản Ký quỹ Sàn Sogo Homestay</span>
-                                </div>
+
 
                                 <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
                                     <span class="text-muted small">Ngân hàng thụ hưởng:</span>
@@ -553,10 +553,10 @@ function showCopySuccess(btn) {
                     spinner.style.display = 'none';
                 }
                 if (text) {
-                    text.innerHTML = '<i class="fa fa-check-circle mr-2 text-success"></i><strong>Đã nhận tiền thành công!</strong> Đang chuyển đến màn hình xác nhận...';
+                    text.innerHTML = '<i class="fa fa-check-circle mr-2 text-success fa-lg"></i><strong>Đã nhận tiền thành công!</strong> Đang tự động chuyển hướng đến đơn đặt phòng...';
                 }
                 setTimeout(function() {
-                    window.location.reload();
+                    window.location.href = '${pageContext.request.contextPath}/my-bookings?paymentSuccess=true&bookingCode=' + encodeURIComponent(data.bookingCode || '${booking.bookingCode}');
                 }, 1200);
             }
         })
@@ -566,5 +566,22 @@ function showCopySuccess(btn) {
     }, 2000);
 })();
 </script>
+
+<c:if test="${isConfirmed or booking.status eq 'CONFIRMED' or booking.status eq 'PAID'}">
+<script>
+    (function() {
+        var count = 3;
+        var el = document.getElementById('autoRedirectCountdown');
+        var timer = setInterval(function() {
+            count--;
+            if (el) el.textContent = count;
+            if (count <= 0) {
+                clearInterval(timer);
+                window.location.href = '${pageContext.request.contextPath}/my-bookings?paymentSuccess=true&bookingCode=' + encodeURIComponent('${booking.bookingCode}');
+            }
+        }, 1000);
+    })();
+</script>
+</c:if>
 
 <jsp:include page="common/footer.jsp" />
