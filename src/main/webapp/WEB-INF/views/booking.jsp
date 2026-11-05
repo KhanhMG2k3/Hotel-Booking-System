@@ -528,8 +528,12 @@
             <!-- Mã giảm giá (Voucher) -->
             <div class="my-3 pt-3 border-top">
               <label class="text-dark small font-weight-bold" for="voucher_code">Mã ưu đãi / Voucher:</label>
-              <form action="${pageContext.request.contextPath}/booking" method="post" class="input-group mb-2">
+              <form action="${pageContext.request.contextPath}/booking" method="post" class="input-group mb-2" id="voucherApplyForm" onsubmit="syncCustomerInfoToVoucherForm()">
                 <input type="hidden" name="action" value="apply_voucher" />
+                <input type="hidden" name="customer_name" id="voucher_sync_name" />
+                <input type="hidden" name="customer_phone" id="voucher_sync_phone" />
+                <input type="hidden" name="customer_email" id="voucher_sync_email" />
+                <input type="hidden" name="notes" id="voucher_sync_notes" />
                 <input type="text" name="voucher_code" id="voucher_code" class="form-control text-uppercase"
                        placeholder="Nhập mã voucher" value="${draft.voucherCode}" />
                 <div class="input-group-append">
@@ -854,6 +858,41 @@
       }
     });
   });
+
+  function syncCustomerInfoToVoucherForm() {
+    var name = document.getElementById('customer_name');
+    var phone = document.getElementById('customer_phone');
+    var email = document.getElementById('customer_email');
+    var notes = document.getElementById('notes');
+    if (name) document.getElementById('voucher_sync_name').value = name.value;
+    if (phone) document.getElementById('voucher_sync_phone').value = phone.value;
+    if (email) document.getElementById('voucher_sync_email').value = email.value;
+    if (notes) document.getElementById('voucher_sync_notes').value = notes.value;
+  }
+
+  // Auto-persist input values in sessionStorage so they are never lost on reload
+  (function() {
+    var fields = ['customer_name', 'customer_phone', 'customer_email', 'notes'];
+    fields.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      if (!el.value) {
+        var saved = sessionStorage.getItem('homestay_draft_' + id);
+        if (saved) el.value = saved;
+      }
+      el.addEventListener('input', function() {
+        sessionStorage.setItem('homestay_draft_' + id, el.value);
+      });
+    });
+    var confirmForm = document.getElementById('confirmBookingForm');
+    if (confirmForm) {
+      confirmForm.addEventListener('submit', function() {
+        fields.forEach(function(id) {
+          sessionStorage.removeItem('homestay_draft_' + id);
+        });
+      });
+    }
+  })();
 
   window.addEventListener('load', function() {
     cleanupBootstrapDatepicker();

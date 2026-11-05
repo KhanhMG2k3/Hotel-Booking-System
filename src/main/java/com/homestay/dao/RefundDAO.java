@@ -453,10 +453,111 @@ public class RefundDAO extends BaseDAO {
     }
 
     /**
+     * Approves a refund request using the traditional VietQR flow (no wallet deduction / guard).
+     */
+    public boolean approveRefundTraditional(long refundId, long hostUserId, String hostNote) {
+        Connection conn = null;
+        PreparedStatement selectPs = null;
+        PreparedStatement updateRefundPs = null;
+        PreparedStatement updateBookingPs = null;
+        PreparedStatement updatePaymentPs = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            // 1. Verify current status is REQUESTED
+            String selectSql = """
+                    SELECT r.booking_id, r.payment_id, r.amount, r.status
+                    FROM refunds r
+                    WHERE r.refund_id = ?
+                    FOR UPDATE
+                    """;
+            selectPs = conn.prepareStatement(selectSql);
+            selectPs.setLong(1, refundId);
+            rs = selectPs.executeQuery();
+
+            if (!rs.next()) {
+                conn.rollback();
+                return false;
+            }
+
+            String currentStatus = rs.getString("status");
+            if (!"REQUESTED".equalsIgnoreCase(currentStatus)) {
+                conn.rollback();
+                return false;
+            }
+
+            long bookingId = rs.getLong("booking_id");
+            long paymentId = rs.getLong("payment_id");
+
+            // 2. Update refunds table: status = 'APPROVED'
+            String updateRefundSql = """
+                    UPDATE refunds
+                    SET status = 'APPROVED',
+                        approved_by = ?,
+                        host_note = ?,
+                        completed_at = CURRENT_TIMESTAMP
+                    WHERE refund_id = ?
+                    """;
+            updateRefundPs = conn.prepareStatement(updateRefundSql);
+            updateRefundPs.setLong(1, hostUserId);
+            updateRefundPs.setString(2, hostNote);
+            updateRefundPs.setLong(3, refundId);
+            updateRefundPs.executeUpdate();
+
+            // 3. Update bookings table: status = 'REFUNDED'
+            String updateBookingSql = """
+                    UPDATE bookings
+                    SET status = 'REFUNDED',
+                        payout_status = 'REFUNDED'
+                    WHERE id = ? OR booking_id = ?
+                    """;
+            updateBookingPs = conn.prepareStatement(updateBookingSql);
+            updateBookingPs.setLong(1, bookingId);
+            updateBookingPs.setLong(2, bookingId);
+            updateBookingPs.executeUpdate();
+
+            // 4. Update payments table if payment_id exists
+            if (paymentId > 0) {
+                String updatePaymentSql = """
+                        UPDATE payments
+                        SET status = 'REFUNDED'
+                        WHERE payment_id = ?
+                        """;
+                updatePaymentPs = conn.prepareStatement(updatePaymentSql);
+                updatePaymentPs.setLong(1, paymentId);
+                updatePaymentPs.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    logger.log(Level.WARNING, "Rollback failed", ex);
+                }
+            }
+            logger.log(Level.SEVERE, "Error in approveRefundTraditional: " + refundId, e);
+            return false;
+        } finally {
+            closeStatement(selectPs);
+            closeStatement(updateRefundPs);
+            closeStatement(updateBookingPs);
+            closeStatement(updatePaymentPs);
+            closeResources(conn, null, rs);
+        }
+    }
+
+    /**
      * Approves a refund request in an atomic transaction (backward compatibility wrapper).
      */
     public boolean approveRefund(long refundId, long hostUserId, String hostNote) {
-        return approveRefundWithWallet(refundId, hostUserId, hostNote).isSuccess();
+        return approveRefundTraditional(refundId, hostUserId, hostNote);
     }
 
     /**

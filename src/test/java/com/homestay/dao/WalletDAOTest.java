@@ -1,5 +1,6 @@
 package com.homestay.dao;
 
+import com.homestay.context.DBContext;
 import com.homestay.model.WalletAccount;
 import com.homestay.model.WalletTransaction;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,6 +8,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,17 +61,31 @@ class WalletDAOTest {
     void testTopUpSuccess() {
         BigDecimal before = walletDAO.getHostBalance(3L);
         BigDecimal topupAmount = new BigDecimal("500000.00");
-        boolean ok = walletDAO.topUpWallet(3L, topupAmount, "Unit Test Topup");
-        assertTrue(ok);
+        try {
+            boolean ok = walletDAO.topUpWallet(3L, topupAmount, "Unit Test Topup");
+            assertTrue(ok);
 
-        BigDecimal after = walletDAO.getHostBalance(3L);
-        assertEquals(before.add(topupAmount), after);
+            BigDecimal after = walletDAO.getHostBalance(3L);
+            assertEquals(before.add(topupAmount), after);
 
-        List<WalletTransaction> txs = walletDAO.getTransactionsByUserId(3L, 5);
-        assertFalse(txs.isEmpty());
-        WalletTransaction latest = txs.get(0);
-        assertEquals("TOPUP", latest.getTransactionType());
-        assertEquals(topupAmount, latest.getAmount());
+            List<WalletTransaction> txs = walletDAO.getTransactionsByUserId(3L, 5);
+            assertFalse(txs.isEmpty());
+            WalletTransaction latest = txs.get(0);
+            assertEquals("TOPUP", latest.getTransactionType());
+            assertEquals(topupAmount, latest.getAmount());
+        } finally {
+            // Restore host 3 balance and clean up test transaction so host wallet stays clean
+            try (Connection conn = DBContext.getConnection();
+                 PreparedStatement ps1 = conn.prepareStatement(
+                         "UPDATE wallet_accounts SET balance = ? WHERE owner_user_id = 3 AND owner_type = 'HOST'");
+                 PreparedStatement ps2 = conn.prepareStatement(
+                         "DELETE FROM wallet_transactions WHERE user_id = 3 AND description = 'Unit Test Topup'")) {
+                ps1.setBigDecimal(1, before);
+                ps1.executeUpdate();
+                ps2.executeUpdate();
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     @Test
@@ -87,4 +104,3 @@ class WalletDAOTest {
         });
     }
 }
-
