@@ -1,5 +1,6 @@
 package com.homestay.dao;
 
+import com.homestay.model.Province;
 import com.homestay.model.Room;
 import com.homestay.model.RoomType;
 
@@ -21,11 +22,17 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
     private static final String BASE_SELECT = 
             "SELECT r.room_id as id, r.room_type_id as type_id, r.room_number, r.status, " +
             "       rt.room_name, rt.description, rt.max_guests as capacity, rt.base_price as price_per_night, " +
-            "       rt.size_m2, rt.bed_type, " +
-            "       COALESCE(ri.image_url, 'images/img_1.jpg') as image_url " +
+            "       rt.size_m2, rt.bed_type, COALESCE(rt.rating, 4.5) as rating, COALESCE(rt.review_count, 10) as review_count, " +
+            "       COALESCE(ri.image_url, 'images/img_1.jpg') as image_url, " +
+            "       COALESCE(prop.property_name, 'Sogo Homestay') as property_name, " +
+            "       COALESCE(prop.address, '') as address, " +
+            "       prov.province_id, COALESCE(prov.province_name, 'Đà Nẵng') as province_name " +
             "FROM rooms r " +
             "JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
-            "LEFT JOIN (SELECT room_type_id, MIN(image_url) as image_url FROM roomimages GROUP BY room_type_id) ri " +
+            "LEFT JOIN properties prop ON rt.property_id = prop.property_id " +
+            "LEFT JOIN destinations dest ON prop.destination_id = dest.destination_id " +
+            "LEFT JOIN provinces prov ON dest.province_id = prov.province_id " +
+            "LEFT JOIN (SELECT room_type_id, image_url FROM (SELECT room_type_id, image_url, ROW_NUMBER() OVER (PARTITION BY room_type_id ORDER BY is_primary DESC, display_order ASC, image_id ASC) as rn FROM roomimages WHERE (media_type = 'IMAGE' OR media_type IS NULL)) ranked_ri WHERE ranked_ri.rn = 1) ri " +
             "ON rt.room_type_id = ri.room_type_id ";
 
     @Override
@@ -87,7 +94,7 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
      */
     public List<String> getRoomImages(Connection conn, int roomTypeId) {
         List<String> images = new ArrayList<>();
-        String sql = "SELECT image_url FROM roomimages WHERE room_type_id = ? ORDER BY display_order ASC";
+        String sql = "SELECT image_url FROM roomimages WHERE room_type_id = ? AND (media_type = 'IMAGE' OR media_type IS NULL) ORDER BY is_primary DESC, display_order ASC, image_id ASC";
         PreparedStatement ps = null;
         ResultSet rs = null;
 
@@ -191,6 +198,13 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         room.setDescription(rs.getString("description"));
         room.setStatus(rs.getString("status"));
         room.setFeatured(true);
+        room.setRating(rs.getDouble("rating"));
+        room.setReviewCount(rs.getInt("review_count"));
+        int provId = rs.getInt("province_id");
+        room.setProvinceId(provId != 0 ? provId : null);
+        room.setProvinceName(rs.getString("province_name"));
+        room.setPropertyName(rs.getString("property_name"));
+        room.setAddress(rs.getString("address"));
 
         RoomType roomType = new RoomType();
         roomType.setId(rs.getInt("type_id"));
@@ -199,6 +213,238 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
         room.setRoomType(roomType);
 
         return room;
+    }
+
+    private static final String COUNT_SELECT = 
+            "SELECT COUNT(DISTINCT r.room_id) " +
+            "FROM rooms r " +
+            "JOIN roomtypes rt ON r.room_type_id = rt.room_type_id " +
+            "LEFT JOIN properties prop ON rt.property_id = prop.property_id " +
+            "LEFT JOIN destinations dest ON prop.destination_id = dest.destination_id " +
+            "LEFT JOIN provinces prov ON dest.province_id = prov.province_id ";
+
+    private void buildSearchWhereClause(StringBuilder sql, List<Object> params,
+                                        String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                                        Integer capacity, Integer typeId, Integer provinceId,
+                                        Double minRating, Double maxRating) {
+        sql.append("WHERE 1=1 ");
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (LOWER(rt.room_name) LIKE ? OR LOWER(rt.description) LIKE ? OR LOWER(r.room_number) LIKE ? OR LOWER(prov.province_name) LIKE ? OR LOWER(prop.address) LIKE ? OR LOWER(prop.property_name) LIKE ?) ");
+            String kw = "%" + keyword.trim().toLowerCase() + "%";
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
+        }
+
+        if (typeId != null && typeId > 0) {
+            sql.append("AND r.room_type_id = ? ");
+            params.add(typeId);
+        }
+
+        if (provinceId != null && provinceId > 0) {
+            sql.append("AND dest.province_id = ? ");
+            params.add(provinceId);
+        }
+
+        if (capacity != null && capacity > 0) {
+            sql.append("AND rt.max_guests >= ? ");
+            params.add(capacity);
+        }
+
+        if (minPrice != null && minPrice.compareTo(java.math.BigDecimal.ZERO) > 0) {
+            sql.append("AND rt.base_price >= ? ");
+            params.add(minPrice);
+        }
+
+        if (maxPrice != null && maxPrice.compareTo(java.math.BigDecimal.ZERO) > 0) {
+            sql.append("AND rt.base_price <= ? ");
+            params.add(maxPrice);
+        }
+
+        if (minRating != null && minRating > 0) {
+            sql.append("AND COALESCE(rt.rating, 4.5) >= ? ");
+            params.add(minRating);
+        }
+
+        if (maxRating != null && maxRating > 0) {
+            sql.append("AND COALESCE(rt.rating, 4.5) <= ? ");
+            params.add(maxRating);
+        }
+    }
+
+    private void setPreparedStatementParam(PreparedStatement ps, int index, Object p) throws SQLException {
+        if (p instanceof Integer) {
+            ps.setInt(index, (Integer) p);
+        } else if (p instanceof Double) {
+            ps.setDouble(index, (Double) p);
+        } else if (p instanceof java.math.BigDecimal) {
+            ps.setBigDecimal(index, (java.math.BigDecimal) p);
+        } else {
+            ps.setString(index, p.toString());
+        }
+    }
+
+    /**
+     * Count rooms matching search filters for pagination.
+     */
+    public int countRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                          Integer capacity, Integer typeId, Integer provinceId, Double minRating, Double maxRating) {
+        StringBuilder sql = new StringBuilder(COUNT_SELECT);
+        List<Object> params = new ArrayList<>();
+        buildSearchWhereClause(sql, params, keyword, minPrice, maxPrice, capacity, typeId, provinceId, minRating, maxRating);
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                setPreparedStatementParam(ps, i + 1, params.get(i));
+            }
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error counting rooms", e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+        return 0;
+    }
+
+    /**
+     * Search rooms with dynamic filters and pagination (offset, limit).
+     */
+    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                                  Integer capacity, Integer typeId, Integer provinceId, Double minRating, Double maxRating,
+                                  String sortBy, int offset, int limit) {
+        List<Room> rooms = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
+        List<Object> params = new ArrayList<>();
+        buildSearchWhereClause(sql, params, keyword, minPrice, maxPrice, capacity, typeId, provinceId, minRating, maxRating);
+
+        if ("price_asc".equalsIgnoreCase(sortBy)) {
+            sql.append("ORDER BY rt.base_price ASC ");
+        } else if ("price_desc".equalsIgnoreCase(sortBy)) {
+            sql.append("ORDER BY rt.base_price DESC ");
+        } else if ("rating_desc".equalsIgnoreCase(sortBy)) {
+            sql.append("ORDER BY rt.rating DESC ");
+        } else if ("capacity_desc".equalsIgnoreCase(sortBy)) {
+            sql.append("ORDER BY rt.max_guests DESC ");
+        } else {
+            sql.append("ORDER BY r.room_id ASC ");
+        }
+
+        if (limit > 0) {
+            sql.append("LIMIT ? OFFSET ? ");
+            params.add(limit);
+            params.add(Math.max(0, offset));
+        }
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                setPreparedStatementParam(ps, i + 1, params.get(i));
+            }
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Room room = mapResultSetToRoom(rs);
+                rooms.add(room);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error searching rooms with pagination", e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+        return rooms;
+    }
+
+    /**
+     * Search rooms with dynamic filters: keyword, price range, capacity, room type, province/city, star rating range (min-max), and sort.
+     */
+    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                                  Integer capacity, Integer typeId, Integer provinceId, Double minRating, Double maxRating, String sortBy) {
+        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, provinceId, minRating, maxRating, sortBy, 0, -1);
+    }
+
+    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                                  Integer capacity, Integer typeId, Double minRating, Double maxRating, String sortBy) {
+        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, null, minRating, maxRating, sortBy, 0, -1);
+    }
+
+    public List<Room> searchRooms(String keyword, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+                                  Integer capacity, Integer typeId, Double minRating, String sortBy) {
+        return searchRooms(keyword, minPrice, maxPrice, capacity, typeId, null, minRating, null, sortBy, 0, -1);
+    }
+
+    /**
+     * Retrieves all available provinces for filter dropdown.
+     */
+    public List<Province> getAllProvinces() {
+        List<Province> provinces = new ArrayList<>();
+        String sql = "SELECT province_id, country_id, province_name FROM provinces ORDER BY province_name ASC";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Province p = new Province();
+                p.setId(rs.getInt("province_id"));
+                p.setCountryId(rs.getInt("country_id"));
+                p.setProvinceName(rs.getString("province_name"));
+                provinces.add(p);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting provinces", e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+        return provinces;
+    }
+
+    /**
+     * Retrieves all available room types for filter dropdown.
+     */
+    public List<RoomType> getAllRoomTypes() {
+        List<RoomType> types = new ArrayList<>();
+        String sql = "SELECT room_type_id as id, room_name as type_name, description FROM roomtypes ORDER BY room_type_id ASC";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                RoomType type = new RoomType();
+                type.setId(rs.getInt("id"));
+                type.setTypeName(rs.getString("type_name"));
+                type.setDescription(rs.getString("description"));
+                types.add(type);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting room types", e);
+        } finally {
+            closeResources(conn, ps, rs);
+        }
+        return types;
     }
 
     private List<String> getDefaultAmenities(int typeId) {
@@ -220,5 +466,46 @@ public class RoomDAO extends BaseDAO implements GenericDAO<Room, Integer> {
             amenities.add("Ban công lớn view toàn cảnh biển");
         }
         return amenities;
+    }
+
+    /**
+     * Retrieves all rooms belonging to all properties of a specific host.
+     */
+    public List<Room> findRoomsByHostId(int hostId) {
+        List<Room> rooms = new ArrayList<>();
+        String sql = "SELECT r.room_id, r.property_id, r.room_number, r.room_name, r.price_per_night, "
+                + "r.capacity, r.bed_count, r.bathroom_count, r.status, r.image_url, r.description, "
+                + "p.property_name, p.address, p.city "
+                + "FROM rooms r "
+                + "JOIN properties p ON r.property_id = p.property_id "
+                + "WHERE p.host_id = ? "
+                + "ORDER BY p.property_id, r.room_id";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hostId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Room room = new Room();
+                    room.setId(rs.getInt("room_id"));
+                    room.setPropertyId(rs.getInt("property_id"));
+                    room.setRoomNumber(rs.getString("room_number"));
+                    room.setRoomName(rs.getString("room_name"));
+                    room.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                    room.setCapacity(rs.getInt("capacity"));
+                    room.setBedCount(rs.getInt("bed_count"));
+                    room.setBathroomCount(rs.getInt("bathroom_count"));
+                    room.setStatus(rs.getString("status"));
+                    room.setImageUrl(rs.getString("image_url"));
+                    room.setDescription(rs.getString("description"));
+                    room.setPropertyName(rs.getString("property_name"));
+                    room.setAddress(rs.getString("address"));
+                    rooms.add(room);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding rooms by host id: " + hostId, e);
+        }
+        return rooms;
     }
 }

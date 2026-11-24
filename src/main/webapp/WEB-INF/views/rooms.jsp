@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
   <%@ taglib prefix="c" uri="jakarta.tags.core" %>
     <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
@@ -7,6 +7,7 @@
       </jsp:include>
 
       <jsp:include page="common/navbar.jsp" />
+
 
       <!-- HERO SECTION -->
       <section class="site-hero inner-page overlay hero-rooms" data-stellar-background-ratio="0.5">
@@ -34,14 +35,346 @@
       <!-- DANH SÁCH CÁC HẠNG PHÒNG & ĐẶT PHÒNG -->
       <section class="section pb-5" id="room-list">
         <div class="container">
-          <div class="row justify-content-center text-center mb-5">
+          <div class="row justify-content-center text-center mb-4">
             <div class="col-md-8">
               <span class="text-primary font-weight-bold text-uppercase letter-spacing-1 d-block mb-2">Hệ thống phòng
                 nghỉ</span>
               <h2 class="heading" data-aos="fade-up">Chọn Phòng & Khám Phá Không Gian</h2>
               <p class="text-muted" data-aos="fade-up" data-aos-delay="100">
-                Nhấp vào phòng bất kỳ để xem chi tiết đầy đủ, album ảnh thực tế, tiện nghi và bảng giá bằng VNĐ.
+                Tìm kiếm phòng nghỉ phù hợp theo nhu cầu, mức giá và đánh giá của khách hàng.
               </p>
+            </div>
+          </div>
+
+          <!-- BỘ LỌC TÌM KIẾM (SEARCH & FILTERS) -->
+          <div class="sogo-filter-card p-4 mb-4" data-aos="fade-up">
+            <form action="${pageContext.request.contextPath}/rooms" method="GET" id="searchFilterForm" onsubmit="var p=document.getElementById('pageInput'); if(p) p.value='1';">
+              <input type="hidden" name="page" id="pageInput" value="${currentPage}">
+              <div class="row">
+                <!-- 1. Từ khóa -->
+                <div class="col-lg-3 col-md-6 mb-3">
+                  <label class="sogo-filter-label"><i class="fa fa-search text-primary mr-1"></i> Tìm kiếm phòng</label>
+                  <input type="text" name="keyword" class="form-control" placeholder="Tên phòng, địa điểm..." value="${keyword}">
+                </div>
+
+                <!-- 2. Tỉnh / Thành phố -->
+                <div class="col-lg-3 col-md-6 mb-3">
+                  <label class="sogo-filter-label"><i class="fa fa-map-marker text-danger mr-1"></i> Tỉnh / Thành phố</label>
+                  <select name="provinceId" class="form-control">
+                    <option value="">Tất cả tỉnh thành</option>
+                    <c:forEach var="p" items="${provinces}">
+                      <option value="${p.id}" ${p.id == provinceId ? 'selected' : ''}>📍 ${p.provinceName}</option>
+                    </c:forEach>
+                  </select>
+                </div>
+
+                <!-- 3. Loại phòng -->
+                <div class="col-lg-2 col-md-6 mb-3">
+                  <label class="sogo-filter-label"><i class="fa fa-th-large text-primary mr-1"></i> Loại phòng</label>
+                  <select name="typeId" class="form-control">
+                    <option value="">Tất cả loại phòng</option>
+                    <c:forEach var="rt" items="${roomTypes}">
+                      <option value="${rt.id}" ${rt.id == typeId ? 'selected' : ''}>${rt.typeName}</option>
+                    </c:forEach>
+                  </select>
+                </div>
+
+                <!-- 4. Sức chứa / Số khách -->
+                <div class="col-lg-2 col-md-6 mb-3">
+                  <label class="sogo-filter-label"><i class="fa fa-users text-primary mr-1"></i> Sức chứa</label>
+                  <select name="capacity" class="form-control">
+                    <option value="">Tất cả</option>
+                    <option value="1" ${capacity == 1 ? 'selected' : ''}>1 Khách</option>
+                    <option value="2" ${capacity == 2 ? 'selected' : ''}>2 Khách trở lên</option>
+                    <option value="4" ${capacity == 4 ? 'selected' : ''}>4 Khách trở lên</option>
+                    <option value="6" ${capacity == 6 ? 'selected' : ''}>6 Khách trở lên</option>
+                  </select>
+                </div>
+
+                <!-- 5. Đánh giá sao -->
+                <div class="col-lg-2 col-md-6 mb-3">
+                  <label class="sogo-filter-label"><i class="fa fa-star text-warning mr-1"></i> Đánh giá sao</label>
+                  <select name="rating" class="form-control">
+                    <option value="">Tất cả đánh giá</option>
+                    <option value="5.0" ${rating == '5.0' or rating == '4.8' ? 'selected' : ''}>⭐ 5.0 sao (4.8 - 5.0)</option>
+                    <option value="4.5" ${rating == '4.5' ? 'selected' : ''}>⭐ 4.5 sao (4.5 - 4.7)</option>
+                    <option value="4.0" ${rating == '4.0' ? 'selected' : ''}>⭐ 4.0 sao (4.0 - 4.4)</option>
+                    <option value="3.5" ${rating == '3.5' ? 'selected' : ''}>⭐ 3.5 sao (3.5 - 3.9)</option>
+                    <option value="3.0" ${rating == '3.0' or rating == '3' ? 'selected' : ''}>⭐ 3.0 sao (3.0 - 3.4)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Hàng thứ hai: Khoảng giá, Sắp xếp & Nút tìm kiếm -->
+              <div class="row align-items-center pt-2 border-top">
+                <div class="col-lg-5 col-md-12 mb-3 mb-lg-0">
+                  <div class="d-flex align-items-center flex-wrap">
+                    <span class="sogo-filter-label mr-3 mb-1"><i class="fa fa-money text-success mr-1"></i> Mức giá (VNĐ):</span>
+                    <div class="d-inline-flex align-items-center mb-1 mr-2" style="max-width: 320px;">
+                      <input type="number" id="minPriceInput" name="minPrice" class="form-control form-control-sm mr-2" placeholder="Từ (VNĐ)" value="${minPrice}" min="0" step="50000" style="width: 130px;">
+                      <span class="text-muted mr-2">-</span>
+                      <input type="number" id="maxPriceInput" name="maxPrice" class="form-control form-control-sm" placeholder="Đến (VNĐ)" value="${maxPrice}" min="0" step="50000" style="width: 130px;">
+                    </div>
+                    <div class="quick-presets d-inline-block">
+                      <button type="button" class="quick-price-btn" onclick="setPriceRange('', 700000)">&lt; 700k</button>
+                      <button type="button" class="quick-price-btn" onclick="setPriceRange(700000, 1200000)">700k - 1.2tr</button>
+                      <button type="button" class="quick-price-btn" onclick="setPriceRange(1200000, '')">&gt; 1.2tr</button>
+                      <button type="button" class="quick-price-btn text-danger" onclick="setPriceRange('', '')">Xóa giá</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Sắp xếp -->
+                <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
+                  <div class="d-flex align-items-center">
+                    <label class="sogo-filter-label mr-2 mb-0 text-nowrap"><i class="fa fa-sort text-primary mr-1"></i> Sắp xếp:</label>
+                    <select name="sortBy" class="form-control form-control-sm">
+                      <option value="">Mặc định</option>
+                      <option value="price_asc" ${sortBy == 'price_asc' ? 'selected' : ''}>Giá: Thấp đến Cao</option>
+                      <option value="price_desc" ${sortBy == 'price_desc' ? 'selected' : ''}>Giá: Cao đến Thấp</option>
+                      <option value="rating_desc" ${sortBy == 'rating_desc' ? 'selected' : ''}>Đánh giá cao nhất ⭐</option>
+                      <option value="capacity_desc" ${sortBy == 'capacity_desc' ? 'selected' : ''}>Sức chứa lớn nhất</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 text-lg-right">
+                  <div class="d-flex justify-content-lg-end">
+                    <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm mr-2">
+                      <i class="fa fa-filter mr-1"></i> Áp Dụng Lọc
+                    </button>
+                    <a href="${pageContext.request.contextPath}/rooms" class="btn btn-outline-secondary px-3" title="Đặt lại bộ lọc">
+                      <i class="fa fa-refresh mr-1"></i> Đặt Lại
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- SECTION AI: RECOMMENDED FOR YOU (Module: AI — Catalog & Discovery) -->
+          <c:if test="${not empty recommendedRooms}">
+            <!-- NÚT BẬT / TẮT AI RECOMMENDER -->
+            <div class="sogo-ai-toggle-bar mb-3 p-3 rounded d-flex justify-content-between align-items-center flex-wrap" data-aos="fade-up">
+              <div class="d-flex align-items-center mb-2 mb-md-0">
+                <span class="badge badge-ai-pulse mr-2"><i class="fa fa-magic mr-1"></i> AI Engine</span>
+                <div>
+                  <span class="font-weight-bold text-dark ai-toggle-title">✨ Gợi Ý Thông Minh AI (Recommended for You)</span>
+                  <span class="text-muted small ml-2 d-none d-md-inline" id="aiToggleSubtitle">- Đề xuất homestay phù hợp theo sở thích & ngân sách</span>
+                </div>
+              </div>
+
+              <!-- CÔNG TẮC BẬT / TẮT TRỰC QUAN -->
+              <div class="d-flex align-items-center">
+                <span class="mr-2 small font-weight-bold" id="aiToggleStatusLabel">
+                  <i class="fa fa-power-off text-muted mr-1"></i><span class="text-muted">Đang tắt</span>
+                </span>
+                <label class="sogo-ai-switch mb-0" title="Bật hoặc tắt gợi ý phòng AI">
+                  <input type="checkbox" id="aiRecommenderSwitch" onchange="toggleAiRecommender(this.checked)">
+                  <span class="sogo-ai-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- KHỐI CHỨA CÁC THẺ PHÒNG GỢI Ý (ẨN / HIỆN KHI BẬT TẮT) -->
+            <div id="sogoRecommendedSection" class="sogo-recommended-container mb-5 p-4 rounded" style="display: none;" data-aos="fade-up">
+              <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                <div>
+                  <div class="d-flex align-items-center mb-1 flex-wrap">
+                    <span class="badge badge-ai-pulse mr-2 mb-1"><i class="fa fa-magic mr-1"></i> AI Recommender Engine</span>
+                    <h3 class="h4 font-weight-bold mb-1 text-dark ai-title">
+                      ✨ Gợi Ý Dành Riêng Cho Bạn
+                      <span class="text-muted font-weight-normal small d-none d-sm-inline">(Recommended for You)</span>
+                    </h3>
+                  </div>
+                  <p class="text-muted small mb-0">
+                    <c:choose>
+                      <c:when test="${not empty sessionScope.user}">
+                        Được AI tính toán dựa trên lịch sử đặt phòng, mức ngân sách và địa điểm yêu thích của <strong>${not empty sessionScope.user.displayName ? sessionScope.user.displayName : sessionScope.user.fullName}</strong>.
+                      </c:when>
+                      <c:otherwise>
+                        Được AI tuyển chọn từ những homestay có đánh giá xuất sắc nhất và được nhiều du khách yêu thích.
+                      </c:otherwise>
+                    </c:choose>
+                  </p>
+                </div>
+                <div class="mt-2 mt-md-0">
+                  <span class="badge badge-light border text-muted px-3 py-2 font-weight-normal ai-badge-count">
+                    <i class="fa fa-bolt text-warning mr-1"></i> ${recommendedRooms.size()} phòng đề xuất
+                  </span>
+                </div>
+              </div>
+
+              <!-- RECOMMENDED ROOMS CARDS GRID -->
+              <div class="row">
+                <c:forEach var="rec" items="${recommendedRooms}">
+                  <c:set var="r" value="${rec.room}" />
+                  <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                    <div class="ai-room-card h-100 d-flex flex-column border rounded overflow-hidden shadow-sm">
+                      
+                      <!-- Ảnh phòng & Huy hiệu % phù hợp ở góc trên bên trái -->
+                      <div class="position-relative overflow-hidden ai-card-media" style="height: 180px;">
+                        <a href="${pageContext.request.contextPath}/room-detail?id=${r.id}" class="d-block w-100 h-100">
+                          <img src="${pageContext.request.contextPath}/assets/${not empty r.imageUrl ? r.imageUrl : 'images/img_1.jpg'}"
+                               alt="${r.roomName}" class="img-fluid w-100 h-100 ai-room-img" style="height: 180px; object-fit: cover;"
+                               onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/img_1.jpg';">
+                        </a>
+
+                        <!-- Badge Độ Phù Hợp AI ở góc trên bên trái -->
+                        <span class="badge badge-warning position-absolute px-2 py-1 font-weight-bold shadow-sm" style="top: 10px; left: 10px; z-index: 2; font-size: 11px;">
+                          <i class="fa fa-bolt mr-1"></i> ${rec.matchPercentage}% Phù hợp
+                        </span>
+
+                        <!-- Nút Yêu Thích Wishlist ở góc trên bên phải -->
+                        <c:set var="isRecWishlisted" value="${not empty wishlistRoomIds and wishlistRoomIds.contains(r.id)}" />
+                        <button type="button" 
+                          class="btn-wishlist-toggle ${isRecWishlisted ? 'active' : ''}" 
+                          data-room-id="${r.id}"
+                          title="${isRecWishlisted ? 'Bỏ lưu phòng yêu thích' : 'Lưu vào danh sách yêu thích'}"
+                          onclick="handleWishlistClick(event, this, ${r.id})">
+                          <i class="fa ${isRecWishlisted ? 'fa-heart text-danger' : 'fa-heart-o'}"></i>
+                        </button>
+                      </div>
+
+                      <!-- Nội dung Card (Các hàng phân tách rõ ràng, không đè lên nhau) -->
+                      <div class="p-3 d-flex flex-column flex-grow-1 justify-content-between ai-card-body">
+                        <div>
+                          <!-- Hàng 1: Huy hiệu Loại Gợi Ý AI (Bên Trái) & Điểm Rating (Bên Phải) -->
+                          <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge badge-primary px-2 py-1 font-weight-bold text-truncate mr-2" style="max-width: 65%; font-size: 11px;">
+                              <i class="fa ${rec.typeIcon} mr-1"></i> ${rec.typeLabel}
+                            </span>
+                            <span class="sogo-rating-badge small flex-shrink-0">
+                              <i class="fa fa-star text-warning"></i> <fmt:formatNumber value="${r.rating}" minFractionDigits="1" maxFractionDigits="1" />
+                              <small class="text-muted">(${r.reviewCount})</small>
+                            </span>
+                          </div>
+
+                          <!-- Hàng 2: Tên phòng -->
+                          <h4 class="h6 font-weight-bold mb-1 text-truncate" title="${r.roomName}">
+                            <a href="${pageContext.request.contextPath}/room-detail?id=${r.id}" class="text-dark hover-primary">
+                              ${r.roomName}
+                            </a>
+                          </h4>
+
+                          <!-- Hàng 3: Địa điểm & Hạng phòng -->
+                          <div class="text-muted small mb-2 text-truncate">
+                            <i class="fa fa-map-marker text-danger mr-1"></i> ${not empty r.provinceName ? r.provinceName : 'Việt Nam'}
+                            <c:if test="${not empty r.roomType}">
+                              <span class="text-muted">&bull; ${r.roomType.typeName}</span>
+                            </c:if>
+                          </div>
+
+                          <!-- Hộp giải thích AI Reason -->
+                          <div class="ai-reason-pill mb-3" title="${rec.reason}">
+                            <i class="fa fa-lightbulb-o text-warning mr-1 flex-shrink-0 mt-1"></i>
+                            <span class="ai-reason-text">${rec.reason}</span>
+                          </div>
+                        </div>
+
+                        <!-- Tiện ích & Giá & Nút hành động -->
+                        <div class="pt-2 border-top ai-card-footer">
+                          <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
+                            <span><i class="fa fa-users text-primary mr-1"></i> ${r.capacity} khách</span>
+                            <span><i class="fa fa-arrows-alt text-primary mr-1"></i> ${r.size} m²</span>
+                          </div>
+
+                          <div class="d-flex justify-content-between align-items-baseline mb-2">
+                            <span class="small text-muted">Giá phòng:</span>
+                            <span class="font-weight-bold text-primary h6 mb-0">
+                              ${r.formattedPrice} đ<small class="text-muted font-weight-normal">/đêm</small>
+                            </span>
+                          </div>
+
+                          <div class="row no-gutters">
+                            <div class="col-6 pr-1">
+                              <a href="${pageContext.request.contextPath}/room-detail?id=${r.id}"
+                                 class="btn btn-outline-primary btn-sm btn-block py-1 font-weight-bold">
+                                Chi tiết
+                              </a>
+                            </div>
+                            <div class="col-6 pl-1">
+                              <a href="${pageContext.request.contextPath}/reservation?roomId=${r.id}"
+                                 class="btn btn-primary btn-sm btn-block py-1 text-white font-weight-bold shadow-sm">
+                                Đặt ngay
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </c:forEach>
+              </div>
+            </div>
+          </c:if>
+
+          <!-- THỐNG KÊ KẾT QUẢ & CÁC TAG LỌC ĐANG CHỌN -->
+          <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <div>
+              <span class="h6 font-weight-bold text-dark mb-0">
+                Tìm thấy <span class="text-primary font-weight-bold">${totalRoomsFound}</span> phòng phù hợp
+                <c:if test="${totalPages > 1}">
+                  <span class="badge badge-light border text-muted ml-2 font-weight-normal">Trang ${currentPage} / ${totalPages}</span>
+                </c:if>
+              </span>
+            </div>
+            <div class="mt-2 mt-md-0">
+              <c:if test="${not empty keyword}">
+                <span class="filter-active-pill">
+                  Từ khóa: <strong>${keyword}</strong>
+                </span>
+              </c:if>
+              <c:if test="${not empty provinceId}">
+                <c:forEach var="p" items="${provinces}">
+                  <c:if test="${p.id == provinceId}">
+                    <span class="filter-active-pill">
+                      <i class="fa fa-map-marker text-danger mr-1"></i> <strong>${p.provinceName}</strong>
+                    </span>
+                  </c:if>
+                </c:forEach>
+              </c:if>
+              <c:if test="${not empty rating}">
+                <span class="filter-active-pill">
+                  Đánh giá: <strong>
+                    <c:choose>
+                      <c:when test="${rating == '5.0' or rating == '4.8'}">⭐ 5.0 sao (4.8 - 5.0)</c:when>
+                      <c:when test="${rating == '4.5'}">⭐ 4.5 sao (4.5 - 4.7)</c:when>
+                      <c:when test="${rating == '4.0'}">⭐ 4.0 sao (4.0 - 4.4)</c:when>
+                      <c:when test="${rating == '3.5'}">⭐ 3.5 sao (3.5 - 3.9)</c:when>
+                      <c:when test="${rating == '3.0' or rating == '3'}">⭐ 3.0 sao (3.0 - 3.4)</c:when>
+                      <c:otherwise>⭐ ${rating}</c:otherwise>
+                    </c:choose>
+                  </strong>
+                </span>
+              </c:if>
+              <c:if test="${not empty capacity}">
+                <span class="filter-active-pill">
+                  Khách: <strong>&ge; ${capacity}</strong>
+                </span>
+              </c:if>
+              <c:if test="${not empty minPrice or not empty maxPrice}">
+                <span class="filter-active-pill">
+                  Giá: <strong>
+                    <c:choose>
+                      <c:when test="${not empty minPrice and not empty maxPrice}">
+                        <fmt:formatNumber value="${minPrice}" pattern="#,###"/> - <fmt:formatNumber value="${maxPrice}" pattern="#,###"/> đ
+                      </c:when>
+                      <c:when test="${not empty minPrice}">
+                        &ge; <fmt:formatNumber value="${minPrice}" pattern="#,###"/> đ
+                      </c:when>
+                      <c:otherwise>
+                        &le; <fmt:formatNumber value="${maxPrice}" pattern="#,###"/> đ
+                      </c:otherwise>
+                    </c:choose>
+                  </strong>
+                </span>
+              </c:if>
+              <c:if test="${not empty keyword or not empty typeId or not empty provinceId or not empty capacity or not empty rating or not empty minRating or not empty minPrice or not empty maxPrice or not empty sortBy}">
+                <a href="${pageContext.request.contextPath}/rooms" class="badge badge-light border text-danger p-2 ml-1" title="Xóa tất cả bộ lọc">
+                  <i class="fa fa-times mr-1"></i> Bỏ lọc
+                </a>
+              </c:if>
             </div>
           </div>
 
@@ -53,26 +386,53 @@
                     <div class="room border rounded overflow-hidden shadow-sm h-100 d-flex flex-column bg-white">
 
                       <!-- HÌNH ẢNH CÓ LINK SANG CHI TIẾT PHÒNG -->
-                      <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}"
-                        class="d-block position-relative overflow-hidden">
-                        <img
-                          src="${pageContext.request.contextPath}/assets/${not empty room.imageUrl ? room.imageUrl : 'images/img_1.jpg'}"
-                          alt="${room.roomName}" class="img-fluid w-100 room-card-image">
-                        <span class="badge badge-primary position-absolute px-3 py-2 font-weight-bold room-code-badge">
-                          Mã: ${room.roomNumber}
-                        </span>
-                        <span class="badge badge-dark position-absolute px-2 py-1 room-gallery-badge">
-                          <i class="fa fa-camera mr-1"></i> Xem album ảnh
-                        </span>
-                      </a>
+                      <div class="position-relative overflow-hidden">
+                        <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}"
+                          class="d-block position-relative overflow-hidden">
+                          <img
+                            src="${pageContext.request.contextPath}/assets/${not empty room.imageUrl ? room.imageUrl : 'images/img_1.jpg'}"
+                            alt="${room.roomName}" class="img-fluid w-100 room-card-image" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/img_1.jpg';">
+                          <span class="badge badge-primary position-absolute px-3 py-2 font-weight-bold room-code-badge">
+                            Mã: ${room.roomNumber}
+                          </span>
+                          <span class="badge badge-dark position-absolute px-2 py-1 room-gallery-badge">
+                            <i class="fa fa-camera mr-1"></i> Xem album ảnh
+                          </span>
+                        </a>
+
+                        <!-- NÚT YÊU THÍCH (WISHLIST) TRÊN CARD -->
+                        <c:set var="isThisWishlisted" value="${not empty wishlistRoomIds and wishlistRoomIds.contains(room.id)}" />
+                        <button type="button" 
+                          class="btn-wishlist-toggle ${isThisWishlisted ? 'active' : ''}" 
+                          data-room-id="${room.id}"
+                          title="${isThisWishlisted ? 'Bỏ lưu phòng yêu thích' : 'Lưu vào danh sách yêu thích'}"
+                          onclick="handleWishlistClick(event, this, ${room.id})">
+                          <i class="fa ${isThisWishlisted ? 'fa-heart text-danger' : 'fa-heart-o'}"></i>
+                        </button>
+                      </div>
 
                       <div class="p-4 text-center room-info flex-grow-1 d-flex flex-column justify-content-between">
                         <div>
-                          <h2 class="h5 font-weight-bold mb-2">
+                          <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge badge-light border text-muted">${room.roomType.typeName}</span>
+                            <span class="sogo-rating-badge">
+                              <i class="fa fa-star text-warning"></i> <fmt:formatNumber value="${room.rating}" minFractionDigits="1" maxFractionDigits="1" />
+                              <small class="text-muted font-weight-normal">(${room.reviewCount})</small>
+                            </span>
+                          </div>
+                          <h2 class="h5 font-weight-bold mb-1">
                             <a href="${pageContext.request.contextPath}/room-detail?id=${room.id}"
                               class="text-dark hover-primary">${room.roomName}</a>
                           </h2>
-                          <span class="badge badge-light border text-muted mb-3">${room.roomType.typeName}</span>
+                          <c:if test="${not empty room.provinceName}">
+                            <div class="text-muted small text-left mb-2">
+                              <i class="fa fa-map-marker text-danger mr-1"></i>
+                              <span class="font-weight-bold text-dark">${room.provinceName}</span>
+                              <c:if test="${not empty room.propertyName}">
+                                <span class="text-muted">&bull; ${room.propertyName}</span>
+                              </c:if>
+                            </div>
+                          </c:if>
                           <p class="text-muted small text-left mb-3">${room.description}</p>
                         </div>
 
@@ -87,7 +447,7 @@
                           <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="text-muted small">Giá thuê:</span>
                             <span class="h5 mb-0 text-primary font-weight-bold">
-                              <fmt:formatNumber value="${room.pricePerNight}" pattern="#,###" /> VNĐ <small
+                              ${room.formattedPrice} VNĐ <small
                                 class="text-muted font-weight-normal">/đêm</small>
                             </span>
                           </div>
@@ -115,13 +475,82 @@
                 </c:forEach>
               </c:when>
               <c:otherwise>
-                <div class="col-12 text-center py-5">
-                  <p class="text-muted">Chưa có dữ liệu phòng trong cơ sở dữ liệu. Vui lòng kiểm tra lại kết nối MySQL.
-                  </p>
+                <div class="col-12 py-4">
+                  <div class="empty-search-box text-center">
+                    <div class="mb-3 text-warning">
+                      <i class="fa fa-search fa-3x"></i>
+                    </div>
+                    <h3 class="h4 font-weight-bold text-dark mb-2">Không tìm thấy phòng phù hợp</h3>
+                    <p class="text-muted mb-4" style="max-width: 500px; margin: 0 auto;">
+                      Không có phòng nào thỏa mãn các tiêu chí tìm kiếm hiện tại. Vui lòng thử nới lỏng mức giá, giảm tiêu chuẩn số sao đánh giá hoặc bấm nút bên dưới để xem lại tất cả phòng.
+                    </p>
+                    <a href="${pageContext.request.contextPath}/rooms" class="btn btn-primary px-4 py-2 font-weight-bold shadow-sm">
+                      <i class="fa fa-refresh mr-1"></i> Xem Tất Cả Phòng Nghỉ
+                    </a>
+                  </div>
                 </div>
               </c:otherwise>
             </c:choose>
           </div>
+
+          <!-- PHÂN TRANG (PAGINATION: 6 PHÒNG TRÊN 1 TRANG) -->
+          <c:if test="${totalPages > 1}">
+            <div class="row mt-3 mb-5" data-aos="fade-up">
+              <div class="col-12 d-flex justify-content-center align-items-center flex-column">
+                <nav aria-label="Room pagination">
+                  <ul class="pagination pagination-sogo justify-content-center flex-wrap mb-2">
+
+                    <!-- Nút Trang Đầu (First) -->
+                    <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                      <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)" title="Về trang đầu">
+                        <i class="fa fa-angle-double-left mr-1"></i> Đầu
+                      </a>
+                    </li>
+
+                    <!-- Nút Trang Trước (Previous) -->
+                    <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                      <a class="page-link" href="javascript:void(0)" onclick="goToPage(${currentPage - 1})" title="Trang trước">
+                        <i class="fa fa-angle-left mr-1"></i> Trước
+                      </a>
+                    </li>
+
+                    <!-- Các Số Trang -->
+                    <c:forEach var="i" begin="1" end="${totalPages}">
+                      <c:choose>
+                        <c:when test="${i == 1 or i == totalPages or (i >= currentPage - 2 and i <= currentPage + 2)}">
+                          <li class="page-item ${i == currentPage ? 'active' : ''}">
+                            <a class="page-link font-weight-bold" href="javascript:void(0)" onclick="goToPage(${i})">${i}</a>
+                          </li>
+                        </c:when>
+                        <c:when test="${i == currentPage - 3 or i == currentPage + 3}">
+                          <li class="page-item disabled"><span class="page-link">...</span></li>
+                        </c:when>
+                      </c:choose>
+                    </c:forEach>
+
+                    <!-- Nút Trang Sau (Next) -->
+                    <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+                      <a class="page-link" href="javascript:void(0)" onclick="goToPage(${currentPage + 1})" title="Trang sau">
+                        Sau <i class="fa fa-angle-right ml-1"></i>
+                      </a>
+                    </li>
+
+                    <!-- Nút Trang Cuối (Last) -->
+                    <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+                      <a class="page-link" href="javascript:void(0)" onclick="goToPage(${totalPages})" title="Đến trang cuối">
+                        Cuối <i class="fa fa-angle-double-right ml-1"></i>
+                      </a>
+                    </li>
+
+                  </ul>
+                </nav>
+
+                <div class="text-muted small mt-1">
+                  Hiển thị <strong>${(currentPage - 1) * pageSize + 1} - ${currentPage * pageSize > totalRoomsFound ? totalRoomsFound : currentPage * pageSize}</strong> trong tổng số <strong>${totalRoomsFound}</strong> phòng
+                </div>
+              </div>
+            </div>
+          </c:if>
         </div>
       </section>
 
@@ -175,5 +604,168 @@
           </div>
         </div>
       </section>
+
+      <!-- TOAST THÔNG BÁO WISHLIST -->
+      <div id="wishlistToast" class="sogo-wishlist-toast">
+        <i class="fa fa-check-circle text-success mr-2" id="wishlistToastIcon"></i>
+        <span id="wishlistToastText">Đã cập nhật danh sách yêu thích</span>
+      </div>
+
+      <script>
+        function goToPage(pageNumber) {
+          var pageInput = document.getElementById('pageInput');
+          var form = document.getElementById('searchFilterForm');
+          if (pageInput && form) {
+            pageInput.value = pageNumber;
+            form.submit();
+          } else {
+            var url = new URL(window.location.href);
+            url.searchParams.set('page', pageNumber);
+            window.location.href = url.toString();
+          }
+        }
+
+        function setPriceRange(min, max) {
+          var minInput = document.getElementById('minPriceInput');
+          var maxInput = document.getElementById('maxPriceInput');
+          var pageInput = document.getElementById('pageInput');
+          if (minInput) minInput.value = min;
+          if (maxInput) maxInput.value = max;
+          if (pageInput) pageInput.value = '1';
+          var form = document.getElementById('searchFilterForm');
+          if (form) form.submit();
+        }
+
+        function showWishlistToast(message, isSuccess) {
+          var toast = document.getElementById('wishlistToast');
+          var toastText = document.getElementById('wishlistToastText');
+          var toastIcon = document.getElementById('wishlistToastIcon');
+          if (!toast) return;
+          toastText.textContent = message;
+          if (isSuccess) {
+            toastIcon.className = 'fa fa-check-circle text-success mr-2';
+          } else {
+            toastIcon.className = 'fa fa-info-circle text-warning mr-2';
+          }
+          toast.style.display = 'flex';
+          clearTimeout(window._wishlistToastTimer);
+          window._wishlistToastTimer = setTimeout(function() {
+            toast.style.display = 'none';
+          }, 3200);
+        }
+
+        // HÀM BẬT / TẮT CHẾ ĐỘ AI RECOMMENDER
+        function toggleAiRecommender(isEnabled) {
+          var container = document.getElementById('sogoRecommendedSection');
+          var statusLabel = document.getElementById('aiToggleStatusLabel');
+          var switchInput = document.getElementById('aiRecommenderSwitch');
+
+          if (switchInput) {
+            switchInput.checked = isEnabled;
+          }
+
+          if (container) {
+            if (isEnabled) {
+              container.style.display = 'block';
+              container.classList.add('ai-fade-in');
+            } else {
+              container.style.display = 'none';
+              container.classList.remove('ai-fade-in');
+            }
+          }
+
+          if (statusLabel) {
+            if (isEnabled) {
+              statusLabel.innerHTML = '<i class="fa fa-check-circle text-success mr-1"></i><span class="text-success font-weight-bold">Đang bật</span>';
+            } else {
+              statusLabel.innerHTML = '<i class="fa fa-power-off text-muted mr-1"></i><span class="text-muted">Đang tắt</span>';
+            }
+          }
+
+          try {
+            localStorage.setItem('sogo_ai_recommender_enabled', isEnabled ? 'true' : 'false');
+          } catch (e) {}
+        }
+
+        // Tự động khôi phục trạng thái bật/tắt từ localStorage khi tải trang
+        document.addEventListener('DOMContentLoaded', function() {
+          var savedState = localStorage.getItem('sogo_ai_recommender_enabled');
+          // Mặc định là TẮT (false) nếu chưa từng bật
+          var isEnabled = (savedState === 'true');
+          toggleAiRecommender(isEnabled);
+        });
+
+        function handleWishlistClick(e, btn, roomId) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          if (!btn) return;
+          btn.disabled = true;
+
+          // Hiệu ứng nảy (bounce animation) ngay khi bấm
+          btn.classList.add('bounce');
+          setTimeout(function() { btn.classList.remove('bounce'); }, 450);
+
+          var params = new URLSearchParams();
+          params.append('roomId', roomId);
+
+          fetch('${pageContext.request.contextPath}/api/wishlist/toggle', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: params.toString()
+          })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            btn.disabled = false;
+            if (data.requireLogin) {
+              showWishlistToast(data.message || 'Vui lòng đăng nhập để lưu phòng yêu thích!', false);
+              setTimeout(function() {
+                window.location.href = '${pageContext.request.contextPath}/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+              }, 1200);
+              return;
+            }
+
+            if (data.success) {
+              var icon = btn.querySelector('i');
+              var isAdded = (data.action === 'added' || data.isWishlisted === true);
+
+              if (isAdded) {
+                btn.classList.add('active');
+                if (icon) {
+                  icon.className = 'fa fa-heart text-danger';
+                }
+                btn.setAttribute('title', 'Bỏ lưu phòng yêu thích');
+              } else {
+                btn.classList.remove('active');
+                if (icon) {
+                  icon.className = 'fa fa-heart-o';
+                }
+                btn.setAttribute('title', 'Lưu vào danh sách yêu thích');
+              }
+
+              // Cập nhật tức thì số đếm badge ở navbar
+              var newCount = (typeof data.wishlistCount !== 'undefined') ? data.wishlistCount : ((typeof data.count !== 'undefined') ? data.count : 0);
+              var badges = document.querySelectorAll('#navbarWishlistBadge, .header-wishlist-badge');
+              badges.forEach(function(b) {
+                b.textContent = newCount;
+                b.style.display = 'inline-block';
+              });
+
+              showWishlistToast(data.message, true);
+            } else {
+              showWishlistToast(data.message || 'Đã xảy ra lỗi!', false);
+            }
+          })
+          .catch(function(err) {
+            btn.disabled = false;
+            console.error(err);
+            showWishlistToast('Không thể kết nối đến máy chủ!', false);
+          });
+        }
+      </script>
 
       <jsp:include page="common/footer.jsp" />

@@ -1,6 +1,8 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<%-- Home page flow: introduce the homestay, showcase guest experiences, and link to room browsing. --%>
+<%-- Shared page header and navigation. --%>
 <jsp:include page="common/header.jsp">
     <jsp:param name="pageTitle" value="Sogo Homestay - Giới Thiệu & Trải Nghiệm Không Gian Nghỉ Dưỡng" />
 </jsp:include>
@@ -22,21 +24,20 @@
                 <h1 class="heading mb-4">Không Gian Nghỉ Dưỡng Bình Yên & Trải Nghiệm Đáng Nhớ</h1>
                 <p class="lead text-white mb-5">Hòa mình vào thiên nhiên tươi mát, tận hưởng sự thoải mái ấm cúng như chính
                     ngôi nhà của bạn.</p>
-                <p>
+                <div class="hero-actions">
                     <a href="#about-story"
-                       class="btn btn-primary text-white py-3 px-4 mr-3 font-weight-bold smoothscroll">Khám Phá Homestay</a>
+                       class="btn btn-primary text-white py-3 px-4 font-weight-bold smoothscroll hero-btn">Khám Phá Homestay</a>
+                    <a class="mouse hero-mouse smoothscroll" href="#about-story" title="Cuộn xuống khám phá">
+                        <div class="mouse-icon">
+                            <span class="mouse-wheel"></span>
+                        </div>
+                    </a>
                     <a href="${pageContext.request.contextPath}/rooms"
-                       class="btn btn-outline-light py-3 px-4 font-weight-bold">Xem Danh Sách Phòng</a>
-                </p>
+                       class="btn btn-outline-light py-3 px-4 font-weight-bold hero-btn">Xem Danh Sách Phòng</a>
+                </div>
             </div>
         </div>
     </div>
-
-    <a class="mouse smoothscroll" href="#about-story">
-        <div class="mouse-icon">
-            <span class="mouse-wheel"></span>
-        </div>
-    </a>
 </section>
 <!-- END HERO SECTION -->
 
@@ -61,8 +62,12 @@
                 <p class="mb-4 text-muted">Dù bạn đi du lịch một mình, cùng người thương hay cả gia đình, Sogo luôn sẵn sàng
                     chào đón bạn với lòng hiếu khách nồng hậu nhất.</p>
                 <p>
-                    <a href="${pageContext.request.contextPath}/rooms" class="btn btn-primary text-white py-2 px-4 mr-3">Khám
-                        Phá Các Hạng Phòng</a>
+                    <a href="${pageContext.request.contextPath}/about" class="btn btn-primary text-white py-2 px-4 mr-2 mb-2 font-weight-bold">
+                        <span class="fa fa-info-circle mr-1"></span> Tìm Hiểu Về Chúng Tôi
+                    </a>
+                    <a href="${pageContext.request.contextPath}/rooms" class="btn btn-outline-primary py-2 px-4 mb-2 font-weight-bold">
+                        Khám Phá Phòng Nghỉ
+                    </a>
                 </p>
             </div>
         </div>
@@ -270,6 +275,67 @@
     </div>
 </section>
 
+<!-- KHỐI ĐIỀU HƯỚNG: THÔNG TIN HOMESTAY & CHÍNH SÁCH DỊCH VỤ -->
+<section class="section py-5 bg-white border-top">
+    <div class="container">
+        <div class="row justify-content-center text-center mb-5">
+            <div class="col-md-8" data-aos="fade-up">
+                <span class="text-primary font-weight-bold text-uppercase letter-spacing-1 d-block mb-2">Thông Tin Hữu Ích</span>
+                <h2 class="heading">Đồng Hành Cùng Chuyến Đi Của Bạn</h2>
+                <p class="text-muted">Tìm hiểu sâu hơn về câu chuyện của Sogo Homestay và các quy định lưu trú để kỳ nghỉ diễn ra suôn sẻ nhất.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Card 1: Về Chúng Tôi -->
+            <div class="col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="card h-100 border rounded shadow-sm p-4 text-left">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary text-white rounded-circle p-3 mr-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                            <span class="fa fa-users fa-lg"></span>
+                        </div>
+                        <div>
+                            <h4 class="card-title font-weight-bold mb-1 text-dark">Câu Chuyện & Đội Ngũ</h4>
+                            <small class="text-muted">Hành trình xây dựng không gian ấm cúng</small>
+                        </div>
+                    </div>
+                    <p class="card-text text-muted mb-4">
+                        Khám phá nguồn cảm hứng sáng lập Sogo Homestay, triết lý phục vụ tận tâm và gặp gỡ đội ngũ quản lý luôn nỗ lực vì sự an tâm của bạn.
+                    </p>
+                    <div class="mt-auto">
+                        <a href="${pageContext.request.contextPath}/about" class="btn btn-outline-primary font-weight-bold py-2 px-4">
+                            Đọc Về Chúng Tôi <span class="fa fa-arrow-right ml-2"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Điều Khoản & Quy Định Lưu Trú -->
+            <div class="col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card h-100 border rounded shadow-sm p-4 text-left">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary text-white rounded-circle p-3 mr-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                            <span class="fa fa-file-text-o fa-lg"></span>
+                        </div>
+                        <div>
+                            <h4 class="card-title font-weight-bold mb-1 text-dark">Chính Sách & Quy Định</h4>
+                            <small class="text-muted">Minh bạch điều khoản đặt và hủy phòng</small>
+                        </div>
+                    </div>
+                    <p class="card-text text-muted mb-4">
+                        Tìm hiểu chi tiết giờ nhận/trả phòng, quy định đặt cọc, biểu phí hoàn tiền khi hủy phòng và các quy tắc sinh hoạt chung tại khuôn viên homestay.
+                    </p>
+                    <div class="mt-auto">
+                        <a href="${pageContext.request.contextPath}/terms" class="btn btn-outline-primary font-weight-bold py-2 px-4">
+                            Xem Quy Định Dịch Vụ <span class="fa fa-arrow-right ml-2"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- PHẦN 5: BANNER KÊU GỌI HÀNH ĐỘNG (CTA SANG TRANG ROOMS) -->
 <section class="section bg-primary text-white text-center py-5">
     <div class="container py-4">
@@ -278,10 +344,14 @@
                 <h2 class="text-white font-weight-bold mb-3">Sẵn Sàng Cho Kỳ Nghỉ Tuyệt Vời Của Bạn?</h2>
                 <p class="lead text-white-50 mb-4">Khám phá các hạng phòng đơn, phòng đôi và phòng gia đình với giá ưu đãi
                     tốt nhất ngay hôm nay.</p>
-                <a href="${pageContext.request.contextPath}/rooms"
-                   class="btn btn-warning text-dark font-weight-bold px-5 py-3 shadow-lg">
-                    Xem Danh Sách & Đặt Phòng Ngay <i class="fa fa-arrow-right ml-2"></i>
-                </a>
+                <div class="d-flex flex-wrap justify-content-center align-items-center">
+                    <a href="${pageContext.request.contextPath}/rooms" class="btn btn-warning text-dark font-weight-bold px-4 py-3 shadow-lg m-2">
+                        Xem Danh Sách & Đặt Phòng Ngay <i class="fa fa-arrow-right ml-2"></i>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/terms" class="btn btn-outline-light font-weight-bold px-4 py-3 m-2">
+                        <i class="fa fa-shield mr-2"></i> Xem Quy Định Đặt Phòng
+                    </a>
+                </div>
             </div>
         </div>
     </div>

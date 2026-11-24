@@ -11,6 +11,11 @@ times,
 serif;
 $bg-light : #f2f4fb;
 
+// Reserve scroll offset equal to the measured fixed header height so anchor jumps never clip headings.
+html {
+	scroll-padding-top: calc(var(--site-header-height, 72px) + 16px);
+}
+
 body {
 	background : $white;
 	font-family: $font-family-sans-serif;
@@ -20,6 +25,11 @@ body {
 	color      : gray('600');
 	position   : relative;
 	// color: rgba(0,0,0,.7);
+
+	// Automatically push page content below the measured fixed header on pages without a hero banner.
+	&.no-hero-banner {
+		padding-top: var(--site-header-height, 72px);
+	}
 }
 
 ::-moz-selection {
@@ -72,6 +82,14 @@ h5 {
 	padding-top   : 10px;
 	padding-bottom: 10px;
 	border-radius : 50px;
+	max-width     : 100%;
+
+	// Allow long CTA labels to wrap cleanly on narrow mobile viewports (e.g., 320px).
+	@include media-breakpoint-down(xs) {
+		white-space  : normal;
+		padding-left : 20px;
+		padding-right: 20px;
+	}
 
 	&.btn-outline-white {
 		border: 2px solid $white;
@@ -132,21 +150,48 @@ textarea.form-control {
 	height: inherit;
 }
 
+// Responsive fixed site header: adapts padding by viewport, tracks optional top admin bar offset,
+// and stays above page content without shifting toggle icons on scroll.
 .site-header {
 	position  : fixed;
-	top       : 0;
+	top       : var(--admin-bar-offset, 0px);
+	left      : 0;
+	right     : 0;
 	width     : 100%;
-	padding   : 60px 0;
-	z-index   : 2;
-	transition: .3s all ease-in-out;
+	padding   : 22px 0;
+	z-index   : 1030;
+	transition: padding .25s ease-in-out, background-color .25s ease-in-out, box-shadow .25s ease-in-out;
 
-	&.scrolled {
-		padding   : 20px 0;
+	@include media-breakpoint-down(md) {
+		padding: 15px 0;
+	}
+
+	@include media-breakpoint-down(xs) {
+		padding: 10px 0;
+	}
+
+	.container-fluid {
+		padding-left : 24px;
+		padding-right: 24px;
+
+		@include media-breakpoint-down(sm) {
+			padding-left : 14px;
+			padding-right: 14px;
+		}
+	}
+
+	&.scrolled,
+	&.header-solid {
+		padding   : 12px 0;
 		background: $white;
-		box-shadow: 0 5px 20px -5px rgba(0, 0, 0, .1);
+		box-shadow: 0 5px 20px -5px rgba(0, 0, 0, .12);
+
+		@include media-breakpoint-down(xs) {
+			padding: 9px 0;
+		}
 
 		.site-menu-toggle {
-			top     : 10px;
+			top     : 0;
 			position: relative;
 
 			span {
@@ -186,20 +231,29 @@ textarea.form-control {
 	}
 }
 
+// Keep brand logo single-line and proportionally scaled down to 320px viewports.
 .site-logo {
-	@include media-breakpoint-down(xl) {
-		padding-left: 40px;
-	}
+	flex-shrink: 0;
 
 	a {
-		font-size  : 30px;
+		display    : inline-block;
+		font-size  : 28px;
 		color      : $white;
 		font-weight: bold;
-		line-height: 1;
+		line-height: 1.15;
 		font-family: $font-family-serif;
+		white-space: nowrap;
 
 		@include media-breakpoint-down(md) {
-			font-size: 27px;
+			font-size: 24px;
+		}
+
+		@include media-breakpoint-down(xs) {
+			font-size: 20px;
+		}
+
+		@media (max-width: 359.98px) {
+			font-size: 18px;
 		}
 	}
 }
@@ -279,22 +333,36 @@ textarea.form-control {
 	}
 }
 
-// Hero
+// Hero: allow natural vertical growth when text wraps or browser zoom increases,
+// while reserving top space for the measured fixed header.
 .full-height {
-	height    : 100vh;
-	min-height: 700px;
+	min-height: 100vh;
 }
 
 .site-hero {
-	background-size: cover;
-	height         : 100vh;
-	min-height     : 700px;
-	width          : 100%;
-	position       : relative;
+	background-size    : cover;
+	background-repeat  : no-repeat;
+	background-position: center center;
+	height             : auto;
+	min-height         : clamp(520px, 100vh, 920px);
+	width              : 100%;
+	position           : relative;
+
+	// Prevent Stellar parallax inline negative Y-offset from exposing a bottom gap on portrait viewports.
+	@include media-breakpoint-down(md) {
+		background-position: center center !important;
+	}
+
+	> .container {
+		position: relative;
+		z-index : 2;
+	}
 
 	.heading {
-		font-family: $font-family-serif;
-		font-weight: bold;
+		font-family  : $font-family-serif;
+		font-weight  : bold;
+		overflow-wrap: break-word;
+		word-wrap    : break-word;
 	}
 
 	.scroll-down {
@@ -303,6 +371,7 @@ textarea.form-control {
 		left     : 50%;
 		transform: translateX(-50%);
 		color    : $white;
+		z-index  : 2;
 	}
 
 	&.overlay {
@@ -310,60 +379,63 @@ textarea.form-control {
 			background: rgba(0, 0, 0, .45);
 			content   : "";
 			position  : absolute;
-			height    : 100vh;
-			min-height: 700px;
+			height    : 100%;
+			min-height: 100%;
 			top       : 0;
 			left      : 0;
 			bottom    : 0;
 			right     : 0;
+			z-index   : 1;
 		}
 	}
 
 	&.inner-page {
-		height    : 50vh;
-		min-height: 700px;
+		height    : auto;
+		min-height: clamp(320px, 48vh, 500px);
 
 		&.overlay {
 			&:before {
-				height    : 50vh;
-				min-height: 700px;
+				height    : 100%;
+				min-height: 100%;
 			}
 		}
 	}
 }
 
 .site-hero-inner {
-	height    : 100vh;
-	min-height: 700px;
+	height        : auto;
+	min-height    : clamp(520px, 100vh, 920px);
+	padding-top   : calc(var(--site-header-height, 84px) + 2.5rem);
+	padding-bottom: 5.5rem;
 
 	.heading {
-		font-size  : 80px;
-		font-family: $font-family-serif;
-		color      : $white;
-		line-height: 1;
-		font-weight: bold;
-
-		@include media-breakpoint-down(md) {
-			font-size: 40px;
-		}
+		font-size    : clamp(2rem, 5vw, 4.5rem);
+		font-family  : $font-family-serif;
+		color        : $white;
+		line-height  : 1.15;
+		font-weight  : bold;
+		overflow-wrap: break-word;
+		word-wrap    : break-word;
 	}
 
 	.sub-heading {
-		font-size  : 30px;
+		font-size  : clamp(1.05rem, 2.2vw, 1.85rem);
 		font-weight: 200;
 		color      : $white;
 		line-height: 1.5;
-
-		@include media-breakpoint-down(md) {
-			font-size: 18px;
-		}
 	}
 }
 
 .inner-page {
 	.site-hero-inner {
-		height    : 50vh;
-		min-height: 700px;
+		height        : auto;
+		min-height    : clamp(320px, 48vh, 500px);
+		padding-top   : calc(var(--site-header-height, 80px) + 2rem);
+		padding-bottom: 4.5rem;
+
+		.heading {
+			font-size: clamp(1.9rem, 4.5vw, 3.75rem);
+		}
 	}
 }
 
@@ -371,19 +443,19 @@ textarea.form-control {
 
 	.site-hero-inner,
 	& {
-		height    : 70vh;
-		min-height: 500px;
+		height    : auto;
+		min-height: clamp(360px, 65vh, 560px);
 	}
 
 	&.overlay {
 		&:before {
-			height    : 70vh;
-			min-height: 500px;
+			height    : 100%;
+			min-height: 100%;
 		}
 	}
 }
 
-// burger menu
+// Accessible, flex-aligned burger menu toggle without rigid right margin or float.
 .menu-open {
 	.site-menu-toggle {
 		span {
@@ -394,11 +466,13 @@ textarea.form-control {
 
 .site-menu-toggle {
 	top               : 0;
-	float             : right;
-	width             : 40px;
-	height            : 45px;
+	float             : none;
+	display           : inline-block;
+	flex-shrink       : 0;
+	width             : 32px;
+	height            : 24px;
 	position          : relative;
-	margin            : 0px auto;
+	margin            : 0;
 	z-index           : 200;
 	-webkit-transform : rotate(0deg);
 	-moz-transform    : rotate(0deg);
@@ -410,8 +484,10 @@ textarea.form-control {
 	transition        : .5s ease-in-out;
 	cursor            : pointer;
 
-	@include media-breakpoint-down(xl) {
-		margin-right: 40px;
+	&:focus-visible {
+		outline       : 2px solid $primary;
+		outline-offset: 4px;
+		border-radius : 4px;
 	}
 
 	span {
@@ -434,22 +510,19 @@ textarea.form-control {
 	}
 
 	span:nth-child(1) {
-		top: 0px;
+		top: 2px;
 	}
 
 	span:nth-child(2) {
-		// top: 18px;
-		top: 10px;
+		top: 11px;
 	}
 
 	span:nth-child(3) {
-		// top: 36px;
 		top: 20px;
 	}
 
 	&.open span:nth-child(1) {
-		// top: 18px;
-		top              : 13px;
+		top              : 11px;
 		-webkit-transform: rotate(135deg);
 		-moz-transform   : rotate(135deg);
 		-o-transform     : rotate(135deg);
@@ -458,12 +531,11 @@ textarea.form-control {
 
 	&.open span:nth-child(2) {
 		opacity: 0;
-		left   : -60px;
+		left   : -24px;
 	}
 
 	&.open span:nth-child(3) {
-		// top: 18px;
-		top              : 13px;
+		top              : 11px;
 		-webkit-transform: rotate(-135deg);
 		-moz-transform   : rotate(-135deg);
 		-o-transform     : rotate(-135deg);
@@ -530,14 +602,14 @@ textarea.form-control {
 	}
 }
 
+// Fluid serif heading scale with safe word-break for dynamic Vietnamese titles.
 .heading-serif {
-	font-size  : 60px;
-	font-family: $font-family-serif;
-	font-weight: 700;
-
-	@include media-breakpoint-down(md) {
-		font-size: 40px;
-	}
+	font-size    : clamp(1.75rem, 3.6vw, 3.1rem);
+	line-height  : 1.22;
+	font-family  : $font-family-serif;
+	font-weight  : 700;
+	overflow-wrap: break-word;
+	word-wrap    : break-word;
 }
 
 // best place
@@ -865,10 +937,18 @@ textarea.form-control {
 
 			.owl-prev {
 				left: -60px !important;
+
+				@media (max-width: 1319.98px) {
+					left: 12px !important;
+				}
 			}
 
 			.owl-next {
 				right: -60px !important;
+
+				@media (max-width: 1319.98px) {
+					right: 12px !important;
+				}
 			}
 		}
 
@@ -915,10 +995,18 @@ textarea.form-control {
 
 			.owl-prev {
 				left: -30px !important;
+
+				@media (max-width: 1199.98px) {
+					left: 0 !important;
+				}
 			}
 
 			.owl-next {
 				right: -30px !important;
+
+				@media (max-width: 1199.98px) {
+					right: 0 !important;
+				}
 			}
 		}
 
@@ -990,6 +1078,9 @@ textarea.form-control {
 	}
 
 	.contact-info {
+		overflow-wrap: break-word;
+		word-wrap    : break-word;
+
 		span.d-block {
 			font-style: italic;
 			color     : $white;
@@ -1021,6 +1112,7 @@ textarea.form-control {
 		border       : none;
 		border-bottom: 1px solid rgba(255, 255, 255, .2);
 		border-radius: 0;
+		padding-right: 44px;
 		color        : $white;
 
 		&::-webkit-input-placeholder {
@@ -1207,16 +1299,15 @@ textarea.form-control {
 	line-height: 1.2;
 }
 
-/* Mouse Animation */
+/* Mouse Animation - centered at the bottom of the hero without overlapping text */
 .mouse {
-	// margin: 50px auto;
-	width    : 100px;
+	width    : auto;
 	display  : inline-block;
 	position : absolute;
 	left     : 50%;
-	bottom   : 140px;
-	z-index  : 1;
-	transform: translateX(-25%);
+	bottom   : 24px;
+	z-index  : 2;
+	transform: translateX(-50%);
 }
 
 .mouse-icon {
@@ -1775,6 +1866,7 @@ textarea.form-control {
 	}
 }
 
+// Constrain decorative overlapping image inside viewport across laptop and mobile sizes.
 .img-absolute {
 	position: absolute;
 	bottom  : -100px;
@@ -1786,8 +1878,18 @@ textarea.form-control {
 		border       : 10px solid $bg-light;
 	}
 
+	@media (max-width: 1365.98px) {
+		right : 0;
+		bottom: -40px;
+
+		img {
+			max-width: 200px;
+		}
+	}
+
 	@include media-breakpoint-down(md) {
-		right: 0px;
+		right : 0px;
+		bottom: -24px;
 
 		img {
 			max-width: 160px;
@@ -1901,3 +2003,84 @@ textarea.form-control {
 		}
 	}
 }
+
+/* Password input visibility toggle */
+.password-input-wrap {
+  position: relative;
+  width: 100%;
+}
+.password-input-wrap .form-control {
+  padding-right: 48px !important;
+}
+.password-input-wrap .btn-toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: #888;
+  font-size: 18px;
+  line-height: 1;
+  z-index: 10;
+  outline: none;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+.password-input-wrap .btn-toggle-password:hover,
+.password-input-wrap .btn-toggle-password:focus {
+  color: #f7a840;
+  outline: none;
+}
+
+/* Form validation error highlight */
+.form-control.is-invalid,
+.custom-file-input.is-invalid ~ .custom-file-label,
+input.is-invalid,
+select.is-invalid,
+textarea.is-invalid {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+  background-color: #fff8f8 !important;
+}
+
+/* Map Address Suggestions dropdown */
+#address-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1050;
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+}
+#address-suggestions .list-group-item {
+  border: none;
+  border-bottom: 1px solid #f1f3f5;
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+#address-suggestions .list-group-item:hover {
+  background-color: #f8f9fa;
+  color: #ffba5a;
+}
+
+

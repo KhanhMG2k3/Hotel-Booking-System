@@ -7,5 +7,10 @@ target/
 *.log
 tomcat.8080/
 src/main/resources/db.properties
+src/main/resources/app.properties
+src/main/resources/config/*.properties
 nb-configuration.xml
-nb-configuration.xml
+/nbproject/
+src/main/webapp/assets/uploads/**
+!src/main/webapp/assets/uploads/**/.gitkeep
+database/

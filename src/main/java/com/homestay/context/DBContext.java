@@ -19,22 +19,23 @@ public class DBContext {
     private static final Properties appProperties = new Properties();
 
     static {
-        try (InputStream input = DBContext.class.getClassLoader().getResourceAsStream("db.properties")) {
-            if (input != null) {
-                properties.load(input);
-            } else {
-                LOGGER.log(Level.WARNING, "db.properties not found in classpath");
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to load db.properties", e);
-        }
+        loadProperties("db.properties", properties);
+        loadProperties("app.properties", appProperties);
+    }
 
-        try (InputStream input = DBContext.class.getClassLoader().getResourceAsStream("app.properties")) {
-            if (input != null) {
-                appProperties.load(input);
+    private static void loadProperties(String fileName, Properties targetProps) {
+        InputStream input = DBContext.class.getClassLoader().getResourceAsStream(fileName);
+        if (input == null) {
+            input = DBContext.class.getClassLoader().getResourceAsStream("config/" + fileName);
+        }
+        if (input != null) {
+            try (InputStream in = input) {
+                targetProps.load(in);
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Failed to load " + fileName, e);
             }
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to load app.properties", e);
+        } else {
+            LOGGER.log(Level.WARNING, fileName + " not found in classpath (checked root and config/)");
         }
     }
 
@@ -46,9 +47,18 @@ public class DBContext {
      */
     public static Connection getConnection() throws SQLException {
         String url = properties.getProperty("db.url",
-                "jdbc:mysql://localhost:3306/homestaybooking?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8");
+                "jdbc:mysql://localhost:3306/homestay_iter1_test?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8");
         String user = properties.getProperty("db.user", "root");
         String pass = properties.getProperty("db.password", "");
+
+        // Explicitly load MySQL JDBC Driver.
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            LOGGER.log(Level.SEVERE, "MySQL JDBC Driver not found in classpath", e);
+            throw new SQLException("MySQL JDBC Driver not found. Check mysql-connector-j dependency.", e);
+        }
+
         return DriverManager.getConnection(url, user, pass);
     }
 
@@ -68,27 +78,36 @@ public class DBContext {
     }
 
     /**
-     * Đọc 1 giá trị bất kỳ từ db.properties (dùng chung cho các config khác
-     * ngoài DB, ví dụ Google Client ID) — tránh phải tạo thêm file properties
-     * riêng.
+     * Đọc một giá trị bất kỳ từ db.properties.
      *
      * @param key tên property
      * @param defaultValue giá trị mặc định nếu không tìm thấy key
+     * @return giá trị cấu hình
      */
     public static String getProperty(String key, String defaultValue) {
         return properties.getProperty(key, defaultValue);
     }
 
+    /**
+     * Đọc một giá trị từ app.properties.
+     *
+     * @param key tên property
+     * @param defaultValue giá trị mặc định nếu không tìm thấy key
+     * @return giá trị cấu hình
+     */
     public static String getAppProperty(String key, String defaultValue) {
         return appProperties.getProperty(key, defaultValue);
     }
 
     /**
-     * Hàm test nhanh kết nối DB — chạy trực tiếp file này (Run File trong
-     * NetBeans) để kiểm tra kết nối, không ảnh hưởng gì khi các class khác gọi
-     * getConnection().
+     * Hàm test nhanh kết nối database.
      */
     public static void main(String[] args) {
+        try {
+            System.setOut(new java.io.PrintStream(System.out, true, java.nio.charset.StandardCharsets.UTF_8));
+            System.setErr(new java.io.PrintStream(System.err, true, java.nio.charset.StandardCharsets.UTF_8));
+        } catch (Exception ignored) {
+        }
         try (Connection conn = getConnection()) {
             System.out.println("✅ Kết nối DB thành công: " + !conn.isClosed());
             System.out.println("   URL: " + conn.getMetaData().getURL());

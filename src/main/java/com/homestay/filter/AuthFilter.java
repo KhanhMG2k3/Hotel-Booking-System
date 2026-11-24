@@ -1,5 +1,6 @@
 package com.homestay.filter;
 
+import com.homestay.dao.UserDAO;
 import com.homestay.model.User;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -21,11 +22,18 @@ import java.io.IOException;
         "/become-host/*",
         "/profile",
         "/profile/*",
+        "/my-bookings",
+        "/my-bookings/*",
         "/booking",
-        "/booking/*"
-        // Sau này muốn bảo vệ thêm URL nào thì chỉ cần thêm vào đây
+        "/booking/*",
+        "/support",
+        "/support/*",
+        "/checkout",
+        "/checkout/*"
 })
 public class AuthFilter implements Filter {
+
+    private final UserDAO userDAO = new UserDAO();
 
     @Override
     public void doFilter(
@@ -44,12 +52,17 @@ public class AuthFilter implements Filter {
             Object userAttribute = session.getAttribute("user");
             if (userAttribute instanceof User) {
                 user = (User) userAttribute;
+            } else if (session.getAttribute("userId") instanceof Number) {
+                int uid = ((Number) session.getAttribute("userId")).intValue();
+                user = userDAO.findById(uid).orElse(null);
+                if (user != null) {
+                    session.setAttribute("user", user);
+                }
             }
         }
 
         if (user == null) {
             // Chưa đăng nhập → chuyển về trang login
-            // Có thể thêm ?redirect=... nếu muốn quay lại trang cũ sau khi login
             httpResponse.sendRedirect(httpRequest.getContextPath() + "/login");
             return;
         }
